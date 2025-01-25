@@ -12,6 +12,8 @@ function initializeFileManager(csrf, currentDir, isEnc, encryptionKey) {
     });
 
 
+
+
     // Event delegation for directory navigation
     document.addEventListener('click', function (event) {
         if (event.target.classList.contains('directory-link')) {
@@ -66,7 +68,7 @@ function sendRequest(data, key, isEnc) {
             });
     });
 }
-function showRenameDialog(title, inputLabel, confirmButtonText, oldName, onConfirm) {
+function showDialog(title, inputLabel, confirmButtonText, oldName, onConfirm) {
     const isDarkMode = document.documentElement.classList.contains('dark');
 
     Swal.fire({
@@ -115,7 +117,7 @@ function showConfirmation(title, text, confirmButtonText, onConfirm) {
 }
 function renameFile(oldName, csrf, currentDir, key, isEnc) {
     // Call the SweetAlert2 dialog
-    showRenameDialog(
+    showDialog(
         'Rename File', // Title
         'Enter the new name for the file:', // Input label
         'Rename', // Confirm button text
@@ -136,6 +138,9 @@ function renameFile(oldName, csrf, currentDir, key, isEnc) {
         }
     );
 }
+ 
+
+
 function deleteFile(fileName, csrf, currentDir, key, isEnc) {
     console.log("currentDir : "+currentDir);
     showConfirmation(
@@ -292,7 +297,7 @@ function createFileRow(file, currentDir, csrf, key, isEnc) {
             </td>
         </tr>
     `;
-} 
+}
 function triggerAlert(type, message) {
     document.dispatchEvent(new CustomEvent('show-alert', {
         detail: { type: type, message: message }
@@ -537,18 +542,7 @@ function downloadFile(filePath, csrf, key, isEnc) {
         triggerAlert('warning', 'Failed to download file. Please try again.');
     });
 }
-
-function viewEditFile(filePath, csrf, key, isEnc) {
-    // Fetch file content from the server
-    sendRequest({ csrf, action: 'view_content', file: filePath }, key, isEnc)
-        .then(response => {
-            // Display the file content in a modal
-            showEditDialog(filePath, response.content, csrf, key, isEnc);
-        })
-        .catch(error => {
-            triggerAlert('warning', error);
-        });
-}
+ 
 
 function showEditDialog(filePath, content, csrf, key, isEnc) {
     const isDarkMode = document.documentElement.classList.contains('dark');
@@ -580,8 +574,9 @@ function showEditDialog(filePath, content, csrf, key, isEnc) {
         }
     });
 }
-
+ 
 function saveFileContent(filePath, content, csrf, key, isEnc) {
+    progr();
     const data = {
         csrf: csrf,
         action: 'save_content',
@@ -595,6 +590,10 @@ function saveFileContent(filePath, content, csrf, key, isEnc) {
         })
         .catch(error => {
             triggerAlert('warning', error);
+            dprogr
         });
+        dprogr();
 }
+
+
 
