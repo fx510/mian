@@ -450,32 +450,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     document.addEventListener('click', function (event) {
+     
         if (event.target.classList.contains('file-link')) {
             event.preventDefault(); // Prevent the default link behavior
             const filePath = event.target.dataset.file; // Get the file path
             viewEditFile(filePath, csrf, key, isEnc); // Call the viewEditFile function
         }
+     
+        
     });
+ 
 
-    document.addEventListener('click', function (event) {
-        if (event.target.classList.contains('fa-file-edit')) {
-            const filePath = event.target.dataset.file;
-            viewEditFile(filePath, csrf, key, isEnc);
-        }
-    });
-
-    function viewEditFile(filePath, csrf, key, isEnc) {
-        // Fetch file content from the server
-        sendRequest({ csrf, action: 'view_content', file: filePath }, key, isEnc)
-            .then(response => {
-                // Display the file content in the editor
-                document.getElementById('editorModal').classList.remove('hidden');
-                initializeEditor(response.content);
-            })
-            .catch(error => {
-                triggerAlert('warning', error);
-            });
-    }
+    
 
     document.getElementById('cancelEdit').addEventListener('click', function () {
         document.getElementById('editorModal').classList.add('hidden');
@@ -531,6 +517,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function viewEditFile(filePath, csrf, key, isEnc) {
         // Fetch file content from the server
+
         sendRequest({ csrf, action: 'view_content', file: filePath }, key, isEnc)
             .then(response => {
                 // Display the file content in the editor
@@ -538,24 +525,43 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('editorModal').dataset.filePath = filePath;
                 const language = getLanguageFromFileName(filePath);
                 initializeEditor(response.content, language);
+              
             })
             .catch(error => {
                 triggerAlert('warning', error);
             });
+          
     }
 
+    let editorInitialized = false;
+
     function initializeEditor(content, language = 'plaintext') {
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' } });
-        require(['vs/editor/editor.main'], function () {
-            editor = monaco.editor.create(document.getElementById('editorContainer'), {
-                value: content,
-                language: language,
-                theme: document.documentElement.classList.contains('dark') ? 'vs-dark' : 'vs',
-                automaticLayout: true,
-                lineNumbers: 'on',
-                minimap: { enabled: false }
+        progr();
+        if (!editorInitialized) {
+            require.config({
+                paths: {
+                    'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs'
+                }
             });
+            require(['vs/editor/editor.main'], function () {
+                editorInitialized = true;
+                createEditor(content, language);
+            });
+        } else {
+            createEditor(content, language);
+        }
+    }
+    
+    function createEditor(content, language) {
+        editor = monaco.editor.create(document.getElementById('editorContainer'), {
+            value: content,
+            language: language,
+            theme: document.documentElement.classList.contains('dark') ? 'vs-dark' : 'vs',
+            automaticLayout: true,
+            lineNumbers: 'on',
+            minimap: { enabled: false }
         });
+        dprogr();
     }
 
 
