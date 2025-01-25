@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function () {
             breadcrumbsHtml += `
                 <li class="inline-flex items-center">
                     <i class="fas fa-chevron-right mx-2 text-gray-500"></i>
-                    <a href="#" class="breadcrumb-link" data-path="${partialPath}">${part}</a>
+                    <a href="#" class="breadcrumb-link text-gray-500" data-path="${partialPath}">${part}</a>
                 </li>
             `;
         });
