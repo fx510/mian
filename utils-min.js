@@ -292,7 +292,7 @@ function createFileRow(file, currentDir, csrf, key, isEnc) {
             </td>
         </tr>
     `;
-}
+} 
 function triggerAlert(type, message) {
     document.dispatchEvent(new CustomEvent('show-alert', {
         detail: { type: type, message: message }
