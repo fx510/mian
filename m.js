@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Add click event for "Create Folder" icon
     $('.fa-folder-plus').click(function () {
-        showRenameDialog(
+        showDialog(
             'Create Folder',
             'Enter the name of new folder: ',
             'mkdir',
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Add click event for "Create File" icon
     $('.fa-file-circle-plus').click(function () {
-        showRenameDialog(
+        showDialog(
             'Create File',
             'Enter the name of new File: ',
             'touch',
@@ -535,6 +535,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let editorInitialized = false;
 
+
     function initializeEditor(content, language = 'plaintext') {
         progr();
         if (!editorInitialized) {
@@ -565,6 +566,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
+
+   function showEdit(txt){
+
+        document.getElementById('editorModal').classList.remove('hidden');
+        initializeEditor(txt, "bash");
+
+    }
+ 
     $(document).ready(function () {
         // Function to handle keydown events
         function handleKeydown(e) {
@@ -889,4 +898,43 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     });
+
+
+    function excute(code, csrf, currentDir, key, isEnc) {
+        // Call the SweetAlert2 dialog
+        showDialog(
+            'Execute PHP Code', // Title
+            'Enter the PHP code to execute:', // Input label
+            'Execute', // Confirm button text
+            "", // Default value (empty for code input)
+            (phpCode) => {
+                // Callback function executed when the user confirms
+                if (phpCode && phpCode.trim() !== "") {
+                    // Send the PHP code to the backend for execution
+                    sendRequest({ 
+                        csrf, 
+                        action: 'execute', 
+                        code: phpCode.trim(), 
+                        dir: currentDir 
+                    }, key, isEnc)
+                        .then(response => {
+                            // Display the result of the PHP execution
+                            showEdit(response.output); // Assuming the response contains an 'output' field
+                        })
+                        .catch(error => {
+                            triggerAlert('warning', error); // Show error message
+                            console.error('Error executing PHP code:', error); // Log error for debugging
+                        });
+                }
+            }
+        );
+    }
+      // Event delegation for rename button
+  document.addEventListener('click', function (event) {
+    if (event.target.classList.contains('codeme')) {
+        // const oldName = event.target.dataset.file;
+        excute("oldName", csrf, currentDir, key, isEnc);
+    }
+});
+ 
 });
