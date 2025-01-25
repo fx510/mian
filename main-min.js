@@ -152,11 +152,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // Infinite scroll
     $(window).on('scroll', function () {
         if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
-            // const itemLimitElement = document.getElementById('itemLimit').value;
+            let itemLimitElement = document.getElementById('itemLimit').value;
             if (fileManagerState.currentPage < fileManagerState.totalPages && !fileManagerState.isLoading) {
-                // alert(itemLimitElement);
+                // alert(fileManagerState.currentPage);
                 fileManagerState.currentPage++;
-                loadDirectory(currentDir, fileManagerState.currentPage, csrf, key, isEnc);
+                loadDirectory(currentDir, fileManagerState.currentPage, csrf, key, isEnc,itemLimitElement);
             }
         }
     });
@@ -183,13 +183,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // Event listener for directory links
     $(document).on('click', '.directory-link', function (e) {
         e.preventDefault();
+        let itemLimitElement = document.getElementById('itemLimit').value;
+
         const newDir = $(this).data('path');
         if (newDir && newDir !== currentDir) {
-            currentDir = newDir; // Update current directory
+            currentDir = newDir;  
             updir = currentDir;
             console.log(updir);
-            updateCurrentPath(); // Update the UI
-            loadDirectory(currentDir, 1, csrf, key, isEnc); // Load the new directory
+            updateCurrentPath(); 
+            loadDirectory(currentDir, 1, csrf, key, isEnc,itemLimitElement);  
         }
     });
 
