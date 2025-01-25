@@ -1,38 +1,600 @@
-function initializeFileManager(e,t,r,a){let i="1"===r?a:"null";document.addEventListener("click",function(a){if(a.target.classList.contains("fa-edit")){let n=a.target.dataset.file;renameFile(n,e,t,i,r)}}),document.addEventListener("click",function(a){if(a.target.classList.contains("directory-link")){a.preventDefault();let n=a.target.dataset.path;n&&n!==t&&loadDirectory(t=n,1,e,i,r)}}),loadDirectory(t,1,e,i,r)}function sendRequest(e,t,r){if(!e.csrf)throw Error("CSRF token is missing.");let a=JSON.stringify(e),i="1"===r?encrypt(a,t):a;return new Promise((e,a)=>{$.post("",i).done(i=>{try{let n="1"===r?decrypt(i,t):i,o=JSON.parse(n);o.error?a(o.error):e(o)}catch(l){a("Failed to parse server response."),triggerAlert("warning","Failed to parse server response")}}).fail((e,t,r)=>{a(`Network error: ${t} - ${r}`),triggerAlert("warning","Failed to response")})})}function showRenameDialog(e,t,r,a,i){let n=document.documentElement.classList.contains("dark");Swal.fire({title:e,input:"text",inputLabel:t,inputValue:a,showCancelButton:!0,confirmButtonText:r,cancelButtonText:"Cancel",customClass:{popup:n?"bg-gray-900 text-white":"bg-white text-gray-900",confirmButton:n?"bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded":"bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded",cancelButton:n?"bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded":"bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded",input:n?"bg-gray-800 text-white border-gray-700":"bg-white text-gray-900 border-gray-300"}}).then(e=>{if(e.isConfirmed){let t=e.value.trim();i(t)}})}function showConfirmation(e,t,r,a){let i=document.documentElement.classList.contains("dark");Swal.fire({title:e,text:t,icon:"warning",showCancelButton:!0,confirmButtonText:r,cancelButtonText:"Cancel",customClass:{popup:i?"bg-gray-900 text-white":"bg-white text-gray-900",confirmButton:i?"bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded":"bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded",cancelButton:i?"bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded":"bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"}}).then(e=>{e.isConfirmed&&a()})}function renameFile(e,t,r,a,i){showRenameDialog("Rename File","Enter the new name for the file:","Rename",e,n=>{n&&n.trim()!==e&&sendRequest({csrf:t,action:"rename",oldName:e,newName:n.trim(),dir:r},a,i).then(()=>{triggerAlert("success","File renamed successfully!"),loadDirectory(r,1,t,a,i)}).catch(e=>{triggerAlert("warning",e),console.error("Error renaming file:",e)})})}function deleteFile(e,t,r,a,i){console.log("currentDir : "+r),showConfirmation("Delete File",`Are you sure you want to delete "${e}"?`,"Delete",()=>{sendRequest({csrf:t,action:"delete",file:e,dir:r},a,i).then(()=>{triggerAlert("success",`"${e}" has been deleted successfully!`),loadDirectory(r,1,t,a,i)}).catch(e=>{triggerAlert("warning",e),console.error("Error deleting file:",e)})})}function progr(){isLoading||(isLoading=!0,NProgress.start())}function dprogr(){NProgress.done(),isLoading=!1}function loadDirectory(e,t,r,a,i,n=40){progr();let o=JSON.stringify({csrf:r,action:"list",dir:e,page:t,itemsPerPage:n}),l="1"===i?encrypt(o,a):o;$.post("",l,function(n){handleDirectoryResponse(n,i,a,e,t,r),dprogr()}).fail(function(){triggerAlert("warning","An error occurred while loading the directory."),dprogr()})}function handleDirectoryResponse(e,t,r,a,i,n){try{let o="1"===t?decrypt(e,r):e;if(o){let l=JSON.parse(o);l.error?triggerAlert("warning",l.error):(fileManagerState.files=l.files,fileManagerState.totalPages=l.totalPages,1===i?renderFiles(l.files,a,n,r,t):appendFiles(l.files,a,n,r,t),$("#currentPath").text("Current Path: "+a))}else triggerAlert("warning","Failed to decrypt response.")}catch(s){triggerAlert("warning","An error occurred while loading the directory."),console.error("Error:",s.message)}}function createFileRow(e,t,r,a,i){if(".."===e.name){let n=t.split("/").slice(0,-1).join("/")||"/";return`
-            <tr class="border-b border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-700">
-                <td class="py-1 px-3 text-left">
-                    <input type="checkbox" class="file-checkbox" data-file="${t+"/"+e.name}" disabled />
-                </td>
-                <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">
-                    <i class="fas ${e.icon} mr-2"></i>
-                    <a href="#" class="font-medium directory-link" data-path="${n}">${e.name}</a>
-                </td>
-                <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${e.size}</td>
-                <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${e.mtime}</td>
-                <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${e.owner}</td>
-                <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${e.perms}</td>
-                <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300"></td>
-            </tr>
-        `}return`
+
+function initializeFileManager(csrf, currentDir, isEnc, encryptionKey) {
+    const key = isEnc === '1' ? (encryptionKey) : "null";
+
+
+    // Event delegation for rename button
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('fa-edit')) {
+            const oldName = event.target.dataset.file;
+            renameFile(oldName, csrf, currentDir, key, isEnc);
+        }
+    });
+
+
+    // Event delegation for directory navigation
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('directory-link')) {
+            event.preventDefault();
+            const newDir = event.target.dataset.path;
+            if (newDir && newDir !== currentDir) {
+                currentDir = newDir;
+                loadDirectory(currentDir, 1, csrf, key, isEnc);
+            }
+        }
+    });
+
+
+    // Load the initial directory
+    loadDirectory(currentDir, 1, csrf, key, isEnc);
+}
+
+
+function sendRequest(data, key, isEnc) {
+    // Ensure CSRF token is included in every request
+    if (!data.csrf) {
+        throw new Error('CSRF token is missing.');
+    }
+ 
+    const jsonData = JSON.stringify(data);
+    const encryptedData = ( isEnc === '1') ? encrypt(jsonData, key) : jsonData;
+ 
+ 
+
+    return new Promise((resolve, reject) => {
+        $.post('', encryptedData)
+            .done(response => {
+                try {
+                    let decryptedResponse = isEnc === '1' ? decrypt(response, key) : response;
+                    const result = JSON.parse(decryptedResponse);
+
+                    if (result.error) {
+                        reject(result.error); // Handle server-side errors
+                    } else {
+                        resolve(result); // Success
+                    }
+                } catch (error) {
+                    reject('Failed to parse server response.');
+                    triggerAlert('warning', "Failed to parse server response");
+
+                }
+            })
+            .fail((jqXHR, textStatus, errorThrown) => {
+                reject(`Network error: ${textStatus} - ${errorThrown}`);
+                triggerAlert('warning', "Failed to response");
+
+            });
+    });
+}
+function showRenameDialog(title, inputLabel, confirmButtonText, oldName, onConfirm) {
+    const isDarkMode = document.documentElement.classList.contains('dark');
+
+    Swal.fire({
+        title: title,
+        input: 'text',
+        inputLabel: inputLabel,
+        inputValue: oldName,
+        showCancelButton: true,
+        confirmButtonText: confirmButtonText,
+        cancelButtonText: 'Cancel',
+        customClass: {
+            popup: isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900',
+            confirmButton: isDarkMode ? 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' : 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded',
+            cancelButton: isDarkMode ? 'bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded' : 'bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded',
+            input: isDarkMode ? 'bg-gray-800 text-white border-gray-700' : 'bg-white text-gray-900 border-gray-300'
+        },
+
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const newName = result.value.trim();
+            onConfirm(newName); // Execute the callback with the new value
+        }
+    });
+}
+// confirm 
+function showConfirmation(title, text, confirmButtonText, onConfirm) {
+    const isDarkMode = document.documentElement.classList.contains('dark');
+
+    Swal.fire({
+        title: title,
+        text: text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: confirmButtonText,
+        cancelButtonText: 'Cancel',
+        customClass: {
+            popup: isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900',
+            confirmButton: isDarkMode ? 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded' : 'bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded',
+            cancelButton: isDarkMode ? 'bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded' : 'bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            onConfirm(); // Execute the callback if the user confirms
+        }
+    });
+}
+function renameFile(oldName, csrf, currentDir, key, isEnc) {
+    // Call the SweetAlert2 dialog
+    showRenameDialog(
+        'Rename File', // Title
+        'Enter the new name for the file:', // Input label
+        'Rename', // Confirm button text
+        oldName, // Current name
+        (newName) => {
+            // Callback function executed when the user confirms
+            if (newName && newName.trim() !== oldName) {
+                sendRequest({ csrf, action: 'rename', oldName, newName: newName.trim(), dir: currentDir }, key, isEnc)
+                    .then(() => {
+                        triggerAlert('success', 'File renamed successfully!');
+                        loadDirectory(currentDir, 1, csrf, key, isEnc); // Reload directory
+                    })
+                    .catch(error => {
+                        triggerAlert('warning', error); // Show error message
+                        console.error('Error renaming file:', error); // Log error for debugging
+                    });
+            }
+        }
+    );
+}
+function deleteFile(fileName, csrf, currentDir, key, isEnc) {
+    console.log("currentDir : "+currentDir);
+    showConfirmation(
+        'Delete File', // Title
+        `Are you sure you want to delete "${fileName}"?`, // Text
+        'Delete', // Confirm button text
+        () => {
+            // Callback function executed when the user confirms
+            sendRequest({ csrf, action: 'delete', file: fileName, dir: currentDir }, key, isEnc)
+                .then(() => {
+                    triggerAlert('success', `"${fileName}" has been deleted successfully!`);
+                    loadDirectory(currentDir, 1, csrf, key, isEnc); // Reload directory
+                })
+                .catch(error => {
+                    triggerAlert('warning', error); // Show error message
+                    console.error('Error deleting file:', error); // Log error for debugging
+                });
+        }
+    );
+}
+// function handleDirectoryResponse(response, isEnc, key, dir, page, csrf) {
+
+//     let decryptedResponse = isEnc === '1' ? decrypt(response, key) : response;
+//     console.log(key);
+//     const result = JSON.parse(decryptedResponse);
+
+//     try {
+
+
+//         // console.log(response);
+
+
+//         if (result.error) {
+//             triggerAlert('warning', result.error);
+//         } else {
+//             fileManagerState.totalPages = result.totalPages;
+
+//             if (page === 1) {
+//                 fileManagerState.files = result.files; // Reset files for the first page
+//                 renderFiles(result.files, dir, csrf, key, isEnc);
+//             } else {
+//                 fileManagerState.files = fileManagerState.files.concat(result.files); // Append new files
+//                 appendFiles(result.files, dir, csrf, key, isEnc);
+//             }
+
+//         }
+
+//     } catch (error) {
+//         // triggerAlert('warning', 'An error occurred while loading the directory.');
+//         // Log detailed error information to the console for debugging
+//         // console.error('POST Request Failed:',error);
+//         console.error(error);
+
+
+//         // console.error('Response Text:', error.message);
+//     }
+// }
+function progr() {
+    if (isLoading) return;
+    isLoading = true;
+    NProgress.start();
+
+}
+function dprogr() {
+    NProgress.done();
+    isLoading = false;
+
+}
+function loadDirectory(dir, page, csrf, key, isEnc , itemsPerPage = 40) {
+
+    progr();
+     const data = {
+        csrf: csrf,
+        action: 'list',
+        dir: dir,
+        page: page,
+        itemsPerPage: itemsPerPage
+    };
+    const jsonData = JSON.stringify(data);
+
+
+    const encryptedData = isEnc === '1' ? encrypt(jsonData, key) : jsonData;
+
+    $.post('', encryptedData, function (response) {
+        handleDirectoryResponse(response, isEnc, key, dir, page, csrf);
+        dprogr();
+    }).fail(function () {
+        triggerAlert('warning', 'An error occurred while loading the directory.');
+        dprogr();
+
+
+    });
+}
+
+function handleDirectoryResponse(response, isEnc, key, dir, page, csrf) {
+    try {
+        let decryptedResponse = isEnc === '1' ? decrypt(response, key) : response;
+
+        if (decryptedResponse) {
+            const result = JSON.parse(decryptedResponse);
+
+            if (result.error) {
+                triggerAlert('warning', result.error);
+            } else {
+                fileManagerState.files = result.files;
+                fileManagerState.totalPages = result.totalPages;
+
+                if (page === 1) {
+                    renderFiles(result.files, dir, csrf, key, isEnc);
+                } else {
+                    appendFiles(result.files, dir, csrf, key, isEnc);
+                }
+
+                $('#currentPath').text('Current Path: ' + dir); // Update the current path in the UI
+            }
+        } else {
+            triggerAlert('warning', 'Failed to decrypt response.');
+        }
+    } catch (error) {
+        triggerAlert('warning', 'An error occurred while loading the directory.');
+        console.error('Error:', error.message);
+    }
+}
+
+function createFileRow(file, currentDir, csrf, key, isEnc) {
+    // Determine the color for file.perms based on the 'wr' key
+    const permsColor = file.wr ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+
+    return `
         <tr class="border-b border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-700">
             <td class="py-1 px-3 text-left">
-                <input type="checkbox" class="file-checkbox" data-file="${t+"/"+e.name}" />
+                <input type="checkbox" class="file-checkbox" data-file="${currentDir + '/' + file.name}" />
             </td>
             <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">
-                <i class="fas ${e.icon} mr-2"></i>
-                ${e.is_dir?`<a href="#" class="font-medium directory-link" data-path="${t}/${e.name}">${e.name}</a>`:e.name}
+                <i class="fas ${file.icon} mr-2"></i>
+                ${file.is_dir
+                    ? `<a href="#" class="font-medium directory-link" data-path="${currentDir}/${file.name}">${file.name}</a>`
+                    : `<a href="#" class="font-medium file-link" data-file="${currentDir + '/' + file.name}">${file.name}</a>`
+                }
             </td>
-            <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${e.size}</td>
-            <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${e.mtime}</td>
-            <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${e.owner}</td>
-            <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${e.perms}</td>
+            <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${file.size}</td>
+            <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${file.mtime}</td>
+            <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${file.owner}</td>
+            <td class="py-3 px-6 text-left ${permsColor}">${file.perms}</td>
             <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">
-                ${e.is_dir?`<i class="fas fa-edit text-yellow-600 dark:text-yellow-400 mr-2" title="Rename" data-file="${e.name}"></i>
-                <i class="fas fa-trash-alt text-red-600 dark:text-red-400" title="Delete" data-file="${e.name}"></i>`:`<i class="fas fa-edit text-yellow-600 dark:text-yellow-400 mr-2" title="Rename" data-file="${e.name}"></i>
-                      <i class="fas fa-trash-alt text-red-600 dark:text-red-400" title="Delete" data-file="${t+"/"+e.name}"></i>
-                      <i class="fas fa-file-edit text-blue-600 dark:text-blue-400" title="View/Edit" data-file="${t+"/"+e.name}"></i>`}
+                ${!file.is_dir
+                    ? `<i class="fas fa-edit text-yellow-600 dark:text-yellow-400 mr-2" title="Rename" data-file="${file.name}"></i>
+                       <i class="fas fa-trash-alt text-red-600 dark:text-red-400 mr-2" title="Delete" data-file="${currentDir + '/' + file.name}"></i>
+                       
+                       <i class="fas fa-download text-green-600 dark:text-green-400" title="Download" data-file="${currentDir + '/' + file.name}"></i>`
+                    : `<i class="fas fa-edit text-yellow-600 dark:text-yellow-400 mr-2" title="Rename" data-file="${file.name}"></i>
+                       <i class="fas fa-trash-alt text-red-600 dark:text-red-400" title="Delete" data-file="${file.name}"></i>`
+                }
             </td>
         </tr>
-    `}function triggerAlert(e,t){document.dispatchEvent(new CustomEvent("show-alert",{detail:{type:e,message:t}}))}function encrypt(e,t){return CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse(e),t,{mode:CryptoJS.mode.ECB,padding:CryptoJS.pad.Pkcs7}).toString()}function decrypt(e,t){return CryptoJS.AES.decrypt(e,t,{mode:CryptoJS.mode.ECB,padding:CryptoJS.pad.Pkcs7}).toString(CryptoJS.enc.Utf8)}function renderFiles(e,t,r,a,i){let n=$("#searchBar").val().toLowerCase(),o=document.getElementById("fileList"),l=e.filter(e=>e.name.toLowerCase().includes(n));o.innerHTML=l.map(e=>createFileRow(e,t,r,a,i)).join("")}function appendFiles(e,t,r,a,i){let n=$("#searchBar").val().toLowerCase(),o=document.getElementById("fileList"),l=e.filter(e=>e.name.toLowerCase().includes(n)),s=l.map(e=>createFileRow(e,t,r,a,i)).join("");o.innerHTML+=s}function sortFiles(){let{column:e,direction:t}=fileManagerState.currentSort;fileManagerState.files.sort((r,a)=>{let i,n;switch(e){case"name":default:i=r.name.toLowerCase(),n=a.name.toLowerCase();break;case"size":i="dir"===r.size?-1:parseFloat(r.size),n="dir"===a.size?-1:parseFloat(a.size);break;case"mtime":i=new Date(r.mtime).getTime(),n=new Date(a.mtime).getTime();break;case"owner":i=r.owner.toLowerCase(),n=a.owner.toLowerCase();break;case"perms":i=r.perms,n=a.perms}return"asc"===t?i>n?1:-1:i<n?1:-1})}function updateSelectedFiles(e,t){t?fileManagerState.selectedFiles.push(e):fileManagerState.selectedFiles=fileManagerState.selectedFiles.filter(t=>t!==e),console.log("Selected Files:",fileManagerState.selectedFiles)}function performBulkAction(e,t,r,a,i,n,o=""){progr();let l=JSON.stringify({csrf:a,action:e,file:t,dir:r,zipExt:o}),s="1"===n?encrypt(l,i):l;$.post("",s,function(e){handleBulkActionResponse(e,n,i,r,a),resBulk(),dprogr()}).fail(function(){triggerAlert("warning","An error occurred while performing the bulk action."),dprogr()})}function handleBulkActionResponse(e,t,r,a,i){try{let n="1"===t?decrypt(e,r):e,o=JSON.parse(n);console.error("result:",t),o.error?triggerAlert("warning",o.error):(triggerAlert("success","Bulk action completed successfully!"),loadDirectory(a,1,i,r,t),fileManagerState.selectedFiles=[],document.getElementById("selectAll").checked=!1,resBulk()),freeclipbroad()}catch(l){triggerAlert("warning","Failed to parse server response."),freeclipbroad(),console.error("Error:"+l)}}function resBulk(){document.getElementById("bulkActions").value=""}function saveToLocalStorage(e){try{localStorage.setItem("copiedFiles",JSON.stringify(e)),console.log("File names saved to localStorage:",e)}catch(t){console.error("Failed to save file names to localStorage:",t),triggerAlert("warning","Failed to save file names to local storage.")}}function getFromLocalStorage(){try{let e=JSON.parse(localStorage.getItem("copiedFiles"));return console.log("File names retrieved from localStorage:",e),e||[]}catch(t){return console.error("Failed to retrieve file names from localStorage:",t),triggerAlert("warning","Failed to retrieve file names from local storage."),[]}}function freeclipbroad(){localStorage.getItem("copiedFiles"),localStorage.removeItem("copiedFiles")}function handleCreate(e,t,r,a,i,n){if(!["file","folder"].includes(t)){triggerAlert("warning","Invalid type. Only file or folder are allowed");return}sendRequest(e,r,a).then(()=>{loadDirectory(i,1,n,r,a)}).catch(e=>{triggerAlert("warning",e)})}function viewEditFile(e,t,r,a){sendRequest({csrf:t,action:"view_content",file:e},r,a).then(i=>{showEditDialog(e,i.content,t,r,a)}).catch(e=>{triggerAlert("warning",e)})}function showEditDialog(e,t,r,a,i){let n=document.documentElement.classList.contains("dark");Swal.fire({title:"Edit File Content",html:`
-            <textarea id="fileContent" class="w-full h-64 p-2 border rounded ${n?"bg-gray-800 text-white border-gray-700":"bg-white text-gray-900 border-gray-300"}">${t}</textarea>
-        `,showCancelButton:!0,confirmButtonText:"Save",cancelButtonText:"Cancel",customClass:{popup:n?"bg-gray-900 text-white":"bg-white text-gray-900",confirmButton:n?"bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded":"bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded",cancelButton:n?"bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded":"bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded",input:n?"bg-gray-800 text-white border-gray-700":"bg-white text-gray-900 border-gray-300"},didOpen(){document.getElementById("fileContent").focus()}}).then(t=>{if(t.isConfirmed){let n=document.getElementById("fileContent").value;saveFileContent(e,n,r,a,i)}})}function saveFileContent(e,t,r,a,i){sendRequest({csrf:r,action:"save_content",file:e,content:t},a,i).then(()=>{triggerAlert("success","File content saved successfully!")}).catch(e=>{triggerAlert("warning",e)})}
+    `;
+}
+function triggerAlert(type, message) {
+    document.dispatchEvent(new CustomEvent('show-alert', {
+        detail: { type: type, message: message }
+    }));
+}
+
+function encrypt(message, key) {
+    return CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse(message), key, {
+        mode: CryptoJS.mode.ECB,
+        padding: CryptoJS.pad.Pkcs7
+    }).toString();
+}
+
+function decrypt(encryptedMessage, key) {
+    return CryptoJS.AES.decrypt(encryptedMessage, key, {
+        mode: CryptoJS.mode.ECB,
+        padding: CryptoJS.pad.Pkcs7
+    }).toString(CryptoJS.enc.Utf8);
+}
+
+
+function renderFiles(files, currentDir, csrf, key, isEnc) {
+    const searchQuery = $('#searchBar').val().toLowerCase();
+    const fileList = document.getElementById('fileList');
+
+    // Filter files based on the search query
+    const filteredFiles = files.filter(file =>
+        file.name.toLowerCase().includes(searchQuery)
+    );
+
+    // Generate HTML for filtered files
+    fileList.innerHTML = filteredFiles.map(file => createFileRow(file, currentDir, csrf, key, isEnc)).join('');
+}
+
+function appendFiles(files, currentDir, csrf, key, isEnc) {
+    const searchQuery = $('#searchBar').val().toLowerCase();
+    const fileList = document.getElementById('fileList');
+
+    // Filter files based on the search query
+    const filteredFiles = files.filter(file =>
+        file.name.toLowerCase().includes(searchQuery)
+    );
+
+    // Generate HTML for filtered files and append to the list
+    const html = filteredFiles.map(file => createFileRow(file, currentDir, csrf, key, isEnc)).join('');
+    fileList.innerHTML += html;
+}
+function sortFiles() {
+    const { column, direction } = fileManagerState.currentSort;
+
+    fileManagerState.files.sort((a, b) => {
+        let valueA, valueB;
+
+        // Handle different columns
+        switch (column) {
+            case 'name':
+                valueA = a.name.toLowerCase();
+                valueB = b.name.toLowerCase();
+                break;
+            case 'size':
+                valueA = a.size === 'dir' ? -1 : parseFloat(a.size);
+                valueB = b.size === 'dir' ? -1 : parseFloat(b.size);
+                break;
+            case 'mtime':
+                valueA = new Date(a.mtime).getTime();
+                valueB = new Date(b.mtime).getTime();
+                break;
+            case 'owner':
+                valueA = a.owner.toLowerCase();
+                valueB = b.owner.toLowerCase();
+                break;
+            case 'perms':
+                valueA = a.perms;
+                valueB = b.perms;
+                break;
+            default:
+                valueA = a.name.toLowerCase();
+                valueB = b.name.toLowerCase();
+        }
+
+        // Handle sorting direction
+        if (direction === 'asc') {
+            return valueA > valueB ? 1 : -1;
+        } else {
+            return valueA < valueB ? 1 : -1;
+        }
+    });
+}
+
+function updateSelectedFiles(fileName, isChecked) {
+    if (isChecked) {
+        fileManagerState.selectedFiles.push(fileName);
+    } else {
+        fileManagerState.selectedFiles = fileManagerState.selectedFiles.filter(file => file !== fileName);
+    }
+    console.log('Selected Files:', fileManagerState.selectedFiles); // Debug
+}
+
+function performBulkAction(action, files, currentDir, csrf, key, isEnc, zipFileName = '') {
+    progr();
+    const data = {
+        csrf: csrf,
+        action: action,
+        file: files,
+        dir: currentDir,
+        zipExt: zipFileName
+    };
+    const jsonData = JSON.stringify(data);
+    const encryptedData = ( isEnc === '1') ? encrypt(jsonData, key) : jsonData;
+ 
+    $.post('', encryptedData, function (response) {
+        handleBulkActionResponse(response, isEnc, key, currentDir, csrf);
+        resBulk();
+        dprogr();
+    }).fail(function () {
+        triggerAlert('warning', 'An error occurred while performing the bulk action.');
+        dprogr();
+
+    });
+}
+
+function handleBulkActionResponse(response, isEnc, key, currentDir, csrf) {
+    try {
+        let decryptedResponse = isEnc === '1' ? decrypt(response, key) : response;
+        const result = JSON.parse(decryptedResponse);
+        console.error('result:', isEnc);
+
+        if (result.error) {
+            triggerAlert('warning', result.error);
+        } else {
+            triggerAlert('success', 'Bulk action completed successfully!');
+            loadDirectory(currentDir, 1, csrf, key, isEnc); // Reload directory
+            fileManagerState.selectedFiles = []; // Clear selected files
+            document.getElementById('selectAll').checked = false; // Uncheck "Select All"
+            resBulk();
+
+        }
+        freeclipbroad();
+    } catch (error) {
+        triggerAlert('warning', 'Failed to parse server response.');
+        freeclipbroad();
+        console.error('Error:'+ error);
+    }
+}
+
+
+function resBulk() {
+    // Reset to the default option
+    let bulkActionsDropdown = document.getElementById('bulkActions');
+    bulkActionsDropdown.value = '';
+}
+// Function to save file names to localStorage
+function saveToLocalStorage(fileNames) {
+    try {
+        localStorage.setItem('copiedFiles', JSON.stringify(fileNames));
+        console.log('File names saved to localStorage:', fileNames);
+    } catch (error) {
+        console.error('Failed to save file names to localStorage:', error);
+        triggerAlert('warning', 'Failed to save file names to local storage.');
+    }
+}
+
+// Function to retrieve file names from localStorage
+function getFromLocalStorage() {
+    try {
+        const fileNames = JSON.parse(localStorage.getItem('copiedFiles'));
+        console.log('File names retrieved from localStorage:', fileNames);
+        return fileNames || [];
+    } catch (error) {
+        console.error('Failed to retrieve file names from localStorage:', error);
+        triggerAlert('warning', 'Failed to retrieve file names from local storage.');
+        return [];
+    }
+}
+
+function freeclipbroad() {
+    localStorage.getItem('copiedFiles')
+    localStorage.removeItem('copiedFiles');
+
+}
+function handleCreate(data, type, key, isEnc, currentDir, csrf) {
+    if (!['file', 'folder'].includes(type)) {
+        triggerAlert("warning", "Invalid type. Only file or folder are allowed");
+        return;
+    }
+
+ 
+    sendRequest(data, key, isEnc)
+
+        .then(() => {
+            loadDirectory(currentDir, 1, csrf, key, isEnc); // Reload directory
+        })
+        .catch(error => {
+            triggerAlert('warning', error); // Show error message
+        });
+
+
+}
+
+function downloadFile(filePath, csrf, key, isEnc) {
+    const data = {
+        csrf: csrf,
+        action: 'download',
+        file: filePath
+    };
+
+    const jsonData = JSON.stringify(data);
+    const encryptedData = isEnc === '1' ? encrypt(jsonData, key) : jsonData;
+
+    // Send the request to the server
+    fetch('', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: encryptedData
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.blob(); // Get the file as a Blob
+        } else {
+            throw new Error('Failed to download file');
+        }
+    })
+    .then(blob => {
+        // Create a temporary URL for the Blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a link element and trigger the download
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filePath.split('/').pop(); // Set the file name
+        document.body.appendChild(a);
+        a.click();
+
+        // Clean up
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    })
+    .catch(error => {
+        console.error('Error downloading file:', error);
+        triggerAlert('warning', 'Failed to download file. Please try again.');
+    });
+}
+
+function viewEditFile(filePath, csrf, key, isEnc) {
+    // Fetch file content from the server
+    sendRequest({ csrf, action: 'view_content', file: filePath }, key, isEnc)
+        .then(response => {
+            // Display the file content in a modal
+            showEditDialog(filePath, response.content, csrf, key, isEnc);
+        })
+        .catch(error => {
+            triggerAlert('warning', error);
+        });
+}
+
+function showEditDialog(filePath, content, csrf, key, isEnc) {
+    const isDarkMode = document.documentElement.classList.contains('dark');
+
+    Swal.fire({
+        title: 'Edit File Content',
+        html: `
+            <textarea id="fileContent" class="w-full h-64 p-2 border rounded ${
+                isDarkMode ? 'bg-gray-800 text-white border-gray-700' : 'bg-white text-gray-900 border-gray-300'
+            }">${content}</textarea>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        cancelButtonText: 'Cancel',
+        customClass: {
+            popup: isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900',
+            confirmButton: isDarkMode ? 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' : 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded',
+            cancelButton: isDarkMode ? 'bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded' : 'bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded',
+            input: isDarkMode ? 'bg-gray-800 text-white border-gray-700' : 'bg-white text-gray-900 border-gray-300'
+        },
+        didOpen: () => {
+            // Focus the textarea when the modal opens
+            document.getElementById('fileContent').focus();
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const newContent = document.getElementById('fileContent').value;
+            saveFileContent(filePath, newContent, csrf, key, isEnc);
+        }
+    });
+}
+
+function saveFileContent(filePath, content, csrf, key, isEnc) {
+    const data = {
+        csrf: csrf,
+        action: 'save_content',
+        file: filePath,
+        content: content
+    };
+
+    sendRequest(data, key, isEnc)
+        .then(() => {
+            triggerAlert('success', 'File content saved successfully!');
+        })
+        .catch(error => {
+            triggerAlert('warning', error);
+        });
+}
+
