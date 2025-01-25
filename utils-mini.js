@@ -267,7 +267,7 @@ function createFileRow(file, currentDir, csrf, key, isEnc) {
     return `
         <tr class="border-b border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-700">
             <td class="py-1 px-3 text-left">
-                <input type="checkbox" class="file-checkbox" data-file="${currentDir + '/' + file.name}" />
+                <input type="checkbox" class="file-checkbox peer relative size-4 cursor-pointer appearance-none overflow-hidden rounded border border-gray-500 bg-gray-200 before:absolute before:inset-0 checked:border-sky-900 checked:before:bg-sky-900 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-gray-900 checked:focus:outline-sky-900 active:outline-offset-0 disabled:cursor-not-allowed dark:border-gray-500 dark:bg-gray-800 dark:checked:border-sky-400 dark:checked:before:bg-sky-400 dark:focus:outline-gray-300 dark:checked:focus:outline-sky-400"  data-file="${file.name}" />
             </td>
             <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">
                 <i class="fas ${file.icon} mr-2"></i>
