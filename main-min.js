@@ -141,10 +141,20 @@ document.addEventListener('DOMContentLoaded', function () {
         renderFiles(fileManagerState.files, currentDir, csrf, key, isEnc);
     });
 
+    
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('fa-download')) {
+            const filePath = event.target.dataset.file;
+            downloadFile(filePath, csrf, key, isEnc);
+        }
+    });
+
     // Infinite scroll
     $(window).on('scroll', function () {
         if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
+            // const itemLimitElement = document.getElementById('itemLimit').value;
             if (fileManagerState.currentPage < fileManagerState.totalPages && !fileManagerState.isLoading) {
+                // alert(itemLimitElement);
                 fileManagerState.currentPage++;
                 loadDirectory(currentDir, fileManagerState.currentPage, csrf, key, isEnc);
             }
@@ -437,7 +447,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-  
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('file-link')) {
+            event.preventDefault(); // Prevent the default link behavior
+            const filePath = event.target.dataset.file; // Get the file path
+            viewEditFile(filePath, csrf, key, isEnc); // Call the viewEditFile function
+        }
+    });
 
     document.addEventListener('click', function (event) {
         if (event.target.classList.contains('fa-file-edit')) {
