@@ -1,1 +1,4708 @@
-function initThemeToggle(){const e=document.getElementById("theme-toggle");"dark"===localStorage.getItem("color-theme")||!localStorage.getItem("color-theme")&&window.matchMedia("(prefers-color-scheme: dark)").matches?document.documentElement.classList.add("dark"):document.documentElement.classList.remove("dark"),e.addEventListener("click",(function(){document.documentElement.classList.toggle("dark"),document.documentElement.classList.contains("dark")?localStorage.setItem("color-theme","dark"):localStorage.setItem("color-theme","light"),window.editor&&window.editor.updateOptions({theme:document.documentElement.classList.contains("dark")?"vs-dark":"vs"})}))}function initEnhancedTabs(){const e=[];function t(t){const n=document.querySelector(`#${t}`),r=`#${t.replace("-tab","")}`,a=document.querySelector(r);n&&a&&e.push({id:t,triggerEl:n,targetEl:a})}if(t("file-tab"),t("upload-tab"),t("terminal-tab"),t("config-tab"),t("setting-tab"),0===e.length)return;const n={defaultTabId:"file-tab",activeClasses:"text-blue-600 border-blue-600 dark:text-blue-500 dark:border-blue-500",inactiveClasses:"text-gray-500 hover:text-gray-600 dark:text-gray-400 border-transparent hover:border-gray-300 dark:hover:text-gray-300 dark:hover:border-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600",onShow:e=>{const t=e.triggerEl.getAttribute("data-tabs-target");setTimeout((()=>{const e=document.querySelector(".mb-4.border-b.border-gray-200.dark\\:border-gray-700"),n=document.getElementById("breadcrumbs");e&&n&&("#terminal"===t||"#config"===t||"#setting"===t?(e.classList.add("hidden"),n.classList.add("hidden")):(e.classList.remove("hidden"),n.classList.remove("hidden")))}),50)}};try{if(void 0!==window.Tabs){new Tabs(e,n).show("file-tab")}else if(void 0!==window.flowbite&&window.flowbite.Tabs){new window.flowbite.Tabs(e,n).show("file-tab")}else{const e=document.querySelectorAll("#default-tab button"),t=document.querySelectorAll("#default-tab-content > div");if(e.length>0&&t.length>0){const t=e[0].getAttribute("data-tabs-target"),n=document.querySelector(t);n&&(n.classList.remove("hidden"),e[0].classList.add("text-blue-600","border-blue-600"),e[0].classList.remove("border-transparent"),e[0].setAttribute("aria-selected","true"))}e.forEach((n=>{n.addEventListener("click",(()=>{const r=n.getAttribute("data-tabs-target");if("function"==typeof handleTabSwitch)handleTabSwitch(r);else{const a=document.querySelector(r);t.forEach((e=>{e.classList.add("hidden"),e.classList.remove("animate-fadeIn")})),e.forEach((e=>{e.classList.remove("text-blue-600","border-blue-600"),e.classList.add("border-transparent"),e.setAttribute("aria-selected","false")})),n.classList.add("text-blue-600","border-blue-600"),n.classList.remove("border-transparent"),n.setAttribute("aria-selected","true"),a.classList.remove("hidden"),a.classList.add("animate-fadeIn");const o=document.querySelector(".mb-4.border-b.border-gray-200.dark\\:border-gray-700"),i=document.getElementById("breadcrumbs");o&&i&&("#terminal"===r||"#config"===r||"#setting"===r?(o.classList.add("hidden"),i.classList.add("hidden")):(o.classList.remove("hidden"),i.classList.remove("hidden")))}}))}))}}catch(e){}setTimeout((()=>{const e=document.querySelector('[role="tab"][aria-selected="true"]');if(e){const t=e.getAttribute("data-tabs-target"),n=document.querySelector(".mb-4.border-b.border-gray-200.dark\\:border-gray-700"),r=document.getElementById("breadcrumbs");n&&r&&("#terminal"===t||"#config"===t||"#setting"===t?(n.classList.add("hidden"),r.classList.add("hidden")):(n.classList.remove("hidden"),r.classList.remove("hidden")))}}),200)}function initSettings(){loadSettings(),document.getElementById("light-theme-btn")?.addEventListener("click",(()=>{document.documentElement.classList.remove("dark"),localStorage.setItem("color-theme","light"),updateEditorTheme("vs")})),document.getElementById("dark-theme-btn")?.addEventListener("click",(()=>{document.documentElement.classList.add("dark"),localStorage.setItem("color-theme","dark"),updateEditorTheme("vs-dark")})),document.getElementById("system-theme-btn")?.addEventListener("click",(()=>{localStorage.removeItem("color-theme"),window.matchMedia("(prefers-color-scheme: dark)").matches?(document.documentElement.classList.add("dark"),updateEditorTheme("vs-dark")):(document.documentElement.classList.remove("dark"),updateEditorTheme("vs"))}));const e=document.getElementById("font-size");e&&e.addEventListener("input",(e=>{const t=e.target.value;document.documentElement.style.fontSize=t+"px",localStorage.setItem("font-size",t)}));const t=document.getElementById("terminal-font-size");t&&t.addEventListener("input",(e=>{const t=e.target.value,n=document.querySelector("terminal content");n&&(n.style.fontSize=t+"px"),localStorage.setItem("terminal-font-size",t)}));const n=document.getElementById("editor-theme");n&&n.addEventListener("change",(e=>{const t=e.target.value;"system"===t?(updateEditorTheme(window.matchMedia("(prefers-color-scheme: dark)").matches?"vs-dark":"vs"),localStorage.setItem("editor-theme","system")):(updateEditorTheme(t),localStorage.setItem("editor-theme",t))}));const r=document.getElementById("tab-size");r&&r.addEventListener("change",(e=>{const t=e.target.value;window.editor&&window.editor.setOption("tabSize",parseInt(t)),localStorage.setItem("tab-size",t)}));const a=document.getElementById("word-wrap");a&&a.addEventListener("change",(e=>{const t=e.target.checked?"on":"off";window.editor&&window.editor.setOption("lineWrapping","on"===t),localStorage.setItem("word-wrap",t)}));const o=document.getElementById("default-items");o&&o.addEventListener("change",(e=>{const t=e.target.value;localStorage.setItem("default-items-per-page",t);const n=document.getElementById("itemLimit");if(n){n.value=t;const e=new Event("change");n.dispatchEvent(e)}})),document.getElementById("save-settings")?.addEventListener("click",(()=>{saveSettings(),triggerAlert("success","Settings saved successfully!")}))}function loadSettings(){const e=localStorage.getItem("font-size")||"14";document.documentElement.style.fontSize=e+"px";const t=document.getElementById("font-size");t&&(t.value=e);const n=localStorage.getItem("terminal-font-size")||"14",r=document.querySelector("terminal content");r&&(r.style.fontSize=n+"px");const a=document.getElementById("terminal-font-size");a&&(a.value=n);const o=localStorage.getItem("editor-theme")||"system",i=document.getElementById("editor-theme");i&&(i.value=o);const s=localStorage.getItem("tab-size")||"4",c=document.getElementById("tab-size");c&&(c.value=s);const l=localStorage.getItem("word-wrap")||"on",d=document.getElementById("word-wrap");d&&(d.checked="on"===l);const u=localStorage.getItem("default-items-per-page")||"50",g=document.getElementById("default-items");g&&(g.value=u);const m=document.getElementById("itemLimit");m&&u&&(m.value=u)}function saveSettings(){const e=document.getElementById("font-size");e&&localStorage.setItem("font-size",e.value);const t=document.getElementById("terminal-font-size");t&&localStorage.setItem("terminal-font-size",t.value);const n=document.getElementById("editor-theme");n&&localStorage.setItem("editor-theme",n.value);const r=document.getElementById("tab-size");r&&localStorage.setItem("tab-size",r.value);const a=document.getElementById("word-wrap");a&&localStorage.setItem("word-wrap",a.checked?"on":"off");const o=document.getElementById("default-items");o&&localStorage.setItem("default-items-per-page",o.value)}function updateEditorTheme(e){window.editorThemePreference=e;let t="eclipse";if(("vs-dark"===e||"system"===e&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&(t="dracula"),window.editor&&"function"==typeof window.editor.setOption)try{window.editor.setOption("theme",t);const e=document.getElementById("editorContainer");e&&("dracula"===t?(e.classList.add("dark-editor"),e.classList.remove("light-editor")):(e.classList.add("light-editor"),e.classList.remove("dark-editor")));const n=document.getElementById("editorStatus");n&&("dracula"===t?(n.classList.add("dark-status"),n.classList.remove("light-status")):(n.classList.add("light-status"),n.classList.remove("dark-status")))}catch(e){}}function initGlobalKeyboardShortcuts(){const e=[{key:"Delete",action:"Delete selected files"},{key:"Ctrl+A",action:"Select all files"},{key:"Ctrl+C",action:"Copy selected files"},{key:"Ctrl+X",action:"Cut selected files"},{key:"Ctrl+V",action:"Paste files"},{key:"Ctrl+F",action:"Search files (when implemented)"},{key:"F2",action:"Rename selected file"},{key:"F5",action:"Refresh directory"},{key:"Alt+Up",action:"Navigate to parent directory"},{key:"Escape",action:"Deselect all files / Close dialogs"},{key:"?",action:"Show this help dialog"}];function t(){let t='<div class="overflow-x-auto"><table class="w-full text-sm text-left">';t+='<thead class="text-xs uppercase bg-gray-100 dark:bg-gray-700"><tr><th class="px-6 py-3">Key</th><th class="px-6 py-3">Action</th></tr></thead><tbody>',e.forEach((e=>{t+=`<tr class="border-b dark:border-gray-700"><td class="px-6 py-4 font-medium">${e.key}</td><td class="px-6 py-4">${e.action}</td></tr>`})),t+="</tbody></table></div>",Swal.fire({title:"Keyboard Shortcuts",html:t,customClass:{popup:"dark:bg-gray-800 dark:text-white"}})}const n=document.getElementById("keyboardShortcutsBtn");n&&n.addEventListener("click",t),document.addEventListener("keydown",(function(e){if("INPUT"===e.target.tagName||"TEXTAREA"===e.target.tagName||e.target.classList.contains("CodeMirror")||document.querySelector("#terminal:not(.hidden)"))return;if(!window.fileManagerState)return;const n=window.fileManagerState?.currentDir||phpVars?.currentDir,r=phpVars?.csrf,a=phpVars?.encryptionKey?CryptoJS.enc.Utf8.parse(phpVars.encryptionKey):null,o=phpVars?.isEnc;window.fileManagerState.selectedFiles||(window.fileManagerState.selectedFiles=[]);const i=window.fileManagerState.selectedFiles||[];switch(!0){case"Delete"===e.key:if(i.length>0){if(e.preventDefault(),"INPUT"===document.activeElement.tagName||"TEXTAREA"===document.activeElement.tagName||document.activeElement.isContentEditable)return;const t=[...i];window.showConfirmation("Delete Files",`Are you sure you want to delete ${t.length} file(s)?`,"Delete",(()=>{"function"==typeof window.sendBulkActionRequest?window.sendBulkActionRequest({action:"delete",files:t,onSuccess:()=>{"function"==typeof window.clearFileSelection&&window.clearFileSelection(),window.triggerAlert("success","Files deleted successfully"),window.loadDirectory(n,1,r,a,o)}}):window.performBulkAction("delete",t,n,r,a,o)}))}break;case e.ctrlKey&&"a"===e.key:e.preventDefault();const s=document.querySelectorAll(".file-checkbox"),c=document.getElementById("selectAll");s.forEach((e=>{e.checked=!0,window.updateSelectedFiles(e.dataset.file,!0)})),c&&(c.checked=!0),window.triggerAlert("info",`Selected ${s.length} file(s)`);break;case e.ctrlKey&&"c"===e.key:if(i.length>0){if(e.preventDefault(),"INPUT"===document.activeElement.tagName||"TEXTAREA"===document.activeElement.tagName||document.activeElement.isContentEditable)return;const t=i.map((e=>e.includes("/")?e:`${n}/${e}`));"function"==typeof window.saveToLocalStorage?(window.saveToLocalStorage(t),localStorage.removeItem("clipboard-action"),window.triggerAlert("success",`Copied ${i.length} file(s) to clipboard`)):window.triggerAlert("warning","Copy operation failed")}break;case e.ctrlKey&&"x"===e.key:if(i.length>0){if(e.preventDefault(),"INPUT"===document.activeElement.tagName||"TEXTAREA"===document.activeElement.tagName||document.activeElement.isContentEditable)return;const t=i.map((e=>e.includes("/")?e:`${n}/${e}`));"function"==typeof window.saveToLocalStorage?(window.saveToLocalStorage(t),localStorage.setItem("clipboard-action","cut"),window.triggerAlert("info",`Cut ${i.length} file(s) to clipboard`)):window.triggerAlert("warning","Cut operation failed")}break;case e.ctrlKey&&"v"===e.key:if("INPUT"===document.activeElement.tagName||"TEXTAREA"===document.activeElement.tagName||document.activeElement.isContentEditable)return;if(e.preventDefault(),"function"==typeof window.getFromLocalStorage){const e=window.getFromLocalStorage();e&&e.length>0?(window.triggerAlert("info",`Pasting ${e.length} item(s)...`),"function"==typeof window.sendBulkActionRequest?window.sendBulkActionRequest({action:"paste",files:e,onSuccess:()=>{"function"==typeof window.clearFileSelection&&window.clearFileSelection(),window.triggerAlert("success","Files pasted successfully"),window.loadDirectory(n,1,r,a,o),"cut"===localStorage.getItem("clipboard-action")&&("function"==typeof window.freeclipbroad&&window.freeclipbroad(),localStorage.removeItem("clipboard-action"))}}):(window.performBulkAction("paste",e,n,r,a,o),"cut"===localStorage.getItem("clipboard-action")&&("function"==typeof window.freeclipbroad&&window.freeclipbroad(),localStorage.removeItem("clipboard-action")))):window.triggerAlert("warning","No items in clipboard")}else window.triggerAlert("warning","Paste operation failed");break;case"F2"===e.key:1===i.length?(e.preventDefault(),window.renameFile(i[0],r,n,a,o)):i.length>1&&window.triggerAlert("warning","Please select only one file to rename");break;case"F5"===e.key:e.preventDefault(),window.loadDirectory(n,1,r,a,o),window.triggerAlert("info","Refreshing directory...");break;case e.altKey&&"ArrowUp"===e.key:e.preventDefault();const l=document.querySelector(".breadcrumb-item:nth-last-child(2) a");l&&l.click();break;case"Escape"===e.key:const d=document.querySelector(".modal:not(.hidden)"),u=document.querySelector("#context-menu:not(.hidden)");if(d||u)return;e.preventDefault(),document.querySelectorAll(".file-checkbox").forEach((e=>{e.checked=!1}));const g=document.getElementById("selectAll");g&&(g.checked=!1),window.fileManagerState.selectedFiles=[],window.triggerAlert("info","Deselected all files");break;case"?"===e.key:e.preventDefault(),t();break}}))}function exposeUtilityFunctions(){window.updateSelectedFiles="function"==typeof updateSelectedFiles?updateSelectedFiles:function(){},window.showAdvancedSearch=function(){if(!window.phpVars)return void triggerAlert("danger","Required configuration is missing. Please refresh the page and try again.");const e=addNewTab("Advanced Search","search");switchToTab(e);const t=document.getElementById(`${e}-content`);if(!t)return;t.innerHTML="";const n=document.createElement("div");n.className="search-form bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-4",n.innerHTML=`\n            <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Advanced Search</h2>\n            <form id="advanced-search-form" class="space-y-4" onsubmit="event.preventDefault(); performAdvancedSearch(); return false;">\n                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">\n                    <div>\n                        <label for="search-query" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search Query</label>\n                        <input type="text" id="search-query" name="search-query" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Enter search text or pattern" required>\n                    </div>\n                    <div>\n                        <label for="search-path" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search Path</label>\n                        <input type="text" id="search-path" name="search-path" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Directory path" value="${window.fileManagerState?.currentDir||"."}">\n                    </div>\n                </div>\n                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">\n                    <div>\n                        <label for="file-extensions" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">File Extensions</label>\n                        <input type="text" id="file-extensions" name="file-extensions" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="e.g. php,js,html,css">\n                    </div>\n                    <div>\n                        <label for="max-results" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max Results</label>\n                        <input type="number" id="max-results" name="max-results" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="1000" min="10" max="10000">\n                    </div>\n                    <div>\n                        <label for="batch-size" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Batch Size</label>\n                        <input type="number" id="batch-size" name="batch-size" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="200" min="50" max="1000" title="Number of files to process per batch">\n                    </div>\n                    <div class="flex flex-col space-y-2">\n                        <div class="flex items-center">\n                            <input type="checkbox" id="case-sensitive" name="case-sensitive" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">\n                            <label for="case-sensitive" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Case Sensitive</label>\n                        </div>\n                        <div class="flex items-center">\n                            <input type="checkbox" id="use-regex" name="use-regex" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">\n                            <label for="use-regex" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Use Regex</label>\n                        </div>\n                        <div class="flex items-center">\n                            <input type="checkbox" id="recursive-search" name="recursive-search" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>\n                            <label for="recursive-search" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Recursive</label>\n                        </div>\n                        <div class="flex items-center">\n                            <input type="checkbox" id="writable-only" name="writable-only" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">\n                            <label for="writable-only" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Writable Files Only</label>\n                        </div>\n                    </div>\n                </div>\n                <div class="flex justify-end">\n                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">\n                        <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">\n                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />\n                        </svg>\n                        Search\n                    </button>\n                </div>\n            </form>\n        `;const r=document.createElement("div");r.id="search-results-container",r.className="search-results bg-white dark:bg-gray-800 p-4 rounded-lg shadow",r.innerHTML='\n            <div class="flex justify-between items-center mb-4">\n                <h2 class="text-xl font-semibold text-gray-800 dark:text-white">Search Results</h2>\n                <div id="search-stats" class="text-sm text-gray-500 dark:text-gray-400"></div>\n            </div>\n            <div id="search-results" class="space-y-4">\n                <div class="text-gray-500 dark:text-gray-400 text-center py-8">Enter a search query and click Search</div>\n            </div>\n        ',t.appendChild(n),t.appendChild(r);const a=document.getElementById("advanced-search-form");a&&a.addEventListener("submit",(function(e){return e.preventDefault(),performAdvancedSearch(),!1}))},window.performAdvancedSearch=function(e=null){const t=document.getElementById("search-query")?.value,n=document.getElementById("search-path")?.value||".",r=document.getElementById("file-extensions")?.value||"",a=document.getElementById("max-results")?.value||1e3,o=document.getElementById("case-sensitive")?.checked||!1,i=document.getElementById("use-regex")?.checked||!1,s=document.getElementById("recursive-search")?.checked||!0,c=document.getElementById("writable-only")?.checked||!1,l=parseInt(document.getElementById("batch-size")?.value||"200",10);if(!t&&!e)return void triggerAlert("warning","Please enter a search query");if(!e){const e=(d=n)&&""!==d.trim()?(d.startsWith("/"),{valid:!0}):{valid:!1,message:"Search path cannot be empty"};if(!e.valid)return void triggerAlert("warning",e.message)}var d;const u=window.phpVars?.csrf||"",g=window.phpVars?.encryptionKey||"",m=window.phpVars?.isEnc||!1;if(!u)return void triggerAlert("danger","Security token missing. Please refresh the page and try again.");const f=document.getElementById("search-results");if(f&&!e?(f.innerHTML='\n                <div class="flex justify-center items-center py-8">\n                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>\n                    <span class="ml-2 text-gray-600 dark:text-gray-300">Searching...</span>\n                </div>\n            ',window.currentSearch={query:t,path:n,extensions:r,maxResults:a,caseSensitive:o,useRegex:i,recursive:s,writableOnly:c,results:{},totalMatches:0}):e||(window.currentSearch={query:t,path:n,extensions:r,maxResults:a,caseSensitive:o,useRegex:i,recursive:s,writableOnly:c,results:{},totalMatches:0}),e){const e=document.getElementById("search-progress");e&&(e.innerHTML='\n                    <div class="flex items-center">\n                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2"></div>\n                        <span>Continuing search...</span>\n                    </div>\n                ')}sendRequest({csrf:u,action:"advanced_search",search_query:t,search_path:n,file_extensions:r,max_results:a,case_sensitive:o,use_regex:i,recursive:s,writable_only:c,search_token:e,batch_size:l},g,m).then((t=>{displaySearchResults(t,null!==e)})).catch((e=>{f&&(f.innerHTML=`\n                    <div class="text-red-500 dark:text-red-400 text-center py-4">\n                        Error: ${e.message||"Failed to perform search"}\n                    </div>\n                    <div class="mt-4 p-4 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-800 rounded-md">\n                        <h3 class="font-medium text-red-800 dark:text-red-300 mb-2">Troubleshooting tips:</h3>\n                        <ul class="list-disc pl-5 text-sm text-red-700 dark:text-red-400 space-y-1">\n                            <li>Check if the search path exists and is accessible</li>\n                            <li>Try using a relative path like "./subdirectory" instead of an absolute path</li>\n                            <li>If using regex, verify your pattern is valid</li>\n                            <li>Try reducing the batch size if searching many files</li>\n                            <li>Check browser console for more detailed error information</li>\n                        </ul>\n                    </div>\n                `),triggerAlert("danger","Search failed: "+(e.message||"Unknown error"))}))},window.displaySearchResults=function(e,t=!1){const n=document.getElementById("search-results"),r=document.getElementById("search-stats");if(!n)return;if(e.error)return void(n.innerHTML=`\n                <div class="text-red-500 dark:text-red-400 text-center py-4">\n                    Error: ${e.error}\n                </div>\n            `);if(t&&window.currentSearch?(Object.assign(window.currentSearch.results,e.results),window.currentSearch.totalMatches=e.total_matches):(window.currentSearch||(window.currentSearch={}),window.currentSearch.results=e.results,window.currentSearch.totalMatches=e.total_matches),r&&(r.textContent=`Found ${window.currentSearch.totalMatches} matches in ${Object.keys(window.currentSearch.results).length} files`,e.memory_limit_reached&&(r.innerHTML+='\n                    <div class="mt-2 text-amber-600 dark:text-amber-400">\n                        <svg class="inline-block w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">\n                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>\n                        </svg>\n                        Search was truncated due to memory limits. Try narrowing your search or searching in smaller directories.\n                    </div>\n                '),!e.search_complete)){const t=e.files_remaining||0,n=e.files_processed||0,a=n+t,o=a>0?Math.round(n/a*100):0;r.innerHTML+=`\n                    <div id="search-progress" class="mt-2">\n                        <div class="flex items-center justify-between mb-1">\n                            <span class="text-sm text-gray-700 dark:text-gray-300">\n                                Processed ${n} of ${a} files (${o}%)\n                            </span>\n                        </div>\n                        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">\n                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${o}%"></div>\n                        </div>\n                        <div class="flex justify-between mt-2">\n                            <div class="flex items-center">\n                                <input type="checkbox" id="auto-continue-search" class="mr-2">\n                                <label for="auto-continue-search" class="text-sm text-gray-700 dark:text-gray-300">Auto-continue</label>\n                            </div>\n                            <button id="continue-search" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700">\n                                Continue Search\n                            </button>\n                        </div>\n                    </div>\n                `}if(0===window.currentSearch.totalMatches&&e.search_complete)return void(n.innerHTML=`\n                <div class="text-gray-500 dark:text-gray-400 text-center py-8">\n                    No results found for "${e.search_query}"\n                </div>\n            `);let a="";if(Object.keys(window.currentSearch.results).sort(((e,t)=>window.currentSearch.results[t].length-window.currentSearch.results[e].length)).forEach((t=>{const n=window.currentSearch.results[t],r=t.split("/").pop(),o=e.writable_files&&e.writable_files.includes(t)?'<span class="ml-2 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 rounded">Writable</span>':'<span class="ml-2 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300 rounded">No Writable</span>';a+=`\n                <div class="file-result border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden mb-4">\n                    <div class="file-header bg-gray-100 dark:bg-gray-700 px-4 py-2 flex justify-between items-center">\n                        <div class="flex items-center">\n                            <span class="font-medium text-gray-800 dark:text-white">${r}</span>\n                            <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">${n.length} matches</span>\n                            ${o}\n                        </div>\n                        <div class="flex space-x-2">\n                            <button class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm" \n                                    onclick="viewEditFile('${t}', '${window.phpVars?.csrf||""}', '${window.phpVars?.encryptionKey||""}', ${window.phpVars?.isEnc||!1})">\n                                Edit\n                            </button>\n                            <button class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 text-sm toggle-matches" \n                                    data-file="${t}">\n                                Hide Matches\n                            </button>\n                        </div>\n                    </div>\n                    <div class="file-matches bg-white dark:bg-gray-800 p-2">\n                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">${t}</div>\n                        <div class="matches-list space-y-1">\n            `,n.forEach((e=>{const n=e.line_content.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");let r=n;if(!document.getElementById("use-regex")?.checked){const e=document.getElementById("search-query")?.value||"";if(e){const t=document.getElementById("case-sensitive")?.checked?"g":"gi",a=new RegExp(e.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),t);r=n.replace(a,'<mark class="bg-yellow-200 dark:bg-yellow-700">$&</mark>')}}a+=`\n                    <div class="match-line hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded">\n                        <a href="#" class="flex" onclick="viewEditFileAtLine('${t}', ${e.line_number}, '${window.phpVars?.csrf||""}', '${window.phpVars?.encryptionKey||""}', ${window.phpVars?.isEnc||!1}); return false;">\n                            <span class="line-number w-12 inline-block text-right pr-2 text-gray-500 dark:text-gray-400 select-none">${e.line_number}</span>\n                            <span class="line-content font-mono text-gray-800 dark:text-gray-200 overflow-x-auto">${r}</span>\n                        </a>\n                    </div>\n                `})),a+="\n                        </div>\n                    </div>\n                </div>\n            "})),n.innerHTML=a,document.querySelectorAll(".toggle-matches").forEach((e=>{e.addEventListener("click",(function(){this.getAttribute("data-file");const e=this.closest(".file-result").querySelector(".matches-list");"none"===e.style.display?(e.style.display="block",this.textContent="Hide Matches"):(e.style.display="none",this.textContent="Show Matches")}))})),!e.search_complete){const t=document.getElementById("continue-search"),n=document.getElementById("auto-continue-search");if(t&&t.addEventListener("click",(function(){performAdvancedSearch(e.search_token)})),n){"true"===localStorage.getItem("search-auto-continue")&&(n.checked=!0),n.addEventListener("change",(function(){localStorage.setItem("search-auto-continue",this.checked)})),n.checked&&setTimeout((()=>{performAdvancedSearch(e.search_token)}),1e3)}}},window.viewEditFileAtLine=function(e,t,n,r,a){viewEditFile(e,n,r,a);let o=0;const i=function(){if(window.editor)try{window.editor.setCursor(t-1,0),window.editor.addLineClass(t-1,"background","bg-yellow-100"),window.editor.scrollIntoView({line:t-1,ch:0},100)}catch(e){triggerAlert("warning","Could not position to the selected line. Please try manually navigating to line "+t)}else o++,o<20?setTimeout(i,300):triggerAlert("warning","Could not position to the selected line. Please try manually navigating to line "+t)};setTimeout(i,800)},window.saveToLocalStorage=saveToLocalStorage,window.getFromLocalStorage=getFromLocalStorage,window.freeclipbroad="function"==typeof freeclipbroad?freeclipbroad:function(){},window.performBulkAction="function"==typeof performBulkAction?performBulkAction:function(){},window.sendBulkActionRequest=function({action:e,files:t,options:n=null,onSuccess:r=null,onError:a=null}){const o=window.fileManagerState?.currentDir||phpVars?.currentDir,i=phpVars?.csrf,s=phpVars?.encryptionKey?CryptoJS.enc.Utf8.parse(phpVars.encryptionKey):null,c=phpVars?.isEnc;"function"==typeof progr&&progr();const l={csrf:i,action:e,file:t,dir:o};"zip"===e&&n&&(l.zipExt=n.zipFileName,l.compressionLevel=n.compressionLevel||"5",l.archiveFormat=n.archiveFormat||"zip");const d=JSON.stringify(l),u="1"===c?encrypt(d,s):d;$.post("",u,(function(e){try{const t="1"===c?decrypt(e,s):e,n=JSON.parse(t);n.error?(triggerAlert("warning",n.error),a&&a(n.error)):n.success?r?r(n):triggerAlert("success",n.success):r?r(n):triggerAlert("success","Operation completed successfully")}catch(e){triggerAlert("error","Failed to process server response"),a&&a(e)}"function"==typeof dprogr&&dprogr()})).fail((function(e,t,n){triggerAlert("error","Request failed: "+(n||"Unknown error")),a&&a(n),"function"==typeof dprogr&&dprogr()}))},window.renameFile="function"==typeof renameFile?renameFile:function(){},window.loadDirectory="function"==typeof loadDirectory?loadDirectory:function(){},window.triggerAlert="function"==typeof triggerAlert?triggerAlert:function(){},window.showConfirmation="function"==typeof showConfirmation?showConfirmation:function(){},window.encrypt="function"==typeof encrypt?encrypt:function(){},window.decrypt="function"==typeof decrypt?decrypt:function(){},window.progr="function"==typeof progr?progr:function(){},window.dprogr="function"==typeof dprogr?dprogr:function(){}}function handleTabSwitch(e){const t=document.querySelector(`[data-tabs-target="${e}"]`),n=document.querySelector(e);if(!t||!n)return;document.querySelectorAll('[role="tab"]').forEach((e=>{e.setAttribute("aria-selected","false"),e.classList.remove("text-blue-600","border-blue-600"),e.classList.add("border-transparent")})),document.querySelectorAll('[role="tabpanel"]').forEach((e=>{e.classList.add("hidden")})),t.setAttribute("aria-selected","true"),t.classList.add("text-blue-600","border-blue-600"),t.classList.remove("border-transparent"),n.classList.remove("hidden"),n.classList.add("animate-fadeIn");const r=document.querySelector(".mb-4.border-b.border-gray-200.dark\\:border-gray-700"),a=document.getElementById("breadcrumbs");if(r&&a)if("#terminal"===e||"#config"===e||"#setting"===e||"#sql"===e||"#network"===e){r.classList.add("hidden"),a.classList.add("hidden");const e=document.getElementById("fileManagerUI");e&&(e.style.display="none"),document.querySelectorAll(".tabs-panel").forEach((e=>{e.classList.add("hidden")}))}else if(r.classList.remove("hidden"),a.classList.remove("hidden"),"#file"===e){const e=document.getElementById("fileManagerUI");e&&(e.style.display="block")}"function"==typeof window.updateKeydownListener&&setTimeout(window.updateKeydownListener,100)}function saveToLocalStorage(e){try{const t=e.map((e=>{if(e.startsWith("/")||e.includes(":/"))return e;const t=window.fileManagerState?.currentDir||phpVars?.currentDir;return t.endsWith("/")?t+e:t+"/"+e}));return localStorage.setItem("copiedFiles",JSON.stringify(t)),t}catch(e){return[]}}function getFromLocalStorage(){try{const e=localStorage.getItem("copiedFiles");if(!e)return[];return JSON.parse(e)}catch(e){return[]}}function initNetworkTools(){const e=document.getElementById("portScannerForm");e&&e.addEventListener("submit",(function(e){e.preventDefault(),performPortScan()}));const t=document.getElementById("getNetworkInfo");t&&t.addEventListener("click",(function(){getNetworkInfo()}));const n=document.getElementById("getArpTable");n&&n.addEventListener("click",(function(){getArpTable()}));const r=document.getElementById("pingForm");r&&r.addEventListener("submit",(function(e){e.preventDefault(),performPing()}));const a=document.getElementById("dnsLookupForm");a&&a.addEventListener("submit",(function(e){e.preventDefault(),performDnsLookup()}))}function performPortScan(){const e=document.getElementById("hostInput").value,t=parseInt(document.getElementById("startPortInput").value),n=parseInt(document.getElementById("endPortInput").value),r=parseInt(document.getElementById("timeoutInput").value),a=document.getElementById("commonPortsOnly").checked;if(!e)return void triggerAlert("warning","Please enter a host/IP address");const o=document.getElementById("portScanResults"),i=document.getElementById("scanStatus"),s=document.getElementById("portScanResultsBody");o.classList.remove("hidden"),i.textContent=`Scanning ${e}...`,s.innerHTML='<tr><td colspan="3" class="text-center py-2">Scanning...</td></tr>';sendNetworkRequest("port_scan",{host:e,start_port:t,end_port:n,timeout:r,common_ports_only:a}).then((e=>{if(e.error)return triggerAlert("warning",e.error),i.textContent=`Scan failed: ${e.error}`,void(s.innerHTML='<tr><td colspan="3" class="text-center py-2 text-red-500">Scan failed</td></tr>');i.textContent=`Scan completed for ${e.host}`,s.innerHTML="";const t=e.results.filter((e=>"open"===e.status)),n=e.results.filter((e=>"closed"===e.status));if(0===t.length)s.innerHTML='<tr><td colspan="3" class="text-center py-2">No open ports found</td></tr>';else if(t.forEach((e=>{const t=document.createElement("tr");t.innerHTML=`\n                            <td class="px-4 py-2">${e.port}</td>\n                            <td class="px-4 py-2"><span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">open</span></td>\n                            <td class="px-4 py-2">${e.service||"unknown"}</td>\n                        `,s.appendChild(t)})),n.length>0){const e=document.createElement("tr");e.innerHTML=`\n                            <td colspan="3" class="px-4 py-2 text-gray-500 italic">${n.length} port(s) closed or filtered</td>\n                        `,s.appendChild(e)}})).catch((e=>{triggerAlert("warning","Error performing port scan"),i.textContent="Scan failed",s.innerHTML='<tr><td colspan="3" class="text-center py-2 text-red-500">Error connecting to server</td></tr>'}))}function getNetworkInfo(){const e=document.getElementById("networkInfoResults");e.classList.remove("hidden"),e.innerHTML='<div class="text-center py-2">Loading network information...</div>',sendNetworkRequest("network_info",{}).then((t=>{if(t.error)return triggerAlert("warning",t.error),void(e.innerHTML=`<div class="text-center py-2 text-red-500">${t.error}</div>`);let n='<div class="space-y-4">';0===t.interfaces.length?n+='<div class="text-center py-2">No network interfaces found</div>':t.interfaces.forEach((e=>{n+=`\n                            <div class="border-b pb-3 dark:border-gray-600">\n                                <h4 class="font-medium text-gray-800 dark:text-gray-200">${e.name}</h4>\n                                <div class="mt-2">\n                        `,0===e.addresses.length?n+='<p class="text-sm text-gray-600 dark:text-gray-400">No addresses</p>':e.addresses.forEach((e=>{n+=`\n                                    <div class="flex flex-col text-sm">\n                                        <span class="text-gray-700 dark:text-gray-300">\n                                            <span class="font-medium">${e.family}:</span> ${e.address}\n                                        </span>\n                                        <span class="text-gray-600 dark:text-gray-400">\n                                            Netmask: ${e.netmask||"N/A"}\n                                        </span>\n                                    </div>\n                                `})),n+="</div></div>"})),n+="</div>",e.innerHTML=n})).catch((t=>{triggerAlert("warning","Error getting network information"),e.innerHTML='<div class="text-center py-2 text-red-500">Error connecting to server</div>'}))}function getArpTable(){const e=document.getElementById("arpTableResults");e.classList.remove("hidden"),e.innerHTML='<div class="text-center py-2">Loading ARP table...</div>',sendNetworkRequest("arp_table",{}).then((t=>{if(t.error)return triggerAlert("warning",t.error),void(e.innerHTML=`<div class="text-center py-2 text-red-500">${t.error}</div>`);if(0===t.arp_table.length)return void(e.innerHTML='<div class="text-center py-2">No ARP entries found</div>');let n='\n                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">\n                        <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-800 dark:text-gray-400">\n                            <tr>\n                                <th scope="col" class="px-4 py-2">IP Address</th>\n                                <th scope="col" class="px-4 py-2">MAC Address</th>\n                                <th scope="col" class="px-4 py-2">Interface</th>\n                            </tr>\n                        </thead>\n                        <tbody>\n                ';t.arp_table.forEach((e=>{n+=`\n                        <tr>\n                            <td class="px-4 py-2">${e.ip}</td>\n                            <td class="px-4 py-2">${e.mac}</td>\n                            <td class="px-4 py-2">${e.interface}</td>\n                        </tr>\n                    `})),n+="</tbody></table>",e.innerHTML=n})).catch((t=>{triggerAlert("warning","Error getting ARP table"),e.innerHTML='<div class="text-center py-2 text-red-500">Error connecting to server</div>'}))}function performPing(){const e=document.getElementById("pingHost").value,t=parseInt(document.getElementById("pingCount").value),n=parseInt(document.getElementById("pingTimeout").value);if(!e)return void triggerAlert("warning","Please enter a host/IP address");const r=document.getElementById("pingResults"),a=r.querySelector("div");r.classList.remove("hidden"),a.innerHTML='<div class="text-center py-2">Pinging '+e+"...</div>";sendNetworkRequest("ping",{host:e,count:t,timeout:n}).then((e=>{if(e.error)return triggerAlert("warning",e.error),void(a.innerHTML=`<div class="text-center py-2 text-red-500">${e.error}</div>`);let t="";e.results.forEach((e=>{t+=e+"<br>"})),a.innerHTML=t})).catch((e=>{triggerAlert("warning","Error performing ping"),a.innerHTML='<div class="text-center py-2 text-red-500">Error connecting to server</div>'}))}function performDnsLookup(){const e=document.getElementById("dnsHost").value,t=document.getElementById("dnsType").value;if(!e)return void triggerAlert("warning","Please enter a domain name");const n=document.getElementById("dnsResults"),r=n.querySelector("div");n.classList.remove("hidden"),r.innerHTML='<div class="text-center py-2">Looking up '+e+"...</div>";sendNetworkRequest("dns_lookup",{host:e,type:t}).then((n=>{if(n.error)return triggerAlert("warning",n.error),void(r.innerHTML=`<div class="text-center py-2 text-red-500">${n.error}</div>`);if(0===n.results.length)return void(r.innerHTML=`<div class="text-center py-2">No ${t} records found for ${e}</div>`);let a='<div class="space-y-4">';n.results.forEach((e=>{a+=`\n                        <div class="border-b pb-3 dark:border-gray-600">\n                            <h4 class="font-medium text-gray-800 dark:text-gray-200">${e.type} Record</h4>\n                            <div class="mt-2 space-y-1">\n                    `;const t=e.data;for(const[e,n]of Object.entries(t))"type"!==e&&"class"!==e&&(a+=`\n                                <div class="text-sm">\n                                    <span class="font-medium text-gray-700 dark:text-gray-300">${e}:</span>\n                                    <span class="text-gray-600 dark:text-gray-400">${n}</span>\n                                </div>\n                            `);a+="</div></div>"})),a+="</div>",r.innerHTML=a})).catch((e=>{triggerAlert("warning","Error performing DNS lookup"),r.innerHTML='<div class="text-center py-2 text-red-500">Error connecting to server</div>'}))}function sendNetworkRequest(e,t){return new Promise(((n,r)=>{progr();const a={action:"network_tool",tool:e,params:t,csrf:phpVars.csrf},o=JSON.stringify(a),i="1"===phpVars.isEnc,s=i?encrypt(o,phpVars.encryptionKey):o;fetch("",{method:"POST",body:s}).then((e=>e.text())).then((e=>{try{dprogr();const t=i?decrypt(e,phpVars.encryptionKey):e,r=JSON.parse(t);n(r)}catch(e){dprogr(),r(e)}})).catch((e=>{dprogr(),r(e)}))}))}document.addEventListener("DOMContentLoaded",(function(){document.getElementById("sql-tab")?.addEventListener("click",(function(){"function"==typeof window.initSQLExplorer&&window.initSQLExplorer()})),"function"==typeof window.initContextMenu&&window.initContextMenu(),exposeUtilityFunctions(),initGlobalKeyboardShortcuts(),window.clearFileSelection=function(){window.fileManagerState&&(window.fileManagerState.selectedFiles=[]),document.querySelectorAll(".file-checkbox:checked").forEach((e=>{e.checked=!1}));let e=document.getElementById("selectAll");e&&(e.checked=!1,e.indeterminate=!1),document.querySelectorAll("#fileList tr.bg-blue-50, #fileList tr.dark\\:bg-blue-900\\/20").forEach((e=>{e.classList.remove("bg-blue-50","dark:bg-blue-900/20")}))};const e=phpVars.csrf;let t=phpVars.currentDir;const n=phpVars.isEnc,r=CryptoJS.enc.Utf8.parse(phpVars.encryptionKey),a=phpVars.currentDir;let o;var i=phpVars.terPWD,s="",c=[],l=0,d=!1,u=0,g=0,m="",f=[],p="";let h=phpVars.cmList;window.editorThemePreference=localStorage.getItem("editor-theme"),"system"===window.editorThemePreference&&(window.editorThemePreference=window.matchMedia("(prefers-color-scheme: dark)").matches?"vs-dark":"vs");function y(e,t,n,r="",a){Swal.fire({title:e,input:"text",inputLabel:t,inputValue:r,showCancelButton:!0,confirmButtonText:n,customClass:{popup:"dark:bg-gray-800 dark:text-white"},inputValidator:e=>{if(!e)return"You need to enter a value!"}}).then((e=>{e.isConfirmed&&a(e.value)}))}function b(e,t,n,r){Swal.fire({title:e,text:t,icon:"warning",showCancelButton:!0,confirmButtonText:n,cancelButtonText:"Cancel",customClass:{popup:"dark:bg-gray-800 dark:text-white"}}).then((e=>{e.isConfirmed&&r()}))}!function e(){void 0!==window.flowbite?(window.flowbite.initTabs&&window.flowbite.initTabs(),setTimeout((()=>{initEnhancedTabs()}),100)):setTimeout(e,50)}();const w=localStorage.getItem("default-items-per-page");if(w){const e=document.getElementById("itemLimit");e&&(e.value=w)}if(loadTabsFromLocalStorage()){const e=fileManagerState.tabs.find((e=>e.active));e&&(t=e.path)}initializeFileManager(e,t,n,r),E(),$(document).on("click","#location-tabs button",(function(a){if(a.target.classList.contains("fa-times"))return;const o=$(this).data("tab-id");if(!fileManagerState.tabs.find((e=>e.id===o)))return;document.querySelectorAll('[role="tabpanel"]').forEach((e=>{e.classList.add("hidden")})),document.querySelectorAll("[data-tabs-target]").forEach((e=>{const t=e.getAttribute("data-tabs-target");t&&document.querySelector(t)&&document.querySelector(t).classList.add("hidden")})),function(a){const o=fileManagerState.tabs.find((e=>e.id===a));if(!o)return;fileManagerState.tabs.forEach((e=>e.active=!1)),o.active=!0,fileManagerState.activeTabId=a,E(),saveTabsToLocalStorage(),document.querySelectorAll('[role="tabpanel"]').forEach((e=>{e.classList.add("hidden")}));let i=document.getElementById(`${a}-content`);if(!i){const e=document.getElementById("tabs-content");if(!e)return;i=document.createElement("div"),i.id=`${a}-content`,i.className="tabs-panel w-full",e.appendChild(i)}if(document.querySelectorAll(".tabs-panel").forEach((e=>{e.classList.add("hidden")})),i.classList.remove("hidden"),"editor"===o.type||"search"===o.type){const e=document.getElementById("fileManagerUI");e&&(e.style.display="none");const t=i.querySelector(".editor-container");t&&(t.style.height="90vh",t.style.width="100%",window.editor&&setTimeout((()=>window.editor.refresh()),10))}else{const a=document.getElementById("fileManagerUI"),i=document.getElementById("file");a&&(a.style.display="block",i&&i.classList.remove("hidden"),t=o.path,updateCurrentPath(),loadDirectory(t,1,e,r,n))}}(o);const i=document.createElement("span");i.className="absolute inset-0 bg-blue-500 opacity-30 rounded-t-lg animate-ripple",this.appendChild(i),setTimeout((()=>i.remove()),600)})),$(document).on("click","[data-close-tab]",(function(a){a.stopPropagation();const o=$(this).data("close-tab");$(this).closest("li").addClass("animate-tab-closing"),setTimeout((()=>{!function(a){if(fileManagerState.tabs.length<=1)return;const o=fileManagerState.tabs.findIndex((e=>e.id===a));if(-1===o)return;const i=fileManagerState.tabs[o].active;if(fileManagerState.tabs.splice(o,1),i){const a=Math.max(0,o-1);fileManagerState.tabs[a].active=!0,fileManagerState.activeTabId=fileManagerState.tabs[a].id,t=fileManagerState.tabs[a].path,updateCurrentPath(),loadDirectory(t,1,e,r,n)}E(),saveTabsToLocalStorage()}(o)}),150)})),$("#add-tab-btn").click((function(){I(),$(this).addClass("animate-pulse"),setTimeout((()=>{$(this).removeClass("animate-pulse")}),500)})),window.addEventListener("resize",function(e,t){let n;return function(...r){const a=()=>{clearTimeout(n),e(...r)};clearTimeout(n),n=setTimeout(a,t)}}(L,100)),initThemeToggle(),initSettings();const v=document.getElementById("selectAll");function x(e){const t=e.target.checked,n=document.querySelectorAll(".file-checkbox");window.fileManagerState||(window.fileManagerState={selectedFiles:[]}),window.fileManagerState.selectedFiles=[],n.forEach((e=>{if(e.checked=t,t){const t=e.dataset.fullPath||e.dataset.file;updateSelectedFiles(t,!0,!0);e.closest("tr").classList.add("bg-blue-50","dark:bg-blue-900/20")}else{e.closest("tr").classList.remove("bg-blue-50","dark:bg-blue-900/20")}}))}v&&(v.removeEventListener("change",x),v.addEventListener("change",x));const k=document.getElementById("fileList");function S(e){const t=$("#breadcrumbs ol"),n=e.split("/").filter((e=>""!==e));let r="";r+='\n            <li class="inline-flex items-center">\n                <a href="#" class="breadcrumb-link" data-path="/">\n                    /\n                </a>\n            </li>\n        ',n.forEach(((e,t)=>{const a="/"+n.slice(0,t+1).join("/");r+=`\n                <li class="inline-flex items-center">\n                    <i class="fas fa-chevron-right mx-2 text-gray-500"></i>\n                    <a href="#" class="breadcrumb-link" data-path="${a}">${e}</a>\n                </li>\n            `})),t.html(r)}function E(){const e=document.getElementById("location-tabs");if(!e)return;e.innerHTML="",fileManagerState.tabs.forEach((t=>{const n=document.createElement("li");n.className="mr-1 flex-shrink-0",n.setAttribute("role","presentation");const r=t.name||T(t.path);let a="fa-folder";"Root"!==r&&"Home"!==r||(a="fa-home");n.innerHTML=`\n                <button class="${t.active?"inline-flex items-center p-3 border-b-2 rounded-t-lg text-blue-600 border-blue-600 active dark:text-blue-500 dark:border-blue-500 bg-white dark:bg-gray-800 shadow-sm":"inline-flex items-center p-3 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 dark:hover:border-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600"} transition-all duration-200 group" \n                        data-tab-id="${t.id}" \n                        type="button" \n                        role="tab">\n                    <i class="fas ${a} mr-2 ${t.active?"text-blue-500":"group-hover:text-blue-400"} transition-colors"></i>\n                    <span class="truncate max-w-[100px] md:max-w-[150px]">${r}</span>\n                    ${"tab-1"!==t.id?`\n                        <i class="fas fa-times ml-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full text-xs opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all" data-close-tab="${t.id}"></i>\n                    `:""}\n                </button>\n            `,e.appendChild(n)}));const t=e.querySelector('button[data-tab-id="'+fileManagerState.activeTabId+'"]');t&&(t.classList.add("animate-pulse"),setTimeout((()=>{t.classList.remove("animate-pulse")}),500),requestAnimationFrame((()=>{const n=t.getBoundingClientRect(),r=e.getBoundingClientRect();n.left<r.left?e.scrollLeft+=n.left-r.left-16:n.right>r.right&&(e.scrollLeft+=n.right-r.right+16)}))),L()}function L(){const e=document.getElementById("location-tabs");if(!e)return;if(e.scrollWidth>e.clientWidth){if(e.classList.add("tabs-overflow"),!document.getElementById("tab-scroll-left")){const t=document.createElement("button");t.id="tab-scroll-left",t.className="absolute left-0 top-0 bottom-0 px-1 bg-gradient-to-r from-white to-transparent dark:from-gray-800 dark:to-transparent z-10 opacity-80 hover:opacity-100 transition-opacity",t.innerHTML='<i class="fas fa-chevron-left"></i>',t.addEventListener("click",(()=>{e.scrollBy({left:-150,behavior:"smooth"})}));const n=document.createElement("button");n.id="tab-scroll-right",n.className="absolute right-0 top-0 bottom-0 px-1 bg-gradient-to-l from-white to-transparent dark:from-gray-800 dark:to-transparent z-10 opacity-80 hover:opacity-100 transition-opacity",n.innerHTML='<i class="fas fa-chevron-right"></i>',n.addEventListener("click",(()=>{e.scrollBy({left:150,behavior:"smooth"})})),e.parentElement.appendChild(t),e.parentElement.appendChild(n)}}else e.classList.remove("tabs-overflow"),document.getElementById("tab-scroll-left")?.remove(),document.getElementById("tab-scroll-right")?.remove()}function I(e,t="filemanager"){return window.addNewTab(e,t)}function T(e){const t=e.endsWith("/")?e.slice(0,-1):e;if(""===t||"/"===t)return"Root";const n=t.split("/");return n[n.length-1]||"Root"}function A({action:a,files:o,options:i=null,onSuccess:s=null,onError:c=null}){progr();const l={csrf:e,action:a,file:o,dir:t};"zip"===a&&i&&(l.zipExt=i.zipFileName,l.compressionLevel=i.compressionLevel||"5",l.archiveFormat=i.archiveFormat||"zip");const d=JSON.stringify(l),u="1"===n?encrypt(d,r):d;$.post("",u,(function(e){try{const t="1"===n?decrypt(e,r):e,a=JSON.parse(t);a.error?(triggerAlert("warning",a.error),c&&c(a.error)):a.success?s?s(a):triggerAlert("success",a.success):s?s(a):triggerAlert("success","Operation completed successfully")}catch(e){triggerAlert("error","Failed to process server response"),c&&c(e)}dprogr()})).fail((function(e,t,n){triggerAlert("error","Request failed: "+(n||"Unknown error")),c&&c(n),dprogr()}))}k&&k.addEventListener("change",(function(e){if(e.target.classList.contains("file-checkbox")){const t=e.target.checked;updateSelectedFiles(e.target.dataset.file,t);const n=document.querySelectorAll(".file-checkbox"),r=Array.from(n).every((e=>e.checked)),a=Array.from(n).some((e=>e.checked));v&&(v.checked=r,v.indeterminate=!r&&a)}})),document.addEventListener("click",(function(a){if(a.target.classList.contains("fa-trash-alt")){const o=a.target.dataset.file;deleteFile(o,e,t,r,n)}})),$(".fa-folder-plus").click((function(){y("Create Folder","Enter the name of new folder: ","mkdir","NewFolder",(a=>{a&&(data={csrf:e,action:"mkdir",dir:t,dirName:a},handleCreate(data,"folder",r,n,t,e))}))})),$(".fa-file-circle-plus").click((function(){y("Create File","Enter the name of new File: ","touch","File",(a=>{a&&(data={csrf:e,action:"touch",dir:t,dirName:a},handleCreate(data,"file",r,n,t,e))}))})),$(".codeme").click((function(){y("Execute PHP Code","Enter the PHP code to execute:","Execute","",(a=>{a&&""!==a.trim()&&sendRequest({csrf:e,action:"execute",code:a.trim(),dir:t},r,n).then((e=>{e.output&&(triggerAlert("success","Code executed successfully"),Swal.fire({title:"Execution Result",html:`<pre class="text-left">${e.output}</pre>`,width:"80%",customClass:{popup:"dark:bg-gray-800 dark:text-white",htmlContainer:"overflow-auto max-h-[70vh]"}}))})).catch((e=>{triggerAlert("warning","Error executing code: "+e)}))}))})),$("#searchBar").on("keyup",(function(){$(this).val().toLowerCase().length>0?$("#clearSearch").show():$("#clearSearch").hide(),window.fileManagerState&&"function"==typeof window.renderFiles&&window.renderFiles(window.fileManagerState.files,t,e,r,n)})),$("#clearSearch").on("click",(function(){$("#searchBar").val("").focus(),$(this).hide(),"function"==typeof window.renderFiles&&window.fileManagerState&&window.renderFiles(window.fileManagerState.files,t,e,r,n)})),document.addEventListener("click",(function(t){if(t.target.classList.contains("fa-download")){const a=t.target.dataset.file;downloadFile(a,e,r,n)}})),$(window).on("scroll",(function(){if($(window).scrollTop()+$(window).height()>=$(document).height()-100){let a=document.getElementById("itemLimit").value;fileManagerState.currentPage<fileManagerState.totalPages&&!fileManagerState.isLoading&&(fileManagerState.currentPage++,loadDirectory(t,fileManagerState.currentPage,e,r,n,a))}})),$("th[data-sort]").click((function(){const a=$(this).data("sort");if(!window.fileManagerState)return;window.fileManagerState.currentSort.column===a?window.fileManagerState.currentSort.direction="asc"===window.fileManagerState.currentSort.direction?"desc":"asc":(window.fileManagerState.currentSort.column=a,window.fileManagerState.currentSort.direction="asc"),"function"==typeof window.sortFiles&&window.sortFiles(),"function"==typeof window.renderFiles&&window.renderFiles(window.fileManagerState.files,t,e,r,n),$("th[data-sort]").find("i.fas").removeClass("fa-sort-up fa-sort-down").addClass("fa-sort");const o=$(this).find("i.fas");o.removeClass("fa-sort"),"asc"===window.fileManagerState.currentSort.direction?o.addClass("fa-sort-up"):o.addClass("fa-sort-down")})),$(document).on("click",".directory-link",(function(a){a.preventDefault();let i=document.getElementById("itemLimit").value;const s=$(this).data("path");s&&s!==t&&(t=s,o=t,updateCurrentPath(),loadDirectory(t,1,e,r,n,i),updateActiveTabPath(t))})),window.updateCurrentPath=function(){S(t)},$("#breadcrumbs").on("dblclick",(function(a){a.preventDefault();const o=$("#breadcrumbs ol"),i=t,s=$("<input>",{type:"text",value:i,class:"w-96 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"});o.html(`<li class="inline-flex items-center">${s.prop("outerHTML")}</li>`),o.find("input").focus(),o.find("input").on("blur",(function(){$(this).val().trim();S(i)})),o.find("input").on("keydown",(function(a){if(13===a.keyCode){a.preventDefault();const o=$(this).val().trim();o&&(t=o,updateCurrentPath(),loadDirectory(t,1,e,r,n),updateActiveTabPath(t))}}))})),$(document).on("click",".breadcrumb-link",(function(a){a.preventDefault();const i=$(this).data("path");i&&(t=i,updateCurrentPath(),o=t,loadDirectory(t,1,e,r,n),updateActiveTabPath(t))})),$(document).on("click","#goHome",(function(i){i.preventDefault(),t=a,updateCurrentPath(),o=t,loadDirectory(t,1,e,r,n),updateActiveTabPath(t),$(this).addClass("animate-pulse"),setTimeout((()=>{$(this).removeClass("animate-pulse")}),300)})),window.switchToTab=function(a){const o=fileManagerState.tabs.find((e=>e.id===a));if(!o)return;fileManagerState.tabs.forEach((e=>e.active=!1)),o.active=!0,fileManagerState.activeTabId=a,E(),document.querySelectorAll('[role="tabpanel"]').forEach((e=>{e.classList.add("hidden")}));let i=document.getElementById(`${a}-content`);if(!i){const e=document.getElementById("tabs-content");if(!e)return;i=document.createElement("div"),i.id=`${a}-content`,i.className="tabs-panel w-full",e.appendChild(i)}if(document.querySelectorAll(".tabs-panel").forEach((e=>{e.classList.add("hidden")})),i.classList.remove("hidden"),"editor"===o.type||"search"===o.type){const e=document.getElementById("fileManagerUI");e&&(e.style.display="none");const t=i.querySelector(".editor-container");t&&(t.style.height="90vh",t.style.width="100%",window.editor&&setTimeout((()=>window.editor.refresh()),10))}else{const a=document.getElementById("fileManagerUI"),i=document.getElementById("file");a&&(a.style.display="block",i&&i.classList.remove("hidden"),t=o.path,updateCurrentPath(),loadDirectory(t,1,e,r,n))}},window.addNewTab=function(e=null,n="filemanager"){const r=`tab-${Date.now()}`;return fileManagerState.tabs.forEach((e=>e.active=!1)),fileManagerState.tabs.push({id:r,path:t,active:!0,name:e||T(t),type:n}),fileManagerState.activeTabId=r,E(),saveTabsToLocalStorage(),r},window.updateActiveTabPath=function(e){const t=fileManagerState.tabs.find((e=>e.id===fileManagerState.activeTabId));t&&(t.path=e,t.name=T(e),E(),saveTabsToLocalStorage())},$("#bulkActions").change((function(){const a=$(this).val();setTimeout((()=>{$(this).val("")}),100);const o=()=>{const e=document.querySelectorAll(".file-checkbox:checked"),t=[];return e.forEach((e=>{const n=e.dataset.fullPath||e.dataset.file;n&&t.push(n)})),t},i=o();if(0!==i.length||"paste"===a)switch(a){case"delete":b("Delete Files",`Are you sure you want to delete ${i.length} file(s)?`,"Delete",(()=>{const a=o();a.length>0?A({action:"delete",files:a,onSuccess:()=>{clearFileSelection(),triggerAlert("success","Files deleted successfully"),loadDirectory(t,1,e,r,n)}}):triggerAlert("warning","No files selected for deletion.")}));break;case"zip":!function(e,t,n,r="",a){const o=document.documentElement.classList.contains("dark"),i=o?"bg-gray-800 text-white border-gray-700":"bg-white text-gray-900 border-gray-300";Swal.fire({title:e,html:`\n                <div class="flex flex-col space-y-4">\n                    <div class="w-full">\n                        <label for="zipFileName" class="text-sm font-medium block mb-1">\n                            ${t}\n                        </label>\n                        <input id="zipFileName" type="text" value="${r}" \n                               class="w-full p-2 border rounded ${i}">\n                    </div>\n                    <div class="w-full">\n                        <label for="compressionLevel" class="text-sm font-medium block mb-1">\n                            Compression Level:\n                        </label>\n                        <select id="compressionLevel" class="w-full p-2 border rounded ${i}">\n                            <option value="0">Store only (no compression)</option>\n                            <option value="1">Fastest (lowest compression)</option>\n                            <option value="5" selected>Normal (balanced)</option>\n                            <option value="9">Maximum (slowest)</option>\n                        </select>\n                    </div>\n                    <div class="w-full">\n                        <label for="archiveFormat" class="text-sm font-medium block mb-1">\n                            Archive Format:\n                        </label>\n                        <select id="archiveFormat" class="w-full p-2 border rounded ${i}">\n                            <option value="zip" selected>ZIP (.zip)</option>\n                            <option value="tar">TAR (.tar)</option>\n                            <option value="tar.gz">TAR GZ (.tar.gz)</option>\n                            <option value="tar.bz2">TAR BZ2 (.tar.bz2)</option>\n                            <option value="tar.xz">TAR XZ (.tar.xz)</option>\n                            <option value="gz">GZIP (.gz)</option>\n                        </select>\n                    </div>\n                </div>\n            `,focusConfirm:!1,showCancelButton:!0,confirmButtonText:n,cancelButtonText:"Cancel",customClass:{popup:o?"bg-gray-800 text-white":"bg-white text-gray-900",confirmButton:"bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded",cancelButton:"bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded mr-2"},preConfirm:()=>{const e=document.getElementById("zipFileName").value,t=document.getElementById("compressionLevel").value,n=document.getElementById("archiveFormat").value;return e?{zipFileName:e,compressionLevel:t,archiveFormat:n}:(Swal.showValidationMessage("Please enter a filename"),!1)}}).then((e=>{e.isConfirmed&&e.value&&a(e.value)}))}("Create Zip Archive","Enter the name for the zip file:","Create","archive.zip",(a=>{if(a){const i=o();if(0===i.length)return void triggerAlert("warning","No files selected for archiving.");const s=a.archiveFormat;let c=a.zipFileName;c.toLowerCase().endsWith("."+s)||(c.includes(".")&&(c=c.substring(0,c.lastIndexOf("."))),c+="."+s),a.zipFileName=c,A({action:"zip",files:i,options:a,onSuccess:()=>{clearFileSelection(),triggerAlert("success","Archive created successfully"),loadDirectory(t,1,e,r,n)}})}}));break;case"unzip":if(i.length>1){const a=i.map((e=>{const t=e.split(".").pop().toLowerCase();if(["gz","bz2","xz"].includes(t)){if(e.substring(0,e.lastIndexOf(".")).toLowerCase().endsWith(".tar"))return`tar.${t}`}return t}));if(!a.every((e=>e===a[0])))return void b("Warning: Different Archive Types","You've selected different types of archives. This may cause extraction issues. Continue anyway?","Continue",(()=>{const a=o();a.length>0&&A({action:"unzip",files:a,onSuccess:()=>{clearFileSelection(),triggerAlert("success","Archives extracted successfully"),loadDirectory(t,1,e,r,n)}})}))}b("Extract Archive",i.length>1?`Extract ${i.length} archives to the current directory?`:`Extract "${i[0]}" to the current directory?`,"Extract",(()=>{const a=o();a.length>0&&A({action:"unzip",files:a,onSuccess:()=>{clearFileSelection(),triggerAlert("success","Archives extracted successfully"),loadDirectory(t,1,e,r,n)}})}));break;case"copy":if(i.length>0){const e=i.map((e=>e.includes("/")?e:`${t}/${e}`));localStorage.setItem("copiedFiles",JSON.stringify(e)),triggerAlert("success",`${i.length} file(s) copied to clipboard`)}break;case"paste":try{const a=JSON.parse(localStorage.getItem("copiedFiles")||"[]");a.length>0?A({action:"paste",files:a,onSuccess:()=>{clearFileSelection(),triggerAlert("success","Files pasted successfully"),loadDirectory(t,1,e,r,n),localStorage.removeItem("copiedFiles")}}):triggerAlert("warning","No files in clipboard to paste")}catch(e){triggerAlert("error","Failed to read clipboard data")}break;default:break}else triggerAlert("info","No files selected! Please select files to perform bulk actions.")}));const M=document.getElementById("dropZone"),B=document.getElementById("fileInput"),C=document.getElementById("uploadForm"),F=document.getElementById("uploadProgress"),P=document.getElementById("progressBar"),q=document.getElementById("progressText");if(M&&B&&C&&F&&P&&q){function N(e){e.preventDefault(),e.stopPropagation()}function z(a){F.classList.remove("hidden"),P.style.width="0%",q.textContent="Uploading...";const o=new FormData(C);o.append("updir",t),o.append("csrf",e),fetch("",{method:"POST",body:o}).then((e=>e.json())).then((a=>{a.success?(q.textContent="Upload complete!",setTimeout((()=>F.classList.add("hidden")),3e3),loadDirectory(t,1,e,r,n)):q.textContent=a.error||"Upload failed. Please try again."})).catch((e=>{q.textContent="Upload failed. Please try again."}))}["dragenter","dragover","dragleave","drop"].forEach((e=>{M.addEventListener(e,N,!1)})),["dragenter","dragover"].forEach((e=>{M.addEventListener(e,(()=>M.classList.add("bg-blue-50","dark:bg-gray-600")),!1)})),["dragleave","drop"].forEach((e=>{M.addEventListener(e,(()=>M.classList.remove("bg-blue-50","dark:bg-gray-600")),!1)})),M.addEventListener("drop",(function(e){const n=e.dataTransfer.files;n.length>0&&(B.files=n,o=t,z(o))}),!1),B.addEventListener("change",z),M.addEventListener("click",(()=>B.click()))}function D(e,t,n,r,a){if(progr(),!t)return triggerAlert("warning","File content is empty."),void dprogr();if(!e)return triggerAlert("warning","No file path specified."),void dprogr();const o=document.querySelector(`[data-file-path="${e}"]`);let i="";if(o){const e=o.id.replace("-content",""),t=document.getElementById(`file-type-select-${e}`);t&&(i=t.value)}sendRequest({csrf:n,action:"save_content",file:e,content:t,file_type:i},r,a).then((e=>{triggerAlert("success","File saved successfully"),dprogr()})).catch((e=>{triggerAlert("danger","Failed to save file: "+e),dprogr()}))}function H(e){switch(e.split(".").pop().toLowerCase()){case"js":return"javascript";case"php":return"php";case"html":case"htm":return"htmlmixed";case"css":return"css";case"json":return"application/json";case"xml":return"xml";case"md":return"markdown";case"py":return"python";case"rb":return"ruby";case"java":return"text/x-java";case"c":return"text/x-csrc";case"cpp":case"cc":case"h":case"hpp":return"text/x-c++src";case"cs":return"text/x-csharp";case"go":return"text/x-go";case"rs":return"text/x-rustsrc";case"ts":return"text/typescript";case"sql":return"sql";case"sh":case"bash":return"shell";case"yml":case"yaml":return"yaml";case"txt":return"text";default:return"plaintext"}}document.addEventListener("click",(function(t){if(t.target.classList.contains("file-link")){t.preventDefault();!function(e,t,n,r){progr();try{const o=I(e.split("/").pop(),"editor");function a(a){a.dataset.filePath=e;const i=document.getElementById("fileManagerUI");i&&i.classList.add("hidden"),a.classList.remove("hidden");const s=document.createElement("div");s.className="editor-container",s.style.width="100%",s.style.height="90vh",s.style.border="1px solid #ddd",s.style.position="relative",a.appendChild(s);const c=document.createElement("div");c.className="file-type-selector fixed top-4 right-4 z-50",c.innerHTML=`\n                    <select id="file-type-select-${o}" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm">\n                        <option value="">Auto-detect</option>\n                        <option value="javascript">JavaScript</option>\n                        <option value="php">PHP</option>\n                        <option value="htmlmixed">HTML</option>\n                        <option value="css">CSS</option>\n                        <option value="application/json">JSON</option>\n                        <option value="xml">XML</option>\n                        <option value="markdown">Markdown</option>\n                        <option value="python">Python</option>\n                        <option value="text/x-java">Java</option>\n                        <option value="text/x-csrc">C</option>\n                        <option value="text/x-c++src">C++</option>\n                        <option value="sql">SQL</option>\n                        <option value="shell">Shell/Bash</option>\n                        <option value="yaml">YAML</option>\n                        <option value="text">Plain Text</option>\n                    </select>\n                `,a.appendChild(c),sendRequest({csrf:t,action:"view_content",file:e},n,r).then((i=>{if("undefined"==typeof CodeMirror)return s.innerHTML=`<pre style="white-space: pre-wrap; padding: 1rem;">${i.content}</pre>`,triggerAlert("warning","CodeMirror not found. Displaying content in plain text mode."),void dprogr();const c=i.file_type||H(e),l=CodeMirror(s,{value:i.content||"",mode:c,theme:document.documentElement.classList.contains("dark")?"dracula":"eclipse",lineNumbers:!0,lineWrapping:!0,matchBrackets:!0,autoCloseBrackets:!0,styleActiveLine:!0});window.editor=l,l.setSize("100%","100%");const d=document.getElementById(`file-type-select-${o}`);if(d){Array.from(d.options).find((e=>e.value===c))&&(d.value=c),d.addEventListener("change",(()=>{const a=d.value||H(e);l.setOption("mode",a),sendRequest({csrf:t,action:"view_content",file:e,file_type:a},n,r),setTimeout((()=>l.refresh()),50)}))}let u=a.querySelector(".save-file-btn");u||(u=document.createElement("button"),u.className="save-file-btn fixed bottom-4 right-4 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded shadow-lg z-50",u.innerHTML='<i class="fas fa-save mr-2"></i> Save',u.addEventListener("click",(()=>{const a=l.getValue();D(e,a,t,n,r)})),a.appendChild(u)),setTimeout((()=>{l&&(l.refresh(),l.focus())}),100),dprogr()})).catch((e=>{s.innerHTML='<div class="p-4 text-red-500">Failed to load file content: '+e+"</div>",dprogr()}))}setTimeout((()=>{const e=document.querySelector(`#${o}-content`);if(e)a(e);else{const e=document.getElementById("tabs-content");if(e){const t=document.createElement("div");t.id=`${o}-content`,t.className="tabs-panel w-full",e.appendChild(t),a(t)}else dprogr(),triggerAlert("warning","Failed to create editor tab. Try refreshing the page.")}}),100)}catch(e){dprogr()}}(t.target.dataset.file,e,r,n)}})),function(){const t=document.getElementById("cancelEdit"),a=document.getElementById("cancelEditBtn"),o=document.getElementById("editorLanguage"),i=document.getElementById("saveFile");t&&t.addEventListener("click",(function(){const e=document.getElementById("editorModal");e&&e.classList.add("hidden")})),a&&a.addEventListener("click",(function(){const e=document.getElementById("editorModal");e&&e.classList.add("hidden")})),o&&o.addEventListener("change",(function(){if(window.editor){const e=this.value,t={javascript:"javascript",php:"php",html:"htmlmixed",css:"css",json:"javascript",plaintext:"null"}[e]||"null";window.editor.setOption("mode",t);const n=document.getElementById("editorStatus");n&&(n.textContent=`Language changed to ${e}`)}})),i&&i.addEventListener("click",(function(){const t=window.editor?window.editor.getValue():"",a=document.getElementById("editorModal"),o=a&&a.dataset.filePath?a.dataset.filePath:"",i=document.getElementById("editorStatus");i&&(i.textContent="Saving..."),D(o,t,e,r,n)}))}();function R(){const e=document.querySelector('[role="tab"][aria-selected="true"]')?.getAttribute("data-tabs-target"),t=document.querySelector(".mb-4.border-b.border-gray-200.dark\\:border-gray-700"),n=document.getElementById("breadcrumbs");e&&t&&n&&("#terminal"===e||"#config"===e||"#setting"===e?(t.classList.add("hidden"),n.classList.add("hidden")):(t.classList.remove("hidden"),n.classList.remove("hidden")))}function O(){s="",l=0,u=0,g=0,p="",d=!1}function _(){$("line.current bl").remove(),$("line.current").removeClass("current")}function V(){$("terminal content").append('<line class="current"><path>'+i+"</path> <sp></sp> <t><bl></bl></t></line>")}function j(){let e=$("line.current t").html(),t=1==e.split(" ").length?"<cm>"+e+"</cm>":"<cm>"+e.split(" ")[0]+"</cm> <code>"+e.split(" ").slice(1).join(" ").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</code>";$("line.current t").html(t.replace("&lt;bl&gt;&lt;/bl&gt;","<bl></bl>"))}function U(e=""){""===e?e=s:u=0;let t=e.substr(0,e.length+u),n=e.substr(e.length+u);$("line.current t").html(t+"<bl></bl>"+n)}window.initializeEditor=function(e,t="plaintext",n="editorContainer"){progr();const r=document.getElementById(n);if(!r)return void dprogr();const a=document.documentElement.classList.contains("dark")?"dracula":"eclipse";try{const n={"Ctrl-S":function(e){const t=r.closest('[id$="-content"]');if(t){const e=t.querySelector(".save-file-btn");e&&e.click()}else{const e=document.getElementById("saveFile");e&&e.click()}return!1},"Ctrl-F":"findPersistent","Ctrl-H":"replace","Ctrl-/":"toggleComment",Tab:function(e){return e.somethingSelected()?e.indentSelection("add"):e.replaceSelection("    ","end"),!0},"Shift-Tab":function(e){return e.indentSelection("subtract"),!0},"Ctrl-Q":function(e){return e.foldCode(e.getCursor()),!1},Esc:function(e){return e.getOption("fullScreen")&&e.setOption("fullScreen",!1),!1}};r.innerHTML="";const o=CodeMirror(r,{value:e||"",mode:t,theme:a,lineNumbers:!0,indentUnit:4,smartIndent:!0,indentWithTabs:!1,lineWrapping:!0,matchBrackets:!0,autoCloseBrackets:!0,autoCloseTags:!0,styleActiveLine:!0,selectionPointer:!0,tabSize:parseInt(localStorage.getItem("tab-size")||"4"),extraKeys:n,scrollbarStyle:"native",undoDepth:200,historyEventDelay:200});window.editor=o,o.setSize("100%","100%"),setTimeout((()=>{o&&o.focus()}),100),setTimeout((()=>{o&&o.refresh()}),50)}catch(e){triggerAlert("warning","Failed to initialize the editor. Please try again.")}finally{dprogr()}},window.createEditor=function(e,t){if("function"==typeof window.initializeEditor)if(document.getElementById("editorContainer"))try{window.initializeEditor(e,t)}catch(e){triggerAlert("warning","Failed to initialize editor. Please try again.")}else triggerAlert("warning","Editor container not found in DOM. Please refresh the page.");else triggerAlert("warning","Editor initialization failed. Please refresh the page.")},$(document).ready((function(){function a(e){var t="number"==typeof e.which?e.which:e.keyCode;8===t||9===t||46===t?(e.preventDefault(),""!==s&&(8===t?function(){0!==g&&(g=0,s=p);let e=s.substr(0,s.length+u),t=s.substr(s.length+u);s=e.substr(0,e.length-1)+t,U(),j()}():46===t?function(){let e=s.substr(0,s.length+u),t=s.substr(s.length+u);s=e+t.substr(1),0!==u&&u++;U(),j()}():9===t&&function(){if(m!==s)if(m=s,f=[],1===s.split(" ").length){let e=h.concat(Object.keys(K));f=e.filter((function(e){return e.length>s.length&&e.substr(0,s.length).toLowerCase()==s.toLowerCase()})).reverse().sort((function(e,t){return t.length-e.length}))}else if(2===s.split(" ").length){let t=s.split(" ")[0],n=s.split(" ")[1];var e="";if("cd"===t||"cp"===t||"mv"===t||"cat"===t){switch(t){case"cd":e="ls -d "+n+"*/";break;case"cp":case"mv":e="ls -d "+n+"*/";break;case"cat":e="ls -p | grep -v /";break;default:e=""}$.ajax({type:"POST",async:!1,data:{command:e,path:i},cache:!1,success:function(e){e=$.parseJSON(e),f=e.result.split("<br>").filter((function(e){return 0!==e.length}))}})}}f.length&&f.length>Math.abs(g)?(g--,U(p=(2===s.split(" ").length?s.split(" ")[0]+" ":"")+f[f.length+g]),j()):(g=0,p="",U(),j())}())):e.ctrlKey&&67===t?(g=0,_(),V(),O()):13===t?(0!==g&&(g=0,s=p),s.toLowerCase().split(" ")[0]in K?K[s.toLowerCase().split(" ")[0]](s.split(" ").slice(1)):0!==s.length&&$.ajax({type:"POST",async:!1,data:{command:s,path:i},cache:!1,success:function(e){e=$.parseJSON(e),i=e.path,$("terminal content").append("<line><br>"+e.result+"</line>")}}),_(),function(e){e.length>=2&&(0===c.length||c[c.length-1]!==e)&&(c[c.length]=e)}(s),V(),O(),$("terminal content").scrollTop($("terminal content").prop("scrollHeight"))):35!==t&&36!==t&&37!==t&&39!==t||""===s?38!==t&&40!==t||""!==s&&!d?(32===t||222===t||220===t||t>=45&&t<=195&&!(t>=112&&t<=123)&&46!=t&&91!=t&&93!=t&&144!=t&&145!=t&&45!=t)&&(!function(e){l=0,d=!1,0!==g&&(g=0,s=p);if("/"===s[s.length-1]&&"/"===e)return;let t=s.substr(0,s.length+u),n=s.substr(s.length+u);s=t+e+n,U(),j()}(e.key),$("terminal content").scrollTop($("terminal content").prop("scrollHeight"))):(e.preventDefault(),38===t&&c.length&&c.length>=-1*l+1?(l--,s=c[c.length+l],U(),j(),d=!0):40===t&&c.length&&c.length>=-1*l&&0!==l&&(l++,s=0===l?"":c[c.length+l],U(),j(),d=0!==l)):(e.preventDefault(),$("line.current bl").remove(),0!==g&&(g=0,s=p),35===t&&(u=0),36===t&&(u=-1*s.length),37===t&&s.length!==Math.abs(u)&&u--,39===t&&0!==u&&u++,U(),j())}function o(){$("#terminal").is(":visible")?$(document).on("keydown",a):$(document).off("keydown",a)}window.fileManagerState||(window.fileManagerState={files:[],totalPages:1,currentPage:1,currentSort:{column:"name",direction:"asc"},selectedFiles:[],tabs:[{id:"tab-1",path:t,active:!0,name:"Home"}],activeTabId:"tab-1"}),loadDirectory(t,1,e,r,n),setTimeout((function(){const{column:e,direction:t}=window.fileManagerState.currentSort;$("th[data-sort]").find("i.fas").removeClass("fa-sort-up fa-sort-down").addClass("fa-sort");const n=$(`th[data-sort="${e}"]`);if(n.length){const e=n.find("i.fas");e.removeClass("fa-sort"),e.addClass("asc"===t?"fa-sort-up":"fa-sort-down")}}),500),o(),window.updateKeydownListener=o,$("[data-tabs-target]").on("click",(function(){setTimeout((()=>{window.updateKeydownListener&&window.updateKeydownListener()}),100)}))})),document.addEventListener("DOMContentLoaded",(function(){R(),document.querySelectorAll("[data-tabs-target]").forEach((e=>{e.addEventListener("click",(function(){setTimeout(R,50)}))}));const e=new MutationObserver((e=>{e.forEach((e=>{"aria-selected"===e.attributeName&&R()}))}));document.querySelectorAll('[role="tab"]').forEach((t=>{e.observe(t,{attributes:!0,attributeFilter:["aria-selected"]})}))})),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",R):R();var K={clear:function(){$("terminal content").html("")},history:function(e){var t=[];let n=e.length&&Number.isInteger(Number(e[0]))?Number(e[0]):0;if(0!=n&&n<=c.length)for(var r=c.length-n;r<c.length;r++)t[t.length]=r+1+" &nbsp;"+c[r];else c.forEach((function(e,n){t[t.length]=n+1+" &nbsp;"+e}));$("terminal content").append("<line>"+t.join("<br>")+"</line>")}};function J(e,t,n,r,a){y("Execute PHP Code","Enter the PHP code to execute:","Execute","",(e=>{e&&""!==e.trim()&&sendRequest({csrf:t,action:"execute",code:e.trim(),dir:n},r,a).then((e=>{var t;t=e.output,document.getElementById("editorModal").classList.remove("hidden"),window.initializeEditor(t,"bash")})).catch((e=>{triggerAlert("warning",e)}))}))}updateCurrentPath(),document.getElementById("itemLimit").addEventListener("change",(a=>{const o=a.target.value;localStorage.setItem("default-items-per-page",o),window.fileManagerState.currentPage=1,loadDirectory(t,1,e,r,n,o)})),document.addEventListener("click",(function(a){a.target.classList.contains("codeme")&&J(0,e,t,r,n)}))})),window.initEditorLanguageSelector=function(){const e=document.getElementById("editorLanguage");e&&!e.dataset.initialized&&(e.addEventListener("change",(function(){const e=this.value;if(window.editor&&e)try{window.editor.setOption("mode",e);const t=document.getElementById("editorStatus");if(t){const n=(t.textContent||"").replace(/\|.*\|/,`| ${e} |`);t.textContent=n}}catch(e){}})),e.dataset.initialized="true")},document.addEventListener("DOMContentLoaded",(function(){document.querySelectorAll("[data-tabs-target]").forEach((e=>{e.addEventListener("click",(function(){handleTabSwitch(this.getAttribute("data-tabs-target"))}))}));const e=document.querySelector('[role="tab"][aria-selected="true"]');handleTabSwitch(e?e.getAttribute("data-tabs-target"):"#file")})),window.showConfirmation="function"==typeof showConfirmation?showConfirmation:function(){},window.diagnoseFunctions=function(){window.fileManagerState,window.phpVars},setTimeout((()=>{window.diagnoseFunctions&&window.diagnoseFunctions()}),1e3),document.addEventListener("DOMContentLoaded",(function(){initThemeToggle(),initEnhancedTabs(),initSettings(),initGlobalKeyboardShortcuts(),exposeUtilityFunctions(),"undefined"==typeof phpVars||window.phpVars?window.phpVars:window.phpVars=phpVars,document.querySelector(".advanced-search")?.addEventListener("click",(function(){"function"==typeof window.showAdvancedSearch?window.showAdvancedSearch():triggerAlert("warning","Advanced search feature is not available")}))})),window.saveTabsToLocalStorage=function(){try{const e=fileManagerState.tabs.map((e=>({id:e.id,path:e.path,active:e.active,name:e.name,type:e.type||"filemanager"})));localStorage.setItem("fileManager_activeTabId",fileManagerState.activeTabId),localStorage.setItem("fileManager_tabs",JSON.stringify(e))}catch(e){}},window.loadTabsFromLocalStorage=function(){try{const e=localStorage.getItem("fileManager_tabs");if(!e)return!1;const t=JSON.parse(e);if(!Array.isArray(t)||0===t.length)return!1;const n=localStorage.getItem("fileManager_activeTabId");return fileManagerState.tabs=t,n&&fileManagerState.tabs.find((e=>e.id===n))?(fileManagerState.activeTabId=n,fileManagerState.tabs.forEach((e=>{e.active=e.id===n}))):(fileManagerState.tabs[0].active=!0,fileManagerState.activeTabId=fileManagerState.tabs[0].id),!0}catch(e){return!1}},document.addEventListener("DOMContentLoaded",(function(){const e=document.getElementById("network-tab");e&&e.addEventListener("click",(function(){initNetworkTools()}))}));
+document.addEventListener('DOMContentLoaded', function () {
+    // console.log('DOM fully loaded and parsed');
+
+    // Initialize SQL Explorer when the SQL tab is selected
+    document.getElementById('sql-tab')?.addEventListener('click', function() {
+        if (typeof window.initSQLExplorer === 'function') {
+            window.initSQLExplorer();
+        }
+    });
+    
+    // Initialize context menu for file/folder operations
+    if (typeof window.initContextMenu === 'function') {
+        window.initContextMenu();
+    }
+    
+    // Expose utility functions to global scope for keyboard shortcuts
+    exposeUtilityFunctions();
+    
+    // Initialize global keyboard shortcuts
+    initGlobalKeyboardShortcuts();
+
+    // Helper function to clear file selection
+    window.clearFileSelection = function() {
+        // Clear selected files array
+        if (window.fileManagerState) {
+            window.fileManagerState.selectedFiles = [];
+        }
+        
+        // Uncheck all checkboxes
+        document.querySelectorAll('.file-checkbox:checked').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        // Uncheck "Select All" checkbox if it exists
+        let selectAllCheckbox = document.getElementById('selectAll');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        }
+        
+        // Remove highlight from all rows
+        document.querySelectorAll('#fileList tr.bg-blue-50, #fileList tr.dark\\:bg-blue-900\\/20').forEach(row => {
+            row.classList.remove('bg-blue-50', 'dark:bg-blue-900/20');
+        });
+    };
+
+    // Access the PHP variables from the global phpVars object
+    const csrf = phpVars.csrf;
+    let currentDir = phpVars.currentDir;
+    const isEnc = phpVars.isEnc;
+    const key = CryptoJS.enc.Utf8.parse(phpVars.encryptionKey);
+    const homeDir = phpVars.currentDir;
+    let updir;
+    // Terminal functionality
+    var path = phpVars.terPWD;
+    var command = '';
+    var command_history = [];
+    var history_index = 0;
+    var suggest = false;
+    var blink_position = 0;
+    var autocomplete_position = 0;
+    var autocomplete_search_for = '';
+    var autocomplete_temp_results = [];
+    var autocomplete_current_result = '';
+    let commands_list = phpVars.cmList;
+    // Initialize Monaco Editor
+    let editor;
+    // Store theme preference globally
+    window.editorThemePreference = localStorage.getItem('editor-theme');
+    if (window.editorThemePreference === 'system') {
+        // Use system preference
+        window.editorThemePreference = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs';
+    }
+
+    // console.log('CSRF Token:', csrf);
+    // console.log('Current Directory:', currentDir);
+    // console.log('Is Encrypted:', isEnc);
+
+    // Initialize variables
+    let currentPage = 1;
+    let totalPages = 1;
+    let currentSort = { column: 'name', direction: 'asc' };
+    let files = []; // Define files as a global variable
+
+    // Clipboard state
+    let clipboard = { action: "", path: [] };
+
+    // Wait for Flowbite to load since it's included with defer
+    function checkFlowbiteLoaded() {
+        if (typeof window.flowbite !== 'undefined') {
+            console.log('Flowbite detected, initializing components');
+            
+            // Initialize Flowbite tabs
+            if (window.flowbite.initTabs) {
+                window.flowbite.initTabs();
+            }
+            
+            // Initialize our enhanced tabs
+            setTimeout(() => {
+                initEnhancedTabs();
+            }, 100);
+        } else {
+            // If Flowbite is not loaded yet, check again after a short delay
+            setTimeout(checkFlowbiteLoaded, 50);
+        }
+    }
+    
+    // Start checking if Flowbite is loaded
+    checkFlowbiteLoaded();
+
+    // Utility functions
+    function showDialog(title, message, confirmButtonText, defaultValue = '', callback) {
+        Swal.fire({
+            title: title,
+            input: 'text',
+            inputLabel: message,
+            inputValue: defaultValue,
+            showCancelButton: true,
+            confirmButtonText: confirmButtonText,
+            customClass: {
+                popup: 'dark:bg-gray-800 dark:text-white'
+            },
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'You need to enter a value!';
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                callback(result.value);
+            }
+        });
+    }
+
+    function showRenameDialog(title, message, confirmButtonText, defaultValue = '', callback) {
+        Swal.fire({
+            title: title,
+            input: 'text',
+            inputLabel: message,
+            inputValue: defaultValue,
+            showCancelButton: true,
+            confirmButtonText: confirmButtonText,
+            customClass: {
+                popup: 'dark:bg-gray-800 dark:text-white'
+            },
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'You need to enter a value!';
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                callback(result.value);
+            }
+        });
+    }
+
+    // Enhanced dialog for creating zip files with compression options
+    function showZipCreationDialog(title, message, confirmButtonText, defaultValue = '', callback) {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        const darkModeClasses = isDarkMode ? 
+            'bg-gray-800 text-white border-gray-700' : 
+            'bg-white text-gray-900 border-gray-300';
+            
+        Swal.fire({
+            title: title,
+            html: `
+                <div class="flex flex-col space-y-4">
+                    <div class="w-full">
+                        <label for="zipFileName" class="text-sm font-medium block mb-1">
+                            ${message}
+                        </label>
+                        <input id="zipFileName" type="text" value="${defaultValue}" 
+                               class="w-full p-2 border rounded ${darkModeClasses}">
+                    </div>
+                    <div class="w-full">
+                        <label for="compressionLevel" class="text-sm font-medium block mb-1">
+                            Compression Level:
+                        </label>
+                        <select id="compressionLevel" class="w-full p-2 border rounded ${darkModeClasses}">
+                            <option value="0">Store only (no compression)</option>
+                            <option value="1">Fastest (lowest compression)</option>
+                            <option value="5" selected>Normal (balanced)</option>
+                            <option value="9">Maximum (slowest)</option>
+                        </select>
+                    </div>
+                    <div class="w-full">
+                        <label for="archiveFormat" class="text-sm font-medium block mb-1">
+                            Archive Format:
+                        </label>
+                        <select id="archiveFormat" class="w-full p-2 border rounded ${darkModeClasses}">
+                            <option value="zip" selected>ZIP (.zip)</option>
+                            <option value="tar">TAR (.tar)</option>
+                            <option value="tar.gz">TAR GZ (.tar.gz)</option>
+                            <option value="tar.bz2">TAR BZ2 (.tar.bz2)</option>
+                            <option value="tar.xz">TAR XZ (.tar.xz)</option>
+                            <option value="gz">GZIP (.gz)</option>
+                        </select>
+                    </div>
+                </div>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: confirmButtonText,
+            cancelButtonText: 'Cancel',
+            customClass: {
+                popup: isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900',
+                confirmButton: 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded',
+                cancelButton: 'bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded mr-2'
+            },
+            preConfirm: () => {
+                const zipFileName = document.getElementById('zipFileName').value;
+                const compressionLevel = document.getElementById('compressionLevel').value;
+                const archiveFormat = document.getElementById('archiveFormat').value;
+                
+                if (!zipFileName) {
+                    Swal.showValidationMessage('Please enter a filename');
+                    return false;
+                }
+                
+                return {
+                    zipFileName: zipFileName,
+                    compressionLevel: compressionLevel,
+                    archiveFormat: archiveFormat
+                };
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                callback(result.value);
+            }
+        });
+    }
+
+    function showConfirmation(title, message, confirmButtonText, callback) {
+        Swal.fire({
+            title: title,
+            text: message,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: confirmButtonText,
+            cancelButtonText: 'Cancel',
+            customClass: {
+                popup: 'dark:bg-gray-800 dark:text-white'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                callback();
+            }
+        });
+    }
+
+    // Initialize items per page from localStorage
+    const defaultItemsPerPage = localStorage.getItem('default-items-per-page');
+    if (defaultItemsPerPage) {
+        const itemLimitElement = document.getElementById('itemLimit');
+        if (itemLimitElement) {
+            itemLimitElement.value = defaultItemsPerPage;
+        }
+    }
+
+    // Try to load saved tabs from localStorage
+    const tabsLoaded = loadTabsFromLocalStorage();
+    
+    // If tabs were loaded successfully, update currentDir to match the active tab
+    if (tabsLoaded) {
+        const activeTab = fileManagerState.tabs.find(tab => tab.active);
+        if (activeTab) {
+            currentDir = activeTab.path;
+            console.log('Restored current directory from saved tabs:', currentDir);
+        }
+    }
+
+    // Initialize the file manager
+    initializeFileManager(csrf, currentDir, isEnc, key);
+    
+    // Initialize tabs
+    renderTabs();
+    initTabEvents();
+    
+    // Initialize theme toggle
+    initThemeToggle();
+
+    // Initialize settings
+    initSettings();
+
+    // Event listener for "Select All" checkbox
+    const selectAllCheckbox = document.getElementById('selectAll');
+    if (selectAllCheckbox) {
+        // Remove existing event listeners and add a fresh one
+        selectAllCheckbox.removeEventListener('change', selectAllChangeHandler);
+        selectAllCheckbox.addEventListener('change', selectAllChangeHandler);
+    }
+    
+    // Separate handler function for the Select All checkbox
+    function selectAllChangeHandler(event) {
+        console.log('Select All checkbox changed:', event.target.checked);
+        const isChecked = event.target.checked;
+        const fileCheckboxes = document.querySelectorAll('.file-checkbox');
+        console.log('Found file checkboxes:', fileCheckboxes.length);
+        
+        // Ensure fileManagerState exists
+        if (!window.fileManagerState) {
+            window.fileManagerState = { selectedFiles: [] };
+        }
+        
+        // Clear the selected files array first
+        window.fileManagerState.selectedFiles = [];
+        
+        fileCheckboxes.forEach(checkbox => {
+            checkbox.checked = isChecked;
+            
+            if (isChecked) {
+                // Add to selected files array
+                const fullPath = checkbox.dataset.fullPath || checkbox.dataset.file;
+                updateSelectedFiles(fullPath, true, true);
+                
+                // Update row styling
+                const row = checkbox.closest('tr');
+                row.classList.add('bg-blue-50', 'dark:bg-blue-900/20');
+            } else {
+                // Update row styling
+                const row = checkbox.closest('tr');
+                row.classList.remove('bg-blue-50', 'dark:bg-blue-900/20');
+            }
+        });
+        
+        console.log('Updated selected files:', window.fileManagerState.selectedFiles);
+        console.log('Selected file count:', window.fileManagerState.selectedFiles.length);
+    }
+
+    // Event listener for individual file checkboxes
+    const fileList = document.getElementById('fileList');
+    if (fileList) {
+        fileList.addEventListener('change', function (event) {
+            if (event.target.classList.contains('file-checkbox')) {
+                const isChecked = event.target.checked;
+                updateSelectedFiles(event.target.dataset.file, isChecked);
+
+                // Update the state of the "Select All" checkbox
+                const fileCheckboxes = document.querySelectorAll('.file-checkbox');
+                const allChecked = Array.from(fileCheckboxes).every(checkbox => checkbox.checked);
+                const anyChecked = Array.from(fileCheckboxes).some(checkbox => checkbox.checked);
+
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.checked = allChecked;
+                    selectAllCheckbox.indeterminate = !allChecked && anyChecked;
+                }
+            }
+        });
+    }
+
+    // Event delegation for delete button
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('fa-trash-alt')) {
+            const fileName = event.target.dataset.file;
+            deleteFile(fileName, csrf, currentDir, key, isEnc);
+        }
+    });
+
+    // Function to save currently checked checkboxes to localStorage
+    function saveSelectedCheckboxes() {
+        const selectedFiles = Array.from(document.querySelectorAll('.file-checkbox:checked'))
+            .map(checkbox => checkbox.dataset.file)
+            .filter(file => file !== '.' && file !== '..'); // Exclude . and ..
+
+        // Save the selected files to localStorage
+        localStorage.setItem('selectedFiles', JSON.stringify(selectedFiles));
+
+        // Return the array of selected files
+        return selectedFiles;
+    }
+
+    // Add click event for "Create Folder" icon
+    $('.fa-folder-plus').click(function () {
+        showDialog(
+            'Create Folder',
+            'Enter the name of new folder: ',
+            'mkdir',
+            'NewFolder',
+            (dirName) => {
+                if (dirName) {
+                    data = {
+                        csrf: csrf,
+                        action: 'mkdir',
+                        dir: currentDir,
+                        dirName: dirName
+                    };
+                    handleCreate(data, 'folder', key, isEnc, currentDir, csrf);
+                }
+            }
+        );
+    });
+
+    // Add click event for "Create File" icon
+    $('.fa-file-circle-plus').click(function () {
+        showDialog(
+            'Create File',
+            'Enter the name of new File: ',
+            'touch',
+            'File',
+            (dirName) => {
+                if (dirName) {
+                    data = {
+                        csrf: csrf,
+                        action: 'touch',
+                        dir: currentDir,
+                        dirName: dirName
+                    };
+                    handleCreate(data, 'file', key, isEnc, currentDir, csrf);
+                }
+            }
+        );
+    });
+
+    // Add click event for "Execute PHP" icon
+    $('.codeme').click(function () {
+        showDialog(
+            'Execute PHP Code',
+            'Enter the PHP code to execute:',
+            'Execute',
+            '',
+            (phpCode) => {
+                if (phpCode && phpCode.trim() !== '') {
+                    sendRequest({ 
+                        csrf, 
+                        action: 'execute', 
+                        code: phpCode.trim(), 
+                        dir: currentDir 
+                    }, key, isEnc)
+                    .then(result => {
+                        if (result.output) {
+                            triggerAlert('success', 'Code executed successfully');
+                            // Show the output in a modal or alert
+                            Swal.fire({
+                                title: 'Execution Result',
+                                html: `<pre class="text-left">${result.output}</pre>`,
+                                width: '80%',
+                                customClass: {
+                                    popup: 'dark:bg-gray-800 dark:text-white',
+                                    htmlContainer: 'overflow-auto max-h-[70vh]'
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        triggerAlert('warning', 'Error executing code: ' + error);
+                    });
+                }
+            }
+        );
+    });
+
+    // Add search functionality
+    $('#searchBar').on('keyup', function() {
+        const searchQuery = $(this).val().toLowerCase();
+        console.log('Search query:', searchQuery);
+        
+        // Show/hide clear button based on search content
+        if (searchQuery.length > 0) {
+            $('#clearSearch').show();
+        } else {
+            $('#clearSearch').hide();
+        }
+        
+        // Ensure fileManagerState exists
+        if (!window.fileManagerState) {
+            console.error('fileManagerState is not initialized');
+            return;
+        }
+        
+        // Check if renderFiles function is available
+        if (typeof window.renderFiles === 'function') {
+            window.renderFiles(window.fileManagerState.files, currentDir, csrf, key, isEnc);
+        } else {
+            console.error('renderFiles function not found');
+        }
+    });
+    
+    // Add clear search functionality
+    $('#clearSearch').on('click', function() {
+        $('#searchBar').val('').focus();
+        $(this).hide();
+        
+        // Re-render files without search filter
+        if (typeof window.renderFiles === 'function' && window.fileManagerState) {
+            window.renderFiles(window.fileManagerState.files, currentDir, csrf, key, isEnc);
+        }
+    });
+    
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('fa-download')) {
+            const filePath = event.target.dataset.file;
+            downloadFile(filePath, csrf, key, isEnc);
+        }
+    });
+
+    // Infinite scroll
+    $(window).on('scroll', function () {
+        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
+            let itemLimitElement = document.getElementById('itemLimit').value;
+            if (fileManagerState.currentPage < fileManagerState.totalPages && !fileManagerState.isLoading) {
+                // alert(fileManagerState.currentPage);
+                fileManagerState.currentPage++;
+                loadDirectory(currentDir, fileManagerState.currentPage, csrf, key, isEnc,itemLimitElement);
+            }
+        }
+    });
+
+    // Add sorting functionality
+    $('th[data-sort]').click(function () {
+        const column = $(this).data('sort'); // Get the column to sort by
+        console.log('Sorting by column:', column);
+
+        // Ensure fileManagerState exists
+        if (!window.fileManagerState) {
+            console.error('fileManagerState is not initialized');
+            return;
+        }
+
+        // Update sorting state
+        if (window.fileManagerState.currentSort.column === column) {
+            // Toggle direction if the same column is clicked
+            window.fileManagerState.currentSort.direction = 
+                window.fileManagerState.currentSort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+            // Set new column and default to ascending order
+            window.fileManagerState.currentSort.column = column;
+            window.fileManagerState.currentSort.direction = 'asc';
+        }
+        
+        console.log('Sort state:', window.fileManagerState.currentSort);
+
+        // Sort and re-render files
+        if (typeof window.sortFiles === 'function') {
+            window.sortFiles();
+        } else {
+            console.error('sortFiles function not found');
+        }
+        
+        if (typeof window.renderFiles === 'function') {
+            window.renderFiles(window.fileManagerState.files, currentDir, csrf, key, isEnc);
+        } else {
+            console.error('renderFiles function not found');
+        }
+        
+        // Add visual feedback for the sort direction
+        $('th[data-sort]').find('i.fas').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
+        const icon = $(this).find('i.fas');
+        icon.removeClass('fa-sort');
+        if (window.fileManagerState.currentSort.direction === 'asc') {
+            icon.addClass('fa-sort-up');
+        } else {
+            icon.addClass('fa-sort-down');
+        }
+    });
+
+    // Event listener for directory links
+    $(document).on('click', '.directory-link', function (e) {
+        e.preventDefault();
+        let itemLimitElement = document.getElementById('itemLimit').value;
+
+        const newDir = $(this).data('path');
+        if (newDir && newDir !== currentDir) {
+            currentDir = newDir;  
+            updir = currentDir;
+            console.log(updir);
+            updateCurrentPath(); 
+            loadDirectory(currentDir, 1, csrf, key, isEnc,itemLimitElement);  
+            
+            // Update the active tab's path
+            updateActiveTabPath(currentDir);
+        }
+    });
+
+    // Function to update the current path in the UI - make globally available
+    window.updateCurrentPath = function() {
+        updateBreadcrumbs(currentDir); // Update breadcrumbs
+    }
+
+    // Function to generate simple breadcrumbs
+    function updateBreadcrumbs(path) {
+        const breadcrumbsContainer = $('#breadcrumbs ol');
+        const parts = path.split('/').filter(part => part !== ''); // Split path into parts
+        let breadcrumbsHtml = '';
+
+        // Add Home link
+        breadcrumbsHtml += `
+            <li class="inline-flex items-center">
+                <a href="#" class="breadcrumb-link" data-path="/">
+                    /
+                </a>
+            </li>
+        `;
+
+        // Add other parts of the path
+        parts.forEach((part, index) => {
+            const partialPath = '/' + parts.slice(0, index + 1).join('/'); // Build partial path
+            breadcrumbsHtml += `
+                <li class="inline-flex items-center">
+                    <i class="fas fa-chevron-right mx-2 text-gray-500"></i>
+                    <a href="#" class="breadcrumb-link" data-path="${partialPath}">${part}</a>
+                </li>
+            `;
+        });
+
+        breadcrumbsContainer.html(breadcrumbsHtml);
+    }
+
+    // Add double-click event listener to the #breadcrumbs element
+    $('#breadcrumbs').on('dblclick', function (e) {
+        console.log('Double-click detected');
+        e.preventDefault(); // Prevent default behavior
+
+        const $container = $('#breadcrumbs ol');
+        const originalPath = currentDir; // Get the current path (or use a custom variable)
+        const $input = $('<input>', {
+            type: 'text',
+            value: originalPath,
+            class: 'w-96 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white'
+        });
+        console.log('originalPath' + originalPath);
+
+        // Replace the entire breadcrumb with the input field
+        $container.html(`<li class="inline-flex items-center">${$input.prop('outerHTML')}</li>`);
+
+        // Focus the input field
+        $container.find('input').focus();
+
+        // Handle input field blur (when focus is lost)
+        $container.find('input').on('blur', function () {
+            const newPath = $(this).val().trim();
+            
+            // Restore the breadcrumbs
+                updateBreadcrumbs(originalPath);
+        });
+
+        // Handle Enter key press
+        $container.find('input').on('keydown', function (e) {
+            if (e.keyCode === 13) { // Enter key
+                e.preventDefault();
+                const newPath = $(this).val().trim();
+                
+                // Navigate to the new path
+                if (newPath) {
+                    currentDir = newPath;
+                    updateCurrentPath();
+                    loadDirectory(currentDir, 1, csrf, key, isEnc);
+                    updateActiveTabPath(currentDir);
+                }
+            }
+        });
+    });
+
+    // Event listener for breadcrumb links
+    $(document).on('click', '.breadcrumb-link', function (e) {
+        e.preventDefault();
+        const newDir = $(this).data('path');
+        if (newDir) {
+            currentDir = newDir; // Update current directory
+            updateCurrentPath(); // Update the UI
+            updir = currentDir;
+            console.log(updir);
+            loadDirectory(currentDir, 1, csrf, key, isEnc); // Load the new directory
+            
+            // Update the active tab's path
+            updateActiveTabPath(currentDir);
+        }
+    });
+    
+    // Event listener for home button
+    $(document).on('click', '#goHome', function(e) {
+        e.preventDefault();
+        // Navigate to home directory
+        currentDir = homeDir;
+        updateCurrentPath();
+        updir = currentDir;
+        loadDirectory(currentDir, 1, csrf, key, isEnc);
+        
+        // Update the active tab's path
+        updateActiveTabPath(currentDir);
+        
+        // Add visual feedback for the action
+        $(this).addClass('animate-pulse');
+        setTimeout(() => {
+            $(this).removeClass('animate-pulse');
+        }, 300);
+    });
+    
+    // Tabs functionality
+    function renderTabs() {
+        const tabsContainer = document.getElementById('location-tabs');
+        if (!tabsContainer) return;
+        
+        tabsContainer.innerHTML = '';
+        
+        fileManagerState.tabs.forEach(tab => {
+            const tabElement = document.createElement('li');
+            tabElement.className = 'mr-1 flex-shrink-0';
+            tabElement.setAttribute('role', 'presentation');
+            
+            // Get the last part of the path for the tab name if not custom named
+            const displayName = tab.name || getLastPathSegment(tab.path);
+            
+            // Determine icon based on the path
+            let tabIcon = 'fa-folder';
+            if (displayName === 'Root' || displayName === 'Home') {
+                tabIcon = 'fa-home';
+            }
+            
+            // Define the active and inactive classes for better styling
+            const activeClasses = 'inline-flex items-center p-3 border-b-2 rounded-t-lg text-blue-600 border-blue-600 active dark:text-blue-500 dark:border-blue-500 bg-white dark:bg-gray-800 shadow-sm';
+            const inactiveClasses = 'inline-flex items-center p-3 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 dark:hover:border-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600';
+            
+            tabElement.innerHTML = `
+                <button class="${tab.active ? activeClasses : inactiveClasses} transition-all duration-200 group" 
+                        data-tab-id="${tab.id}" 
+                        type="button" 
+                        role="tab">
+                    <i class="fas ${tabIcon} mr-2 ${tab.active ? 'text-blue-500' : 'group-hover:text-blue-400'} transition-colors"></i>
+                    <span class="truncate max-w-[100px] md:max-w-[150px]">${displayName}</span>
+                    ${tab.id !== 'tab-1' ? `
+                        <i class="fas fa-times ml-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full text-xs opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all" data-close-tab="${tab.id}"></i>
+                    ` : ''}
+                </button>
+            `;
+            
+            tabsContainer.appendChild(tabElement);
+        });
+        
+        // Add a subtle animation to the active tab
+        const activeTab = tabsContainer.querySelector('button[data-tab-id="' + fileManagerState.activeTabId + '"]');
+        if (activeTab) {
+            activeTab.classList.add('animate-pulse');
+            setTimeout(() => {
+                activeTab.classList.remove('animate-pulse');
+            }, 500);
+            
+            // Ensure active tab is visible (scroll into view if needed)
+            requestAnimationFrame(() => {
+                const tabRect = activeTab.getBoundingClientRect();
+                const containerRect = tabsContainer.getBoundingClientRect();
+                
+                if (tabRect.left < containerRect.left) {
+                    tabsContainer.scrollLeft += tabRect.left - containerRect.left - 16;
+                } else if (tabRect.right > containerRect.right) {
+                    tabsContainer.scrollLeft += tabRect.right - containerRect.right + 16;
+                }
+            });
+        }
+        
+        // Add scroll indicators if tabs overflowing
+        checkTabOverflow();
+    }
+    
+    function checkTabOverflow() {
+        const tabsContainer = document.getElementById('location-tabs');
+        if (!tabsContainer) return;
+        
+        // Calculate if tabs are overflowing
+        const isOverflowing = tabsContainer.scrollWidth > tabsContainer.clientWidth;
+        
+        // Toggle overflow indicator class
+        if (isOverflowing) {
+            tabsContainer.classList.add('tabs-overflow');
+            
+            // Add scroll buttons if not already present
+            if (!document.getElementById('tab-scroll-left')) {
+                const scrollLeftBtn = document.createElement('button');
+                scrollLeftBtn.id = 'tab-scroll-left';
+                scrollLeftBtn.className = 'absolute left-0 top-0 bottom-0 px-1 bg-gradient-to-r from-white to-transparent dark:from-gray-800 dark:to-transparent z-10 opacity-80 hover:opacity-100 transition-opacity';
+                scrollLeftBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+                scrollLeftBtn.addEventListener('click', () => {
+                    tabsContainer.scrollBy({ left: -150, behavior: 'smooth' });
+                });
+                
+                const scrollRightBtn = document.createElement('button');
+                scrollRightBtn.id = 'tab-scroll-right';
+                scrollRightBtn.className = 'absolute right-0 top-0 bottom-0 px-1 bg-gradient-to-l from-white to-transparent dark:from-gray-800 dark:to-transparent z-10 opacity-80 hover:opacity-100 transition-opacity';
+                scrollRightBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                scrollRightBtn.addEventListener('click', () => {
+                    tabsContainer.scrollBy({ left: 150, behavior: 'smooth' });
+                });
+                
+                tabsContainer.parentElement.appendChild(scrollLeftBtn);
+                tabsContainer.parentElement.appendChild(scrollRightBtn);
+            }
+        } else {
+            tabsContainer.classList.remove('tabs-overflow');
+            // Remove scroll buttons if present
+            document.getElementById('tab-scroll-left')?.remove();
+            document.getElementById('tab-scroll-right')?.remove();
+        }
+    }
+    
+    function initTabEvents() {
+        // Tab click event
+        $(document).on('click', '#location-tabs button', function(e) {
+            if (e.target.classList.contains('fa-times')) return; // Don't switch tabs when clicking the close button
+            
+            const tabId = $(this).data('tab-id');
+            
+            // Find the tab to determine its type
+            const tab = fileManagerState.tabs.find(t => t.id === tabId);
+            if (!tab) return;
+            
+            // Hide all system tab contents first
+            document.querySelectorAll('[role="tabpanel"]').forEach(panel => {
+                panel.classList.add('hidden');
+            });
+            
+            // Hide any system tabs that might be visible
+            document.querySelectorAll('[data-tabs-target]').forEach(tab => {
+                const target = tab.getAttribute('data-tabs-target');
+                if (target && document.querySelector(target)) {
+                    document.querySelector(target).classList.add('hidden');
+                }
+            });
+            
+            // Switch to the selected tab
+            switchToTab(tabId);
+            
+            // Add click ripple effect
+            const ripple = document.createElement('span');
+            ripple.className = 'absolute inset-0 bg-blue-500 opacity-30 rounded-t-lg animate-ripple';
+            this.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+        });
+        
+        // Close tab event with animation
+        $(document).on('click', '[data-close-tab]', function(e) {
+            e.stopPropagation();
+            const tabId = $(this).data('close-tab');
+            const tabElement = $(this).closest('li');
+            
+            // Add closing animation
+            tabElement.addClass('animate-tab-closing');
+            setTimeout(() => {
+                closeTab(tabId);
+            }, 150);
+        });
+        
+        // Add new tab button
+        $('#add-tab-btn').click(function() {
+            addNewTab();
+            
+            // Add pulse animation to the button
+            $(this).addClass('animate-pulse');
+            setTimeout(() => {
+                $(this).removeClass('animate-pulse');
+            }, 500);
+        });
+        
+        // Check tab overflow on window resize
+        window.addEventListener('resize', debounce(checkTabOverflow, 100));
+    }
+    
+    // Utility function for debouncing
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    function switchToTab(tabId) {
+        // Find the tab
+        const tab = fileManagerState.tabs.find(t => t.id === tabId);
+        if (!tab) return;
+        
+        // Set all tabs to inactive
+        fileManagerState.tabs.forEach(t => t.active = false);
+        
+        // Set the selected tab to active
+        tab.active = true;
+        fileManagerState.activeTabId = tabId;
+        
+        // Update the UI
+        renderTabs();
+        console.log('Switching to tab:', tabId, 'type:', tab.type);
+        
+        // Save tabs state to localStorage
+        saveTabsToLocalStorage();
+        
+        // Hide all system tab contents first
+        document.querySelectorAll('[role="tabpanel"]').forEach(panel => {
+            panel.classList.add('hidden');
+        });
+        
+        // Get tab content element or create it if it doesn't exist
+        let tabContentEl = document.getElementById(`${tabId}-content`);
+        if (!tabContentEl) {
+            console.log('Creating tab content element for tab:', tabId);
+            const tabsContent = document.getElementById('tabs-content');
+            if (!tabsContent) {
+                console.error('Tabs content container not found!');
+                return;
+            }
+            
+            tabContentEl = document.createElement('div');
+            tabContentEl.id = `${tabId}-content`;
+            tabContentEl.className = 'tabs-panel w-full';
+            tabsContent.appendChild(tabContentEl);
+        }
+        
+        // Hide all tab contents
+        document.querySelectorAll('.tabs-panel').forEach(panel => {
+            panel.classList.add('hidden');
+        });
+        
+        // Show this tab's content
+        tabContentEl.classList.remove('hidden');
+        
+        // Load content based on tab type
+        if (tab.type === 'editor' || tab.type === 'search') {
+            console.log('Handling editor/search tab');
+            // Editor or search tab - hide fileManagerUI
+            const fileManagerUI = document.getElementById('fileManagerUI');
+            if (fileManagerUI) {
+                console.log('Hiding fileManagerUI');
+                fileManagerUI.style.display = 'none';
+            } else {
+                console.warn('fileManagerUI element not found');
+            }
+            
+            // Make sure the editor container has full height
+            const editorContainer = tabContentEl.querySelector('.editor-container');
+            if (editorContainer) {
+                editorContainer.style.height = '90vh';
+                editorContainer.style.width = '100%';
+                
+                // Refresh the editor if it exists
+                if (window.editor) {
+                    setTimeout(() => window.editor.refresh(), 10);
+                }
+            }
+        } else {
+            console.log('Handling filemanager tab');
+            // File manager tab - show fileManagerUI and the file tab content
+            const fileManagerUI = document.getElementById('fileManagerUI');
+            const fileTabContent = document.getElementById('file');
+            
+            if (fileManagerUI) {
+                console.log('Showing fileManagerUI');
+                fileManagerUI.style.display = 'block';
+                
+                // Make sure the file tab is visible
+                if (fileTabContent) {
+                    fileTabContent.classList.remove('hidden');
+                }
+                
+                // Always reload the directory when switching to a file manager tab
+                currentDir = tab.path;
+                updateCurrentPath();
+                loadDirectory(currentDir, 1, csrf, key, isEnc);
+            } else {
+                console.warn('fileManagerUI element not found');
+            }
+        }
+    }
+    
+    // Make switchToTab available globally
+    window.switchToTab = function(tabId) {
+        // Find the tab
+        const tab = fileManagerState.tabs.find(t => t.id === tabId);
+        if (!tab) return;
+        
+        // Set all tabs to inactive
+        fileManagerState.tabs.forEach(t => t.active = false);
+        
+        // Set the selected tab to active
+        tab.active = true;
+        fileManagerState.activeTabId = tabId;
+        
+        // Update the UI
+        renderTabs();
+        console.log('Switching to tab:', tabId, 'type:', tab.type);
+        
+        // Hide all system tab contents first
+        document.querySelectorAll('[role="tabpanel"]').forEach(panel => {
+            panel.classList.add('hidden');
+        });
+        
+        // Get tab content element or create it if it doesn't exist
+        let tabContentEl = document.getElementById(`${tabId}-content`);
+        if (!tabContentEl) {
+            console.log('Creating tab content element for tab:', tabId);
+            const tabsContent = document.getElementById('tabs-content');
+            if (!tabsContent) {
+                console.error('Tabs content container not found!');
+                return;
+            }
+            
+            tabContentEl = document.createElement('div');
+            tabContentEl.id = `${tabId}-content`;
+            tabContentEl.className = 'tabs-panel w-full';
+            tabsContent.appendChild(tabContentEl);
+        }
+        
+        // Hide all tab contents
+        document.querySelectorAll('.tabs-panel').forEach(panel => {
+            panel.classList.add('hidden');
+        });
+        
+        // Show this tab's content
+        tabContentEl.classList.remove('hidden');
+        
+        // Load content based on tab type
+        if (tab.type === 'editor' || tab.type === 'search') {
+            console.log('Handling editor/search tab');
+            // Editor or search tab - hide fileManagerUI
+            const fileManagerUI = document.getElementById('fileManagerUI');
+            if (fileManagerUI) {
+                console.log('Hiding fileManagerUI');
+                fileManagerUI.style.display = 'none';
+            } else {
+                console.warn('fileManagerUI element not found');
+            }
+            
+            // Make sure the editor container has full height
+            const editorContainer = tabContentEl.querySelector('.editor-container');
+            if (editorContainer) {
+                editorContainer.style.height = '90vh';
+                editorContainer.style.width = '100%';
+                
+                // Refresh the editor if it exists
+                if (window.editor) {
+                    setTimeout(() => window.editor.refresh(), 10);
+                }
+            }
+        } else {
+            console.log('Handling filemanager tab');
+            // File manager tab - show fileManagerUI and the file tab content
+            const fileManagerUI = document.getElementById('fileManagerUI');
+            const fileTabContent = document.getElementById('file');
+            
+            if (fileManagerUI) {
+                console.log('Showing fileManagerUI');
+                fileManagerUI.style.display = 'block';
+                
+                // Make sure the file tab is visible
+                if (fileTabContent) {
+                    fileTabContent.classList.remove('hidden');
+                }
+                
+                // Always reload the directory when switching to a file manager tab
+                currentDir = tab.path;
+                updateCurrentPath();
+                loadDirectory(currentDir, 1, csrf, key, isEnc);
+            } else {
+                console.warn('fileManagerUI element not found');
+            }
+        }
+    }
+    
+    function closeTab(tabId) {
+        // Don't close the last tab
+        if (fileManagerState.tabs.length <= 1) return;
+        
+        // Find the tab index
+        const tabIndex = fileManagerState.tabs.findIndex(t => t.id === tabId);
+        if (tabIndex === -1) return;
+        
+        // Check if this is the active tab
+        const isActiveTab = fileManagerState.tabs[tabIndex].active;
+        
+        // Remove the tab
+        fileManagerState.tabs.splice(tabIndex, 1);
+        
+        // If we closed the active tab, switch to another tab
+        if (isActiveTab) {
+            // Switch to the previous tab, or the first tab if there is no previous
+            const newActiveIndex = Math.max(0, tabIndex - 1);
+            fileManagerState.tabs[newActiveIndex].active = true;
+            fileManagerState.activeTabId = fileManagerState.tabs[newActiveIndex].id;
+            
+            // Update current directory
+            currentDir = fileManagerState.tabs[newActiveIndex].path;
+            updateCurrentPath();
+            loadDirectory(currentDir, 1, csrf, key, isEnc);
+        }
+        
+        // Update the UI
+        renderTabs();
+        
+        // Save tabs state to localStorage
+        saveTabsToLocalStorage();
+    }
+    
+    // Make the function available globally for utils.js
+    window.addNewTab = function(tabName = null, type = 'filemanager') {
+        // Generate a unique ID for the new tab
+        const newTabId = `tab-${Date.now()}`;
+        
+        // Set all tabs to inactive
+        fileManagerState.tabs.forEach(t => t.active = false);
+        
+        // Add the new tab
+        fileManagerState.tabs.push({
+            id: newTabId,
+            path: currentDir, // Use the current directory as the starting point
+            active: true,
+            name: tabName || getLastPathSegment(currentDir),
+            type: type // Add type: 'filemanager' or 'editor'
+        });
+        
+        fileManagerState.activeTabId = newTabId;
+        
+        // Update the UI
+        renderTabs();
+        
+        // Save tabs state to localStorage
+        saveTabsToLocalStorage();
+        
+        // Return the ID of the new tab
+        return newTabId;
+    }
+    
+    // Keeping local function for backwards compatibility
+    function addNewTab(tabName, type = 'filemanager') {
+        return window.addNewTab(tabName, type);
+    }
+    
+    // Make the function available globally for utils.js
+    window.updateActiveTabPath = function(newPath) {
+        // Find the active tab
+        const activeTab = fileManagerState.tabs.find(t => t.id === fileManagerState.activeTabId);
+        if (activeTab) {
+            activeTab.path = newPath;
+            activeTab.name = getLastPathSegment(newPath);
+            renderTabs();
+            
+            // Save tabs state to localStorage
+            saveTabsToLocalStorage();
+        }
+    }
+    
+    function getLastPathSegment(path) {
+        // Remove trailing slash if present
+        const cleanPath = path.endsWith('/') ? path.slice(0, -1) : path;
+        
+        // If it's the root directory
+        if (cleanPath === '' || cleanPath === '/') {
+            return 'Root';
+        }
+        
+        // Get the last segment
+        const segments = cleanPath.split('/');
+        return segments[segments.length - 1] || 'Root';
+    }
+
+    // New Bulk Actions Implementation
+    $('#bulkActions').change(function () {
+        const action = $(this).val(); // Get selected action
+        
+        // Reset dropdown immediately to prevent accidental resubmission
+        setTimeout(() => {
+            $(this).val('');
+        }, 100);
+        
+        // Get the current selected files directly from checkboxes
+        const getSelectedFiles = () => {
+        const checkedBoxes = document.querySelectorAll('.file-checkbox:checked');
+            const selectedFiles = [];
+            
+                checkedBoxes.forEach(checkbox => {
+                // Prefer full path if available
+                const filePath = checkbox.dataset.fullPath || checkbox.dataset.file;
+                if (filePath) {
+                    selectedFiles.push(filePath);
+                    }
+                });
+            
+            return selectedFiles;
+        };
+        
+        // Get selected files
+        const selectedFiles = getSelectedFiles();
+        
+        // Log selection information
+        console.log('Bulk action triggered:', action);
+        console.log('Selected files:', selectedFiles);
+        console.log('Selected files count:', selectedFiles.length);
+
+        // Check if we have files selected (except for paste action)
+        if (selectedFiles.length === 0 && action !== 'paste') {
+            triggerAlert('info', 'No files selected! Please select files to perform bulk actions.');
+            return;
+        }
+
+        // Handle different actions
+        switch (action) {
+            case 'delete':
+                // Show confirmation dialog for bulk delete
+                showConfirmation(
+                    'Delete Files',
+                    `Are you sure you want to delete ${selectedFiles.length} file(s)?`,
+                    'Delete',
+                    () => {
+                        // Get fresh selection in case it changed
+                        const filesToDelete = getSelectedFiles();
+                        
+                        if (filesToDelete.length > 0) {
+                            console.log('Sending files for deletion:', filesToDelete);
+                            
+                            // Send the delete request
+                            sendBulkActionRequest({
+                                action: 'delete',
+                                files: filesToDelete,
+                                onSuccess: () => {
+                                    // Clear selection after successful operation
+                                    clearFileSelection();
+                                    triggerAlert('success', 'Files deleted successfully');
+                                    loadDirectory(currentDir, 1, csrf, key, isEnc);
+                                }
+                            });
+                        } else {
+                            triggerAlert('warning', 'No files selected for deletion.');
+                        }
+                    }
+                );
+                break;
+
+            case 'zip':
+                // Show enhanced dialog for zip file creation with compression options
+                showZipCreationDialog(
+                    'Create Zip Archive',
+                    'Enter the name for the zip file:',
+                    'Create',
+                    'archive.zip',
+                    (zipOptions) => {
+                        if (zipOptions) {
+                            // Get fresh selection
+                            const filesToZip = getSelectedFiles();
+                            
+                            if (filesToZip.length === 0) {
+                                triggerAlert('warning', 'No files selected for archiving.');
+                                return;
+                            }
+                            
+                            // Format the filename with correct extension
+                            const format = zipOptions.archiveFormat;
+                            let filename = zipOptions.zipFileName;
+                            
+                            // Ensure filename has correct extension
+                            if (!filename.toLowerCase().endsWith('.' + format)) {
+                                // Remove any existing extension
+                                if (filename.includes('.')) {
+                                    filename = filename.substring(0, filename.lastIndexOf('.'));
+                                }
+                                // Add the correct extension
+                                filename += '.' + format;
+                            }
+                            
+                            zipOptions.zipFileName = filename;
+                            
+                            // Send the zip request
+                            sendBulkActionRequest({
+                                action: 'zip',
+                                files: filesToZip,
+                                options: zipOptions,
+                                onSuccess: () => {
+                                    // Clear selection after successful operation
+                                    clearFileSelection();
+                                    triggerAlert('success', 'Archive created successfully');
+                                    loadDirectory(currentDir, 1, csrf, key, isEnc);
+                                }
+                            });
+                        }
+                    }
+                );
+                break;
+
+            case 'unzip':
+                // Check if multiple files are selected and they have different extensions
+                if (selectedFiles.length > 1) {
+                    const extensions = selectedFiles.map(file => {
+                        const ext = file.split('.').pop().toLowerCase();
+                        // Handle compound extensions
+                        if (['gz', 'bz2', 'xz'].includes(ext)) {
+                            const baseName = file.substring(0, file.lastIndexOf('.'));
+                            if (baseName.toLowerCase().endsWith('.tar')) {
+                                return `tar.${ext}`;
+                            }
+                        }
+                        return ext;
+                    });
+                    
+                    // Check if all extensions are the same
+                    const allSameType = extensions.every(ext => ext === extensions[0]);
+                    
+                    if (!allSameType) {
+                        // Show warning for mixed archive types
+                showConfirmation(
+                            'Warning: Different Archive Types',
+                            'You\'ve selected different types of archives. This may cause extraction issues. Continue anyway?',
+                            'Continue',
+                            () => {
+                                // Get fresh selection
+                                const filesToExtract = getSelectedFiles();
+                                
+                                if (filesToExtract.length > 0) {
+                                    // Send the unzip request
+                                    sendBulkActionRequest({
+                                        action: 'unzip',
+                                        files: filesToExtract,
+                                        onSuccess: () => {
+                                            // Clear selection after successful operation
+                                            clearFileSelection();
+                                            triggerAlert('success', 'Archives extracted successfully');
+                                            loadDirectory(currentDir, 1, csrf, key, isEnc);
+                                        }
+                                    });
+                                }
+                            }
+                        );
+                        return;
+                    }
+                }
+                
+                // Show extract confirmation
+                showConfirmation(
+                    'Extract Archive',
+                    selectedFiles.length > 1 
+                        ? `Extract ${selectedFiles.length} archives to the current directory?` 
+                        : `Extract "${selectedFiles[0]}" to the current directory?`,
+                    'Extract',
+                    () => {
+                        // Get fresh selection
+                        const filesToExtract = getSelectedFiles();
+                        
+                        if (filesToExtract.length > 0) {
+                                                    // Send the unzip request
+                        sendBulkActionRequest({
+                            action: 'unzip',
+                            files: filesToExtract,
+                            onSuccess: () => {
+                                // Clear selection after successful operation
+                                clearFileSelection();
+                                triggerAlert('success', 'Archives extracted successfully');
+                                loadDirectory(currentDir, 1, csrf, key, isEnc);
+                            }
+                        });
+                        }
+                    }
+                );
+                break;
+
+            case 'copy':
+                // Save selected files to clipboard
+                if (selectedFiles.length > 0) {
+                    // Ensure all paths are absolute
+                    const filesWithPaths = selectedFiles.map(file => {
+                    if (!file.includes('/')) {
+                        return `${currentDir}/${file}`;
+                    }
+                    return file;
+                });
+                    
+                    // Save to localStorage
+                    localStorage.setItem('copiedFiles', JSON.stringify(filesWithPaths));
+                    triggerAlert('success', `${selectedFiles.length} file(s) copied to clipboard`);
+                }
+                break;
+
+            case 'paste':
+                // Get files from clipboard
+                try {
+                    const clipboardFiles = JSON.parse(localStorage.getItem('copiedFiles') || '[]');
+                    
+                    if (clipboardFiles.length > 0) {
+                        // Send the paste request
+                        sendBulkActionRequest({
+                            action: 'paste',
+                            files: clipboardFiles,
+                            onSuccess: () => {
+                                // Clear selection after successful operation
+                                clearFileSelection();
+                                triggerAlert('success', 'Files pasted successfully');
+                                loadDirectory(currentDir, 1, csrf, key, isEnc);
+                                // Clear clipboard after successful paste
+                                localStorage.removeItem('copiedFiles');
+                            }
+                        });
+                } else {
+                        triggerAlert('warning', 'No files in clipboard to paste');
+                }
+                } catch (error) {
+                    console.error('Error reading clipboard:', error);
+                    triggerAlert('error', 'Failed to read clipboard data');
+                }
+                break;
+
+            default:
+                console.log('Unknown action:', action);
+                break;
+        }
+    });
+    
+    // Helper function to send bulk action requests
+    function sendBulkActionRequest({ action, files, options = null, onSuccess = null, onError = null }) {
+        // Show progress indicator
+        progr();
+        
+        console.log(`Sending ${action} request for ${files.length} file(s)`);
+        
+        // Prepare data
+        const data = {
+            csrf: csrf,
+            action: action,
+            file: files,
+            dir: currentDir
+        };
+        
+        // Add options for specific actions
+        if (action === 'zip' && options) {
+            data.zipExt = options.zipFileName;
+            data.compressionLevel = options.compressionLevel || '5';
+            data.archiveFormat = options.archiveFormat || 'zip';
+        }
+        
+        // Convert to JSON and encrypt if needed
+        const jsonData = JSON.stringify(data);
+        const requestData = (isEnc === '1') ? encrypt(jsonData, key) : jsonData;
+        
+        // Send the request
+        $.post('', requestData, function(response) {
+            try {
+                // Decrypt response if needed
+                const decryptedResponse = (isEnc === '1') ? decrypt(response, key) : response;
+                const result = JSON.parse(decryptedResponse);
+                
+                console.log('Response:', result);
+                
+                if (result.error) {
+                    triggerAlert('warning', result.error);
+                    if (onError) onError(result.error);
+                } else if (result.success) {
+                    if (onSuccess) onSuccess(result);
+                    else triggerAlert('success', result.success);
+                } else {
+                    if (onSuccess) onSuccess(result);
+                    else triggerAlert('success', 'Operation completed successfully');
+                }
+            } catch (error) {
+                console.error('Error processing response:', error);
+                triggerAlert('error', 'Failed to process server response');
+                if (onError) onError(error);
+            }
+            
+            // Hide progress indicator
+            dprogr();
+        }).fail(function(xhr, status, error) {
+            console.error('Request failed:', status, error);
+            triggerAlert('error', 'Request failed: ' + (error || 'Unknown error'));
+            if (onError) onError(error);
+            dprogr();
+        });
+    }
+
+    // Upload functionality
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadForm = document.getElementById('uploadForm');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+
+    if (dropZone && fileInput && uploadForm && uploadProgress && progressBar && progressText) {
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Highlight drop zone when dragging files over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('bg-blue-50', 'dark:bg-gray-600'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('bg-blue-50', 'dark:bg-gray-600'), false);
+        });
+
+        // Handle dropped files
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files; // Assign dropped files to the file input
+                updir = currentDir;
+                handleFiles(updir);
+            }
+        }
+
+        // Handle file input change
+        fileInput.addEventListener('change', handleFiles);
+
+        // Click on drop zone to trigger file input
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // Function to handle files
+        function handleFiles(updir) {
+            uploadProgress.classList.remove('hidden');
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Uploading...';
+
+            const formData = new FormData(uploadForm);
+            formData.append('updir', currentDir);
+            formData.append('csrf', csrf); // Append CSRF token
+
+            fetch('', {
+                method: 'POST',
+                body: formData,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        progressText.textContent = 'Upload complete!';
+                        setTimeout(() => uploadProgress.classList.add('hidden'), 3000);
+                        loadDirectory(currentDir, 1, csrf, key, isEnc); // Refresh file list
+                    } else {
+                        progressText.textContent = data.error || 'Upload failed. Please try again.';
+                    }
+                })
+                .catch(error => {
+                    progressText.textContent = 'Upload failed. Please try again.';
+                    console.error('Error:', error);
+                });
+        }
+    }
+
+
+    document.addEventListener('click', function (event) {
+     
+        if (event.target.classList.contains('file-link')) {
+            event.preventDefault(); // Prevent the default link behavior
+            const filePath = event.target.dataset.file; // Get the file path
+            viewEditFile(filePath, csrf, key, isEnc); // Call the viewEditFile function
+        }
+     
+        
+    });
+ 
+
+    
+
+    // Function to initialize editor-related event listeners
+    function initEditorEventListeners() {
+        const cancelEdit = document.getElementById('cancelEdit');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const editorLanguage = document.getElementById('editorLanguage');
+        const saveFile = document.getElementById('saveFile');
+        
+        if (cancelEdit) {
+            cancelEdit.addEventListener('click', function () {
+                const editorModal = document.getElementById('editorModal');
+                if (editorModal) {
+                    editorModal.classList.add('hidden');
+                }
+        // No need to dispose CodeMirror, it can be reused
+    });
+        }
+
+        if (cancelEditBtn) {
+            cancelEditBtn.addEventListener('click', function () {
+                const editorModal = document.getElementById('editorModal');
+                if (editorModal) {
+                    editorModal.classList.add('hidden');
+                }
+        // No need to dispose CodeMirror, it can be reused
+    });
+        }
+
+        if (editorLanguage) {
+            editorLanguage.addEventListener('change', function () {
+        if (window.editor) {
+            const newLanguage = this.value;
+            // Map to CodeMirror mode
+            const modeMap = {
+                'javascript': 'javascript',
+                'php': 'php',
+                'html': 'htmlmixed',
+                'css': 'css',
+                'json': 'javascript',
+                'plaintext': 'null'
+            };
+            const mode = modeMap[newLanguage] || 'null';
+            
+            // Update the editor mode
+            window.editor.setOption('mode', mode);
+                    
+                    const editorStatus = document.getElementById('editorStatus');
+                    if (editorStatus) {
+                        editorStatus.textContent = `Language changed to ${newLanguage}`;
+                    }
+        }
+    });
+        }
+
+        if (saveFile) {
+            saveFile.addEventListener('click', function () {
+        // Get content from CodeMirror editor
+        const newContent = window.editor ? window.editor.getValue() : '';
+                const editorModal = document.getElementById('editorModal');
+                const filePath = editorModal && editorModal.dataset.filePath ? editorModal.dataset.filePath : '';
+        
+                const editorStatus = document.getElementById('editorStatus');
+                if (editorStatus) {
+                    editorStatus.textContent = 'Saving...';
+                }
+
+        saveFileContent(filePath, newContent, csrf, key, isEnc);
+    });
+        }
+    }
+    
+    // Call the function after DOM has loaded
+    initEditorEventListeners();
+
+    function saveFileContent(filePath, content, csrf, key, isEnc) {
+        progr();
+        console.log('Saving file content for:', filePath);
+        
+        if (!content) {
+            triggerAlert('warning', 'File content is empty.');
+            dprogr();
+            return;
+        }
+
+        if (!filePath) {
+            triggerAlert('warning', 'No file path specified.');
+            dprogr();
+            return;
+        }
+        
+        // Find the tab content that contains the editor
+        const tabContent = document.querySelector(`[data-file-path="${filePath}"]`);
+        let fileType = '';
+        
+        // If we found the tab, try to get the selected file type
+        if (tabContent) {
+            const tabId = tabContent.id.replace('-content', '');
+            const typeSelect = document.getElementById(`file-type-select-${tabId}`);
+            if (typeSelect) {
+                fileType = typeSelect.value;
+            }
+        }
+        
+        sendRequest({ 
+            csrf, 
+            action: 'save_content', 
+            file: filePath, 
+            content: content,
+            file_type: fileType // Include the file type when saving
+        }, key, isEnc)
+            .then(response => {
+                console.log('File saved successfully:', response);
+                triggerAlert('success', 'File saved successfully');
+                dprogr();
+            })
+            .catch(error => {
+                console.error('Error saving file:', error);
+                triggerAlert('danger', 'Failed to save file: ' + error);
+                dprogr();
+            });
+    }
+
+    function getLanguageFromFileName(fileName) {
+        const extension = fileName.split('.').pop().toLowerCase();
+        switch (extension) {
+            case 'js': return 'javascript';
+            case 'php': return 'php';
+            case 'html': case 'htm': return 'htmlmixed';
+            case 'css': return 'css';
+            case 'json': return 'application/json';
+            case 'xml': return 'xml';
+            case 'md': return 'markdown';
+            case 'py': return 'python';
+            case 'rb': return 'ruby';
+            case 'java': return 'text/x-java';
+            case 'c': return 'text/x-csrc';
+            case 'cpp': case 'cc': case 'h': case 'hpp': return 'text/x-c++src';
+            case 'cs': return 'text/x-csharp';
+            case 'go': return 'text/x-go';
+            case 'rs': return 'text/x-rustsrc';
+            case 'ts': return 'text/typescript';
+            case 'sql': return 'sql';
+            case 'sh': case 'bash': return 'shell';
+            case 'yml': case 'yaml': return 'yaml';
+            case 'txt': return 'text';
+            default: return 'plaintext';
+        }
+    }
+
+    function viewEditFile(filePath, csrf, key, isEnc) {
+        // Show progress indicator
+        progr();
+        console.log('ViewEditFile called for:', filePath);
+        
+        try {
+            // Get file name from the path
+            const fileName = filePath.split('/').pop();
+            
+            // Create a new tab specifically for editing with type 'editor'
+            const newTabId = addNewTab(fileName, 'editor');
+            console.log('Created new tab with ID:', newTabId);
+            
+            // Wait for the tabs to render
+            setTimeout(() => {
+                // Create the editor container first
+                const tabContent = document.querySelector(`#${newTabId}-content`);
+                if (!tabContent) {
+                    console.error('Tab content not found for ID:', `${newTabId}-content`);
+                    const tabsContentEl = document.getElementById('tabs-content');
+                    console.log('Tabs content element found:', !!tabsContentEl);
+                    if (tabsContentEl) {
+                        console.log('Creating tab content manually');
+                        const newTabContent = document.createElement('div');
+                        newTabContent.id = `${newTabId}-content`;
+                        newTabContent.className = 'tabs-panel w-full';
+                        tabsContentEl.appendChild(newTabContent);
+                        continueWithTabContent(newTabContent);
+                    } else {
+                        dprogr();
+                        triggerAlert('warning', 'Failed to create editor tab. Try refreshing the page.');
+                    }
+                    return;
+                }
+                
+                continueWithTabContent(tabContent);
+            }, 100);
+            
+            function continueWithTabContent(tabContent) {
+                // Store file path for saving later
+                tabContent.dataset.filePath = filePath;
+                
+                // Hide file manager elements
+                const fileManagerUI = document.getElementById('fileManagerUI');
+                if (fileManagerUI) {
+                    fileManagerUI.classList.add('hidden');
+                }
+                
+                // Make sure the tab content is visible
+                tabContent.classList.remove('hidden');
+                
+                // Create editor container
+                const editorContainer = document.createElement('div');
+                editorContainer.className = 'editor-container';
+                editorContainer.style.width = '100%';
+                editorContainer.style.height = '90vh';
+                editorContainer.style.border = '1px solid #ddd';
+                editorContainer.style.position = 'relative';
+                tabContent.appendChild(editorContainer);
+                
+                // Add file type selector
+                const typeSelector = document.createElement('div');
+                typeSelector.className = 'file-type-selector fixed top-4 right-4 z-50';
+                typeSelector.innerHTML = `
+                    <select id="file-type-select-${newTabId}" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm">
+                        <option value="">Auto-detect</option>
+                        <option value="javascript">JavaScript</option>
+                        <option value="php">PHP</option>
+                        <option value="htmlmixed">HTML</option>
+                        <option value="css">CSS</option>
+                        <option value="application/json">JSON</option>
+                        <option value="xml">XML</option>
+                        <option value="markdown">Markdown</option>
+                        <option value="python">Python</option>
+                        <option value="text/x-java">Java</option>
+                        <option value="text/x-csrc">C</option>
+                        <option value="text/x-c++src">C++</option>
+                        <option value="sql">SQL</option>
+                        <option value="shell">Shell/Bash</option>
+                        <option value="yaml">YAML</option>
+                        <option value="text">Plain Text</option>
+                    </select>
+                `;
+                tabContent.appendChild(typeSelector);
+                
+        // Fetch file content from the server
+        sendRequest({ csrf, action: 'view_content', file: filePath }, key, isEnc)
+            .then(response => {
+                        console.log('File content fetched successfully, length:', response.content?.length);
+                        
+                        if (typeof CodeMirror === 'undefined') {
+                            console.error('CodeMirror is not defined!');
+                            editorContainer.innerHTML = `<pre style="white-space: pre-wrap; padding: 1rem;">${response.content}</pre>`;
+                            triggerAlert('warning', 'CodeMirror not found. Displaying content in plain text mode.');
+                            dprogr();
+                            return;
+                        }
+                        
+                        // Get language based on file extension
+                        const language = response.file_type || getLanguageFromFileName(filePath);
+                        
+                        // Create editor directly
+                        const editor = CodeMirror(editorContainer, {
+                            value: response.content || '',
+                            mode: language,
+                            theme: document.documentElement.classList.contains('dark') ? 'dracula' : 'eclipse',
+                            lineNumbers: true,
+                            lineWrapping: true,
+                            matchBrackets: true,
+                            autoCloseBrackets: true,
+                            styleActiveLine: true
+                        });
+                        
+                        // Store editor instance
+                        window.editor = editor;
+                        
+                        // Make editor fill the container
+                        editor.setSize('100%', '100%');
+                        
+                        // Set the file type selector to the current language
+                        const typeSelect = document.getElementById(`file-type-select-${newTabId}`);
+                        if (typeSelect) {
+                            // Try to find the option that matches the current language
+                            const options = Array.from(typeSelect.options);
+                            const matchingOption = options.find(option => option.value === language);
+                            if (matchingOption) {
+                                typeSelect.value = language;
+                            }
+                            
+                            // Add event listener to change the editor mode when the type is changed
+                            typeSelect.addEventListener('change', () => {
+                                const newMode = typeSelect.value || getLanguageFromFileName(filePath);
+                                editor.setOption('mode', newMode);
+                                // Reload the content with the new file type
+                                sendRequest({ 
+                                    csrf, 
+                                    action: 'view_content', 
+                                    file: filePath,
+                                    file_type: newMode 
+                                }, key, isEnc);
+                                // Refresh editor to apply the new mode
+                                setTimeout(() => editor.refresh(), 50);
+                            });
+                        }
+                        
+                        // Add a save button for this tab
+                        let saveBtn = tabContent.querySelector('.save-file-btn');
+                        if (!saveBtn) {
+                            saveBtn = document.createElement('button');
+                            saveBtn.className = 'save-file-btn fixed bottom-4 right-4 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded shadow-lg z-50';
+                            saveBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Save';
+                            saveBtn.addEventListener('click', () => {
+                                const content = editor.getValue();
+                                saveFileContent(filePath, content, csrf, key, isEnc);
+                            });
+                            tabContent.appendChild(saveBtn);
+                        }
+                        
+                        // Focus the editor
+                        setTimeout(() => {
+                            if (editor) {
+                                editor.refresh();
+                                editor.focus();
+                            }
+                        }, 100);
+                        
+                        dprogr();
+            })
+            .catch(error => {
+                        console.error('Error fetching file content:', error);
+                        editorContainer.innerHTML = '<div class="p-4 text-red-500">Failed to load file content: ' + error + '</div>';
+                        dprogr();
+            });
+            }
+        } catch (error) {
+            console.error('Error in viewEditFile:', error);
+            dprogr();
+        }
+    }
+
+    let editorInitialized = false;
+
+
+    // Make the function available to the global scope for utils.js to access
+    window.initializeEditor = function(content, language = 'plaintext', containerId = 'editorContainer') {
+        progr();
+        
+        // Get container element
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.error('Editor container not found:', containerId);
+            dprogr();
+            return;
+        }
+        
+        // Get the theme based on current preference
+        const theme = document.documentElement.classList.contains('dark') 
+            ? 'dracula' 
+            : 'eclipse';
+        
+        try {
+            // Create new editor instance for this container
+                // Define keyboard shortcuts for the editor
+                const extraKeys = {
+                    // Basic editing shortcuts
+                    "Ctrl-S": function(cm) {
+                    // Find the closest save button in the tab content
+                    const tabContent = container.closest('[id$="-content"]');
+                    if (tabContent) {
+                        const saveBtn = tabContent.querySelector('.save-file-btn');
+                        if (saveBtn) saveBtn.click();
+                    } else {
+                        const saveBtn = document.getElementById('saveFile');
+                        if (saveBtn) saveBtn.click();
+                    }
+                        return false;
+                    },
+                    "Ctrl-F": "findPersistent",
+                    "Ctrl-H": "replace",
+                    // Indentation and comments
+                    "Ctrl-/": "toggleComment",
+                    "Tab": function(cm) {
+                        if (cm.somethingSelected()) {
+                            cm.indentSelection("add");
+                        } else {
+                            cm.replaceSelection("    ", "end");
+                        }
+                        return true;
+                    },
+                    "Shift-Tab": function(cm) {
+                        cm.indentSelection("subtract");
+                        return true;
+                    },
+                    // Code folding
+                    "Ctrl-Q": function(cm) {
+                        cm.foldCode(cm.getCursor());
+                        return false;
+                    },
+                    // Misc
+                    "Esc": function(cm) {
+                        if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+                        return false;
+                    }
+                };
+            
+            // Clear container first
+            container.innerHTML = '';
+                
+                // Create new editor with enhanced configuration
+            const editor = CodeMirror(container, {
+                    value: content || '',
+                    mode: language,
+                    theme: theme,
+                    lineNumbers: true,
+                    indentUnit: 4,
+                    smartIndent: true,
+                    indentWithTabs: false,
+                    lineWrapping: true,
+                    matchBrackets: true,
+                    autoCloseBrackets: true,
+                    autoCloseTags: true,
+                    styleActiveLine: true,
+                    selectionPointer: true,
+                    tabSize: parseInt(localStorage.getItem('tab-size') || '4'),
+                    extraKeys: extraKeys,
+                    scrollbarStyle: 'native',
+                    undoDepth: 200,
+                    historyEventDelay: 200
+                });
+            
+            // Store the editor instance
+            window.editor = editor;
+                
+                // Make editor fill the container
+            editor.setSize('100%', '100%');
+                
+                // Focus the editor after creation
+                setTimeout(() => {
+                if (editor) editor.focus();
+                }, 100);
+            
+            // Refresh the editor to prevent layout issues
+            setTimeout(() => {
+                if (editor) editor.refresh();
+            }, 50);
+            
+            console.log(`CodeMirror editor initialized with mode: ${language} in container: ${containerId}`);
+        } catch (error) {
+            console.error('Error initializing CodeMirror editor:', error);
+            triggerAlert('warning', 'Failed to initialize the editor. Please try again.');
+        } finally {
+        dprogr();
+        }
+    }
+    
+    // Compatibility function for older code that might still use this
+    window.createEditor = function(content, language) {
+        console.log("createEditor called - redirecting to initializeEditor");
+        
+        // Check if initializeEditor exists first
+        if (typeof window.initializeEditor !== 'function') {
+            console.error("initializeEditor function not found");
+            triggerAlert('warning', 'Editor initialization failed. Please refresh the page.');
+            return;
+        }
+        
+        // Ensure editor container exists
+        if (!document.getElementById('editorContainer')) {
+            console.error("Editor container not found");
+            triggerAlert('warning', 'Editor container not found in DOM. Please refresh the page.');
+            return;
+        }
+        
+        // Call the new function with proper error handling
+        try {
+            window.initializeEditor(content, language);
+        } catch (error) {
+            console.error("Error in createEditor:", error);
+            triggerAlert('warning', 'Failed to initialize editor. Please try again.');
+        }
+    }
+
+
+
+   function showEdit(txt){
+
+        document.getElementById('editorModal').classList.remove('hidden');
+        window.initializeEditor(txt, "bash");
+
+    }
+ 
+    $(document).ready(function () {
+        // Initialize fileManagerState as a global variable
+        if (!window.fileManagerState) {
+            window.fileManagerState = {
+                files: [],
+                totalPages: 1,
+                currentPage: 1,
+                currentSort: { column: 'name', direction: 'asc' },
+                selectedFiles: [],
+                tabs: [
+                    { id: 'tab-1', path: currentDir, active: true, name: 'Home' }
+                ],
+                activeTabId: 'tab-1'
+            };
+        }
+        console.log('fileManagerState initialized:', window.fileManagerState);
+        
+        // Load the initial directory
+        loadDirectory(currentDir, 1, csrf, key, isEnc);
+        
+        // Initialize sort icons
+        function updateSortIcons() {
+            const { column, direction } = window.fileManagerState.currentSort;
+            $('th[data-sort]').find('i.fas').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
+            const activeHeader = $(`th[data-sort="${column}"]`);
+            if (activeHeader.length) {
+                const icon = activeHeader.find('i.fas');
+                icon.removeClass('fa-sort');
+                icon.addClass(direction === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+            }
+        }
+        
+        // Call the function to initialize sort icons
+        setTimeout(updateSortIcons, 500); // Small delay to ensure DOM is ready
+        
+        // Function to handle keydown events
+        function handleKeydown(e) {
+            var keyCode = typeof e.which === "number" ? e.which : e.keyCode;
+
+            /* Tab, Backspace and Delete key */
+            if (keyCode === 8 || keyCode === 9 || keyCode === 46) {
+                e.preventDefault();
+                if (command !== '') {
+                    if (keyCode === 8)
+                        backSpace();
+                    else if (keyCode === 46)
+                        reverseBackSpace();
+                    else if (keyCode === 9)
+                        autoComplete();
+                }
+            }
+
+            /* Ctrl + C */
+            else if (e.ctrlKey && keyCode === 67) {
+                autocomplete_position = 0;
+                endLine();
+                newLine();
+                reset();
+            }
+
+            /* Enter */
+            else if (keyCode === 13) {
+                if (autocomplete_position !== 0) {
+                    autocomplete_position = 0;
+                    command = autocomplete_current_result;
+                }
+
+                if (command.toLowerCase().split(' ')[0] in commands)
+                    commands[command.toLowerCase().split(' ')[0]](command.split(' ').slice(1));
+                else if (command.length !== 0)
+                    $.ajax({
+                        type: 'POST',
+                        async: false,
+                        data: { command: command, path: path },
+                        cache: false,
+                        success: function (response) {
+                            response = $.parseJSON(response);
+                            path = response.path;
+                            $('terminal content').append('<line><br>' + response.result + '</line>');
+                        }
+                    });
+
+                endLine();
+                addToHistory(command);
+                newLine();
+                reset();
+                $('terminal content').scrollTop($('terminal content').prop("scrollHeight"));
+            }
+
+            /* Home, End, Left and Right (change blink position) */
+            else if ((keyCode === 35 || keyCode === 36 || keyCode === 37 || keyCode === 39) && command !== '') {
+                e.preventDefault();
+                $('line.current bl').remove();
+
+                if (autocomplete_position !== 0) {
+                    autocomplete_position = 0;
+                    command = autocomplete_current_result;
+                }
+
+                if (keyCode === 35)
+                    blink_position = 0;
+
+                if (keyCode === 36)
+                    blink_position = command.length * -1;
+
+                if (keyCode === 37 && command.length !== Math.abs(blink_position))
+                    blink_position--;
+
+                if (keyCode === 39 && blink_position !== 0)
+                    blink_position++;
+
+                printCommand();
+                normalizeHtml();
+            }
+
+            /* Up and Down (suggest command from history)*/
+            else if ((keyCode === 38 || keyCode === 40) && (command === '' || suggest)) {
+                e.preventDefault();
+                if (keyCode === 38
+                    && command_history.length
+                    && command_history.length >= history_index * -1 + 1) {
+
+                    history_index--;
+                    command = command_history[command_history.length + history_index];
+                    printCommand();
+                    normalizeHtml();
+                    suggest = true;
+                }
+                else if (keyCode === 40
+                    && command_history.length
+                    && command_history.length >= history_index * -1
+                    && history_index !== 0) {
+
+                    history_index++;
+                    command = (history_index === 0) ? '' : command_history[command_history.length + history_index];
+                    printCommand();
+                    normalizeHtml();
+                    suggest = (history_index === 0) ? false : true;
+                }
+            }
+
+            /* type characters */
+            else if (keyCode === 32
+                || keyCode === 222
+                || keyCode === 220
+                || (
+                    (keyCode >= 45 && keyCode <= 195)
+                    && !(keyCode >= 112 && keyCode <= 123)
+                    && keyCode != 46
+                    && keyCode != 91
+                    && keyCode != 93
+                    && keyCode != 144
+                    && keyCode != 145
+                    && keyCode != 45
+                )
+            ) {
+                type(e.key);
+                $('terminal content').scrollTop($('terminal content').prop("scrollHeight"));
+            }
+        }
+
+        // Function to attach/detach keydown event listener based on terminal visibility
+        function localUpdateKeydownListener() {
+            if ($('#terminal').is(':visible')) {
+                // If terminal is visible, attach keydown event listener
+                $(document).on('keydown', handleKeydown);
+                // console.log('Keydown listener attached');
+            } else {
+                // If terminal is hidden, remove keydown event listener
+                $(document).off('keydown', handleKeydown);
+                // console.log('Keydown listener removed');
+            }
+        }
+
+        // Initial check for visibility
+        localUpdateKeydownListener();
+        
+        // Expose the function to the global scope for tabs to use
+        window.updateKeydownListener = localUpdateKeydownListener;
+
+        // Handle tab changes
+        $('[data-tabs-target]').on('click', function () {
+            // Wait for the tab content to be visible
+            setTimeout(() => {
+                if (window.updateKeydownListener) {
+                    window.updateKeydownListener();
+                }
+            }, 100);
+        });
+    });
+
+    // Function to toggle visibility of location tabs and breadcrumbs
+    function toggleNavigationElements() {
+        const activeTabId = document.querySelector('[role="tab"][aria-selected="true"]')?.getAttribute('data-tabs-target');
+        const locationTabsContainer = document.querySelector('.mb-4.border-b.border-gray-200.dark\\:border-gray-700');
+        const breadcrumbs = document.getElementById('breadcrumbs');
+        
+        console.log('Toggle Navigation - Active Tab:', activeTabId);
+        console.log('Location Tabs Container:', locationTabsContainer);
+        console.log('Breadcrumbs:', breadcrumbs);
+        
+        if (activeTabId && locationTabsContainer && breadcrumbs) {
+            // Hide for terminal, config, and setting tabs
+            if (activeTabId === '#terminal' || activeTabId === '#config' || activeTabId === '#setting') {
+                console.log('Hiding navigation elements');
+                locationTabsContainer.classList.add('hidden');
+                breadcrumbs.classList.add('hidden');
+            } else {
+                console.log('Showing navigation elements');
+                locationTabsContainer.classList.remove('hidden');
+                breadcrumbs.classList.remove('hidden');
+            }
+        } else {
+            console.warn('Could not find all required elements for navigation toggle');
+        }
+    }
+
+    // Add event listener for tab changes to toggle navigation elements
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initial check on page load
+        toggleNavigationElements();
+        
+        // Listen for tab changes
+        document.querySelectorAll('[data-tabs-target]').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Small delay to ensure the aria-selected attribute has been updated
+                setTimeout(toggleNavigationElements, 50);
+            });
+        });
+        
+        // Use MutationObserver to detect tab changes
+        const tabObserver = new MutationObserver(mutations => {
+            mutations.forEach(mutation => {
+                if (mutation.attributeName === 'aria-selected') {
+                    toggleNavigationElements();
+                }
+            });
+        });
+        
+        // Observe all tab buttons for aria-selected changes
+        document.querySelectorAll('[role="tab"]').forEach(tab => {
+            tabObserver.observe(tab, { attributes: true, attributeFilter: ['aria-selected'] });
+        });
+    });
+
+    // Call toggleNavigationElements directly to ensure it runs
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', toggleNavigationElements);
+    } else {
+        // DOM already loaded, call immediately
+        toggleNavigationElements();
+    }
+
+    function reset() {
+        command = '';
+        history_index = 0;
+        blink_position = 0;
+        autocomplete_position = 0;
+        autocomplete_current_result = '';
+        suggest = false;
+    }
+    function endLine() {
+        $('line.current bl').remove();
+        $('line.current').removeClass('current');
+    }
+    function newLine() {
+        $('terminal content').append('<line class="current"><path>' + path + '</path> <sp></sp> <t><bl></bl></t></line>');
+    }
+    function addToHistory(command) {
+        if (command.length >= 2 && (command_history.length === 0 || command_history[command_history.length - 1] !== command))
+            command_history[command_history.length] = command;
+    }
+    function normalizeHtml() {
+        let res = $('line.current t').html();
+        let nres = res.split(' ').length == 1 ? '<cm>' + res + '</cm>' : '<cm>' + res.split(' ')[0] + '</cm> <code>' + res.split(' ').slice(1).join(' ').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</code>';
+
+        $('line.current t').html(nres.replace('&lt;bl&gt;&lt;/bl&gt;', '<bl></bl>'));
+    }
+    function printCommand(cmd = '') {
+        if (cmd === '')
+            cmd = command;
+        else
+            blink_position = 0;
+
+        let part1 = cmd.substr(0, cmd.length + blink_position);
+        let part2 = cmd.substr(cmd.length + blink_position);
+
+        $('line.current t').html(part1 + '<bl></bl>' + part2);
+    }
+    function type(t) {
+        history_index = 0;
+        suggest = false;
+
+        if (autocomplete_position !== 0) {
+            autocomplete_position = 0;
+            command = autocomplete_current_result;
+        }
+        if (command[command.length - 1] === '/' && t === '/')
+            return;
+
+        let part1 = command.substr(0, command.length + blink_position);
+        let part2 = command.substr(command.length + blink_position);
+        command = part1 + t + part2;
+
+        printCommand();
+        normalizeHtml();
+    }
+    function backSpace() {
+        if (autocomplete_position !== 0) {
+            autocomplete_position = 0;
+            command = autocomplete_current_result;
+        }
+
+        let part1 = command.substr(0, command.length + blink_position);
+        let part2 = command.substr(command.length + blink_position);
+        command = part1.substr(0, part1.length - 1) + part2;
+
+        printCommand();
+        normalizeHtml();
+    }
+    function reverseBackSpace() {
+        let part1 = command.substr(0, command.length + blink_position);
+        let part2 = command.substr(command.length + blink_position);
+        command = part1 + part2.substr(1);
+
+        if (blink_position !== 0)
+            blink_position++;
+
+        printCommand();
+        normalizeHtml();
+    }
+    function autoComplete() {
+        if (autocomplete_search_for !== command) {
+            autocomplete_search_for = command;
+            autocomplete_temp_results = [];
+
+            if (command.split(' ').length === 1) {
+                let cmdlist = commands_list.concat(Object.keys(commands));
+                autocomplete_temp_results = cmdlist
+                    .filter(function (cm) { return (cm.length > command.length && cm.substr(0, command.length).toLowerCase() == command.toLowerCase()) ? true : false; })
+                    .reverse().sort(function (a, b) { return b.length - a.length; });
+            }
+
+            else if (command.split(' ').length === 2) {
+                let cmd = command.split(' ')[0];
+                let cmd_parameter = command.split(' ')[1];
+                var temp_cmd = '';
+
+                if (cmd === 'cd' || cmd === 'cp' || cmd === 'mv' || cmd === 'cat') {
+                    switch (cmd) {
+                        case "cd": temp_cmd = 'ls -d ' + cmd_parameter + '*/'; break;
+                        case "cp": case "mv": temp_cmd = 'ls -d ' + cmd_parameter + '*/'; break;
+                        case "cat": temp_cmd = 'ls -p | grep -v /'; break;
+                        default: temp_cmd = '';
+                    }
+
+                    $.ajax({
+                        type: 'POST',
+                        async: false,
+                        data: { command: temp_cmd, path: path },
+                        cache: false,
+                        success: function (response) {
+                            response = $.parseJSON(response);
+                            autocomplete_temp_results = response.result.split('<br>')
+                                .filter(function (cm) { return (cm.length !== 0) ? true : false; });
+                        }
+                    });
+                }
+            }
+        }
+
+        if (autocomplete_temp_results.length && autocomplete_temp_results.length > Math.abs(autocomplete_position)) {
+            autocomplete_position--;
+            autocomplete_current_result = ((command.split(' ').length === 2) ? command.split(' ')[0] + ' ' : '') + autocomplete_temp_results[autocomplete_temp_results.length + autocomplete_position];
+            printCommand(autocomplete_current_result);
+            normalizeHtml();
+        }
+        else {
+            autocomplete_position = 0;
+            autocomplete_current_result = '';
+            printCommand();
+            normalizeHtml();
+        }
+    }
+
+    var commands = {
+        'clear': clear,
+        'history': history
+    };
+
+    function clear() {
+        $('terminal content').html('');
+    }
+
+    function history(arg) {
+        var res = [];
+        let start_from = arg.length ? Number.isInteger(Number(arg[0])) ? Number(arg[0]) : 0 : 0;
+
+        if (start_from != 0 && start_from <= command_history.length)
+            for (var i = command_history.length - start_from; i < command_history.length; i++) { res[res.length] = (i + 1) + ' &nbsp;' + command_history[i]; }
+        else
+            command_history.forEach(function (item, index) { res[res.length] = (index + 1) + ' &nbsp;' + item; });
+
+        $('terminal content').append('<line>' + res.join('<br>') + '</line>');
+    }
+
+    updateCurrentPath();
+
+
+
+
+
+    document.getElementById("itemLimit").addEventListener("change", (e) => {
+        const limit = e.target.value;
+        console.log('Items per page changed to:', limit);
+
+        // Save the setting to localStorage for persistence
+        localStorage.setItem('default-items-per-page', limit);
+
+        // Reset to page 1 when changing items per page
+        window.fileManagerState.currentPage = 1;
+        
+        // Call loadDirectory with the correct itemsPerPage parameter
+        loadDirectory(currentDir, 1, csrf, key, isEnc, limit);
+    });
+
+
+    function excute(code, csrf, currentDir, key, isEnc) {
+        // Call the SweetAlert2 dialog
+        showDialog(
+            'Execute PHP Code', // Title
+            'Enter the PHP code to execute:', // Input label
+            'Execute', // Confirm button text
+            "", // Default value (empty for code input)
+            (phpCode) => {
+                // Callback function executed when the user confirms
+                if (phpCode && phpCode.trim() !== "") {
+                    // Send the PHP code to the backend for execution
+                    sendRequest({ 
+                        csrf, 
+                        action: 'execute', 
+                        code: phpCode.trim(), 
+                        dir: currentDir 
+                    }, key, isEnc)
+                        .then(response => {
+                            // Display the result of the PHP execution
+                            showEdit(response.output); // Assuming the response contains an 'output' field
+                        })
+                        .catch(error => {
+                            triggerAlert('warning', error); // Show error message
+                            console.error('Error executing PHP code:', error); // Log error for debugging
+                        });
+                }
+            }
+        );
+    }
+      // Event delegation for rename button
+  document.addEventListener('click', function (event) {
+    if (event.target.classList.contains('codeme')) {
+        // const oldName = event.target.dataset.file;
+        excute("oldName", csrf, currentDir, key, isEnc);
+    }
+});
+ 
+});
+
+// Function to initialize theme toggle
+function initThemeToggle() {
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    
+    // Check for saved theme preference or use system preference
+    if (localStorage.getItem('color-theme') === 'dark' || 
+        (!localStorage.getItem('color-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+    
+    // Add click event to toggle button
+    themeToggleBtn.addEventListener('click', function() {
+        // Toggle dark class on html element
+        document.documentElement.classList.toggle('dark');
+        
+        // Update localStorage
+        if (document.documentElement.classList.contains('dark')) {
+            localStorage.setItem('color-theme', 'dark');
+        } else {
+            localStorage.setItem('color-theme', 'light');
+        }
+        
+        // If editor is initialized, update its theme
+        if (window.editor) {
+            window.editor.updateOptions({
+                theme: document.documentElement.classList.contains('dark') ? 'vs-dark' : 'vs'
+            });
+        }
+    });
+}
+
+// Function to initialize enhanced tabs with animation using Flowbite
+function initEnhancedTabs() {
+    console.log('Initializing enhanced tabs');
+    
+    // Create tab elements array after verifying DOM elements exist
+    const tabElements = [];
+    
+    // Helper function to safely add tab elements
+    function addTabIfExists(id) {
+        const triggerEl = document.querySelector(`#${id}`);
+        const targetSelector = `#${id.replace('-tab', '')}`;
+        const targetEl = document.querySelector(targetSelector);
+        
+        if (triggerEl && targetEl) {
+            tabElements.push({
+                id: id,
+                triggerEl: triggerEl,
+                targetEl: targetEl
+            });
+        } else {
+            console.warn(`Tab element missing for ${id}:`, {
+                triggerFound: !!triggerEl,
+                targetFound: !!targetEl,
+                targetSelector: targetSelector
+            });
+        }
+    }
+    
+    // Add each tab if the elements exist
+    addTabIfExists('file-tab');
+    addTabIfExists('upload-tab');
+    addTabIfExists('terminal-tab');
+    addTabIfExists('config-tab');
+    addTabIfExists('setting-tab');
+    
+    // If no valid tabs were found, exit early
+    if (tabElements.length === 0) {
+        console.error('No valid tab elements found');
+        return;
+    }
+    
+    // Options for the tabs
+    const options = {
+        defaultTabId: 'file-tab',
+        activeClasses: 'text-blue-600 border-blue-600 dark:text-blue-500 dark:border-blue-500',
+        inactiveClasses: 'text-gray-500 hover:text-gray-600 dark:text-gray-400 border-transparent hover:border-gray-300 dark:hover:text-gray-300 dark:hover:border-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600',
+        onShow: (tab) => {
+            // Get the tab ID and call our handleTabSwitch function
+            const tabId = tab.triggerEl.getAttribute('data-tabs-target');
+            console.log('Tab shown via Flowbite:', tabId);
+            
+            // Use setTimeout to ensure the tab is fully activated before updating navigation
+            setTimeout(() => {
+                // Update navigation elements visibility based on the active tab
+                const locationTabsContainer = document.querySelector('.mb-4.border-b.border-gray-200.dark\\:border-gray-700');
+                const breadcrumbs = document.getElementById('breadcrumbs');
+                
+                if (locationTabsContainer && breadcrumbs) {
+                    if (tabId === '#terminal' || tabId === '#config' || tabId === '#setting') {
+                        locationTabsContainer.classList.add('hidden');
+                        breadcrumbs.classList.add('hidden');
+                    } else {
+                        locationTabsContainer.classList.remove('hidden');
+                        breadcrumbs.classList.remove('hidden');
+                    }
+                }
+            }, 50);
+        }
+    };
+    
+    try {
+        // Initialize the tabs using Flowbite's Tabs object
+        if (typeof window.Tabs !== 'undefined') {
+            // Flowbite Tabs API is available directly
+            const tabs = new Tabs(tabElements, options);
+            tabs.show('file-tab');
+            console.log('Tabs initialized using Flowbite API');
+        } else if (typeof window.flowbite !== 'undefined' && window.flowbite.Tabs) {
+            // Flowbite is available as a namespace
+            const tabs = new window.flowbite.Tabs(tabElements, options);
+            tabs.show('file-tab');
+            console.log('Tabs initialized using flowbite namespace');
+        } else {
+            console.warn('Flowbite Tabs API not found, falling back to manual tab initialization');
+            // Fall back to manual initialization
+            const tabButtons = document.querySelectorAll('#default-tab button');
+            const tabContents = document.querySelectorAll('#default-tab-content > div');
+            
+            // Initialize the first tab as active
+            if (tabButtons.length > 0 && tabContents.length > 0) {
+                const activeTabId = tabButtons[0].getAttribute('data-tabs-target');
+                const activeTab = document.querySelector(activeTabId);
+                
+                if (activeTab) {
+                    activeTab.classList.remove('hidden');
+                    tabButtons[0].classList.add('text-blue-600', 'border-blue-600');
+                    tabButtons[0].classList.remove('border-transparent');
+                    tabButtons[0].setAttribute('aria-selected', 'true');
+                }
+            }
+            
+            // Add click event listeners to all tabs
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const target = button.getAttribute('data-tabs-target');
+                    
+                    // Use our handleTabSwitch function
+                    if (typeof handleTabSwitch === 'function') {
+                        handleTabSwitch(target);
+                    } else {
+                        // Fallback if handleTabSwitch is not available
+                        const targetContent = document.querySelector(target);
+                        
+                        // Hide all tab contents
+                        tabContents.forEach(content => {
+                            content.classList.add('hidden');
+                            content.classList.remove('animate-fadeIn');
+                        });
+                        
+                        // Deactivate all tabs
+                        tabButtons.forEach(btn => {
+                            btn.classList.remove('text-blue-600', 'border-blue-600');
+                            btn.classList.add('border-transparent');
+                            btn.setAttribute('aria-selected', 'false');
+                        });
+                        
+                        // Activate the clicked tab
+                        button.classList.add('text-blue-600', 'border-blue-600');
+                        button.classList.remove('border-transparent');
+                        button.setAttribute('aria-selected', 'true');
+                        
+                        // Show the target content with animation
+                        targetContent.classList.remove('hidden');
+                        targetContent.classList.add('animate-fadeIn');
+                        
+                        // Update navigation elements visibility
+                        const locationTabsContainer = document.querySelector('.mb-4.border-b.border-gray-200.dark\\:border-gray-700');
+                        const breadcrumbs = document.getElementById('breadcrumbs');
+                        
+                        if (locationTabsContainer && breadcrumbs) {
+                            if (target === '#terminal' || target === '#config' || target === '#setting') {
+                                locationTabsContainer.classList.add('hidden');
+                                breadcrumbs.classList.add('hidden');
+                            } else {
+                                locationTabsContainer.classList.remove('hidden');
+                                breadcrumbs.classList.remove('hidden');
+                            }
+                        }
+                    }
+                });
+            });
+        }
+    } catch (error) {
+        console.error('Error initializing tabs:', error);
+    }
+    
+    // Ensure navigation elements are correctly toggled on initialization
+    setTimeout(() => {
+        // Find the active tab
+        const activeTab = document.querySelector('[role="tab"][aria-selected="true"]');
+        if (activeTab) {
+            const tabId = activeTab.getAttribute('data-tabs-target');
+            console.log('Active tab on init:', tabId);
+            
+            // Update navigation elements visibility
+            const locationTabsContainer = document.querySelector('.mb-4.border-b.border-gray-200.dark\\:border-gray-700');
+            const breadcrumbs = document.getElementById('breadcrumbs');
+            
+            if (locationTabsContainer && breadcrumbs) {
+                if (tabId === '#terminal' || tabId === '#config' || tabId === '#setting') {
+                    console.log('Hiding navigation elements on init');
+                    locationTabsContainer.classList.add('hidden');
+                    breadcrumbs.classList.add('hidden');
+                } else {
+                    console.log('Showing navigation elements on init');
+                    locationTabsContainer.classList.remove('hidden');
+                    breadcrumbs.classList.remove('hidden');
+                }
+            }
+        }
+    }, 200);
+}
+
+// Settings functionality
+function initSettings() {
+    // Load settings from localStorage
+    loadSettings();
+    
+    // Theme buttons
+    document.getElementById('light-theme-btn')?.addEventListener('click', () => {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('color-theme', 'light');
+        updateEditorTheme('vs');
+    });
+    
+    document.getElementById('dark-theme-btn')?.addEventListener('click', () => {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('color-theme', 'dark');
+        updateEditorTheme('vs-dark');
+    });
+    
+    document.getElementById('system-theme-btn')?.addEventListener('click', () => {
+        localStorage.removeItem('color-theme');
+        // Use system preference
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+            updateEditorTheme('vs-dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            updateEditorTheme('vs');
+        }
+    });
+    
+    // Font size slider
+    const fontSizeSlider = document.getElementById('font-size');
+    if (fontSizeSlider) {
+        fontSizeSlider.addEventListener('input', (e) => {
+            const fontSize = e.target.value;
+            document.documentElement.style.fontSize = fontSize + 'px';
+            localStorage.setItem('font-size', fontSize);
+        });
+    }
+    
+    // Terminal font size slider
+    const terminalFontSizeSlider = document.getElementById('terminal-font-size');
+    if (terminalFontSizeSlider) {
+        terminalFontSizeSlider.addEventListener('input', (e) => {
+            const fontSize = e.target.value;
+            const terminalContent = document.querySelector('terminal content');
+            if (terminalContent) {
+                terminalContent.style.fontSize = fontSize + 'px';
+            }
+            localStorage.setItem('terminal-font-size', fontSize);
+        });
+    }
+    
+    // Editor theme select
+    const editorThemeSelect = document.getElementById('editor-theme');
+    if (editorThemeSelect) {
+        editorThemeSelect.addEventListener('change', (e) => {
+            const theme = e.target.value;
+            if (theme === 'system') {
+                // Use system preference
+                updateEditorTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs');
+                localStorage.setItem('editor-theme', 'system');
+            } else {
+                updateEditorTheme(theme);
+                localStorage.setItem('editor-theme', theme);
+            }
+        });
+    }
+    
+    // Tab size select
+    const tabSizeSelect = document.getElementById('tab-size');
+    if (tabSizeSelect) {
+        tabSizeSelect.addEventListener('change', (e) => {
+            const tabSize = e.target.value;
+            if (window.editor) {
+                window.editor.setOption('tabSize', parseInt(tabSize));
+            }
+            localStorage.setItem('tab-size', tabSize);
+        });
+    }
+    
+    // Word wrap checkbox
+    const wordWrapCheckbox = document.getElementById('word-wrap');
+    if (wordWrapCheckbox) {
+        wordWrapCheckbox.addEventListener('change', (e) => {
+            const wordWrap = e.target.checked ? 'on' : 'off';
+            if (window.editor) {
+                window.editor.setOption('lineWrapping', wordWrap === 'on');
+            }
+            localStorage.setItem('word-wrap', wordWrap);
+        });
+    }
+    
+    // Default items per page select
+    const defaultItemsSelect = document.getElementById('default-items');
+    if (defaultItemsSelect) {
+        defaultItemsSelect.addEventListener('change', (e) => {
+            const itemsPerPage = e.target.value;
+            localStorage.setItem('default-items-per-page', itemsPerPage);
+            
+            // Update the current itemLimit dropdown
+            const itemLimitElement = document.getElementById('itemLimit');
+            if (itemLimitElement) {
+                itemLimitElement.value = itemsPerPage;
+                // Trigger change to refresh the view
+                const event = new Event('change');
+                itemLimitElement.dispatchEvent(event);
+            }
+        });
+    }
+    
+    // Save settings button
+    document.getElementById('save-settings')?.addEventListener('click', () => {
+        saveSettings();
+        triggerAlert('success', 'Settings saved successfully!');
+    });
+}
+
+// Load settings from localStorage
+function loadSettings() {
+    // Font size
+    const fontSize = localStorage.getItem('font-size') || '14';
+    document.documentElement.style.fontSize = fontSize + 'px';
+    const fontSizeSlider = document.getElementById('font-size');
+    if (fontSizeSlider) fontSizeSlider.value = fontSize;
+    
+    // Terminal font size
+    const terminalFontSize = localStorage.getItem('terminal-font-size') || '14';
+    const terminalContent = document.querySelector('terminal content');
+    if (terminalContent) terminalContent.style.fontSize = terminalFontSize + 'px';
+    const terminalFontSizeSlider = document.getElementById('terminal-font-size');
+    if (terminalFontSizeSlider) terminalFontSizeSlider.value = terminalFontSize;
+    
+    // Editor theme
+    const editorTheme = localStorage.getItem('editor-theme') || 'system';
+    const editorThemeSelect = document.getElementById('editor-theme');
+    if (editorThemeSelect) editorThemeSelect.value = editorTheme;
+    
+    // Tab size
+    const tabSize = localStorage.getItem('tab-size') || '4';
+    const tabSizeSelect = document.getElementById('tab-size');
+    if (tabSizeSelect) tabSizeSelect.value = tabSize;
+    
+    // Word wrap
+    const wordWrap = localStorage.getItem('word-wrap') || 'on';
+    const wordWrapCheckbox = document.getElementById('word-wrap');
+    if (wordWrapCheckbox) wordWrapCheckbox.checked = wordWrap === 'on';
+    
+    // Default items per page
+    const defaultItems = localStorage.getItem('default-items-per-page') || '50';
+    const defaultItemsSelect = document.getElementById('default-items');
+    if (defaultItemsSelect) defaultItemsSelect.value = defaultItems;
+    
+    // Apply items per page to current view
+    const itemLimitElement = document.getElementById('itemLimit');
+    if (itemLimitElement && defaultItems) {
+        itemLimitElement.value = defaultItems;
+    }
+}
+
+// Save all settings to localStorage
+function saveSettings() {
+    // Font size
+    const fontSizeSlider = document.getElementById('font-size');
+    if (fontSizeSlider) localStorage.setItem('font-size', fontSizeSlider.value);
+    
+    // Terminal font size
+    const terminalFontSizeSlider = document.getElementById('terminal-font-size');
+    if (terminalFontSizeSlider) localStorage.setItem('terminal-font-size', terminalFontSizeSlider.value);
+    
+    // Editor theme
+    const editorThemeSelect = document.getElementById('editor-theme');
+    if (editorThemeSelect) localStorage.setItem('editor-theme', editorThemeSelect.value);
+    
+    // Tab size
+    const tabSizeSelect = document.getElementById('tab-size');
+    if (tabSizeSelect) localStorage.setItem('tab-size', tabSizeSelect.value);
+    
+    // Word wrap
+    const wordWrapCheckbox = document.getElementById('word-wrap');
+    if (wordWrapCheckbox) localStorage.setItem('word-wrap', wordWrapCheckbox.checked ? 'on' : 'off');
+    
+    // Default items per page
+    const defaultItemsSelect = document.getElementById('default-items');
+    if (defaultItemsSelect) localStorage.setItem('default-items-per-page', defaultItemsSelect.value);
+}
+
+// Update editor theme
+function updateEditorTheme(theme) {
+    // Store theme preference globally
+    window.editorThemePreference = theme;
+    
+    // Map Monaco themes to CodeMirror themes
+    // Monaco: 'vs' (light), 'vs-dark' (dark), or 'system'
+    let codeMirrorTheme = 'eclipse'; // default light theme
+    
+    if (theme === 'vs-dark' || 
+        (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        codeMirrorTheme = 'dracula'; // dark theme
+    }
+    
+    // Apply theme to CodeMirror editor if it's available
+    if (window.editor && typeof window.editor.setOption === 'function') {
+        try {
+            window.editor.setOption('theme', codeMirrorTheme);
+            
+            // Update theme-related UI elements
+            const editorContainer = document.getElementById('editorContainer');
+            if (editorContainer) {
+                if (codeMirrorTheme === 'dracula') {
+                    editorContainer.classList.add('dark-editor');
+                    editorContainer.classList.remove('light-editor');
+                } else {
+                    editorContainer.classList.add('light-editor');
+                    editorContainer.classList.remove('dark-editor');
+                }
+            }
+            
+            // Update bottom status bar if it exists
+            const editorStatus = document.getElementById('editorStatus');
+            if (editorStatus) {
+                if (codeMirrorTheme === 'dracula') {
+                    editorStatus.classList.add('dark-status');
+                    editorStatus.classList.remove('light-status');
+                } else {
+                    editorStatus.classList.add('light-status');
+                    editorStatus.classList.remove('dark-status');
+                }
+            }
+            
+            console.log('Editor theme updated to:', codeMirrorTheme);
+        } catch (error) {
+            console.error('Error updating editor theme:', error);
+        }
+    } else {
+        console.log('CodeMirror editor not available, theme will be applied when editor loads');
+    }
+}
+
+// Initialize the editor language selector dropdown
+window.initEditorLanguageSelector = function() {
+    const languageSelector = document.getElementById('editorLanguage');
+    if (!languageSelector || languageSelector.dataset.initialized) return;
+    
+    // Add event listener to update editor mode on language change
+    languageSelector.addEventListener('change', function() {
+        const selectedMode = this.value;
+        if (window.editor && selectedMode) {
+            try {
+                window.editor.setOption('mode', selectedMode);
+                console.log('Editor mode changed to:', selectedMode);
+                
+                // Update status bar
+                const statusEl = document.getElementById('editorStatus');
+                if (statusEl) {
+                    const currentText = statusEl.textContent || '';
+                    // Replace just the language part
+                    const updatedText = currentText.replace(/\|.*\|/, `| ${selectedMode} |`);
+                    statusEl.textContent = updatedText;
+                }
+            } catch (error) {
+                console.error('Error changing editor mode:', error);
+            }
+        }
+    });
+    
+    languageSelector.dataset.initialized = 'true';
+    console.log('Editor language selector initialized');
+};
+
+// Function to initialize global keyboard shortcuts
+function initGlobalKeyboardShortcuts() {
+    // Store shortcut help text for the help dialog
+    const shortcutHelp = [
+        { key: 'Delete', action: 'Delete selected files' },
+        { key: 'Ctrl+A', action: 'Select all files' },
+        { key: 'Ctrl+C', action: 'Copy selected files' },
+        { key: 'Ctrl+X', action: 'Cut selected files' },
+        { key: 'Ctrl+V', action: 'Paste files' },
+        { key: 'Ctrl+F', action: 'Search files (when implemented)' },
+        { key: 'F2', action: 'Rename selected file' },
+        { key: 'F5', action: 'Refresh directory' },
+        { key: 'Alt+Up', action: 'Navigate to parent directory' },
+        { key: 'Escape', action: 'Deselect all files / Close dialogs' },
+        { key: '?', action: 'Show this help dialog' }
+    ];
+    
+    // Function to show the keyboard shortcuts help dialog
+    function showKeyboardShortcutsHelp() {
+        // Build the HTML for the shortcuts table
+        let shortcutsHtml = '<div class="overflow-x-auto"><table class="w-full text-sm text-left">';
+        shortcutsHtml += '<thead class="text-xs uppercase bg-gray-100 dark:bg-gray-700"><tr><th class="px-6 py-3">Key</th><th class="px-6 py-3">Action</th></tr></thead><tbody>';
+        
+        shortcutHelp.forEach(item => {
+            shortcutsHtml += `<tr class="border-b dark:border-gray-700"><td class="px-6 py-4 font-medium">${item.key}</td><td class="px-6 py-4">${item.action}</td></tr>`;
+        });
+        
+        shortcutsHtml += '</tbody></table></div>';
+        
+        // Show the shortcuts help dialog
+        Swal.fire({
+            title: 'Keyboard Shortcuts',
+            html: shortcutsHtml,
+            customClass: {
+                popup: 'dark:bg-gray-800 dark:text-white'
+            }
+        });
+    }
+    
+    // Add click event listener to the keyboard shortcuts button
+    const keyboardShortcutsBtn = document.getElementById('keyboardShortcutsBtn');
+    if (keyboardShortcutsBtn) {
+        keyboardShortcutsBtn.addEventListener('click', showKeyboardShortcutsHelp);
+    }
+    
+    // Create a global keyboard event listener
+    document.addEventListener('keydown', function(e) {
+        // Skip if we're in an input field, textarea, or editor is active
+        if (e.target.tagName === 'INPUT' || 
+            e.target.tagName === 'TEXTAREA' || 
+            e.target.classList.contains('CodeMirror') ||
+            document.querySelector('#terminal:not(.hidden)')) {
+            return;
+        }
+        
+        // Ensure fileManagerState exists and is initialized
+        if (!window.fileManagerState) {
+            console.error('fileManagerState is not initialized');
+            return;
+        }
+        
+        // Get current state
+        const currentDir = window.fileManagerState?.currentDir || phpVars?.currentDir;
+        const csrf = phpVars?.csrf;
+        const key = phpVars?.encryptionKey ? CryptoJS.enc.Utf8.parse(phpVars.encryptionKey) : null;
+        const isEnc = phpVars?.isEnc;
+        
+        // Ensure selectedFiles exists
+        if (!window.fileManagerState.selectedFiles) {
+            window.fileManagerState.selectedFiles = [];
+        }
+        
+        // Get selected files
+        const selectedFiles = window.fileManagerState.selectedFiles || [];
+        
+        // Debug info
+        console.log('Keyboard shortcut detected:', e.key, 'Ctrl:', e.ctrlKey, 'Alt:', e.altKey);
+        console.log('Selected files:', selectedFiles);
+        
+        // Handle various keyboard shortcuts
+        switch (true) {
+            // Delete - Delete selected files
+            case e.key === 'Delete':
+                console.log('Delete key pressed, selected files:', selectedFiles.length);
+                if (selectedFiles.length > 0) {
+                    e.preventDefault();
+                    
+                    // Make sure we're not in a text input field
+                    if (document.activeElement.tagName === 'INPUT' || 
+                        document.activeElement.tagName === 'TEXTAREA' || 
+                        document.activeElement.isContentEditable) {
+                        return; // Let the browser handle the delete in text fields
+                    }
+                    
+                    // Create a copy of the array to prevent any issues
+                    const filesToDelete = [...selectedFiles];
+                    
+                    window.showConfirmation(
+                        'Delete Files',
+                        `Are you sure you want to delete ${filesToDelete.length} file(s)?`,
+                        'Delete',
+                        () => {
+                            console.log('Files to delete:', filesToDelete);
+                            
+                            // Use sendBulkActionRequest instead of performBulkAction for better reliability
+                            if (typeof window.sendBulkActionRequest === 'function') {
+                                window.sendBulkActionRequest({
+                                    action: 'delete',
+                                    files: filesToDelete,
+                                    onSuccess: () => {
+                                        // Clear selection after successful operation
+                                        if (typeof window.clearFileSelection === 'function') {
+                                            window.clearFileSelection();
+                                        }
+                                        
+                                        window.triggerAlert('success', 'Files deleted successfully');
+                                        window.loadDirectory(currentDir, 1, csrf, key, isEnc);
+                                    }
+                                });
+                            } else {
+                                // Fallback to old method
+                                window.performBulkAction('delete', filesToDelete, currentDir, csrf, key, isEnc);
+                            }
+                        }
+                    );
+                }
+                break;
+            
+            // Ctrl+A - Select all files
+            case e.ctrlKey && e.key === 'a':
+                console.log('Ctrl+A pressed');
+                e.preventDefault();
+                const checkboxes = document.querySelectorAll('.file-checkbox');
+                const selectAllCheckbox = document.getElementById('selectAll');
+                
+                // Check all checkboxes
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = true;
+                    window.updateSelectedFiles(checkbox.dataset.file, true);
+                });
+                
+                // Update "Select All" checkbox if it exists
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.checked = true;
+                }
+                
+                // Show success message
+                window.triggerAlert('info', `Selected ${checkboxes.length} file(s)`);
+                break;
+            
+            // Ctrl+C - Copy selected files
+            case e.ctrlKey && e.key === 'c':
+                console.log('Ctrl+C pressed, selected files:', selectedFiles.length);
+                if (selectedFiles.length > 0) {
+                    e.preventDefault();
+                    
+                    // Make sure we're not in a text input field
+                    if (document.activeElement.tagName === 'INPUT' || 
+                        document.activeElement.tagName === 'TEXTAREA' || 
+                        document.activeElement.isContentEditable) {
+                        return; // Let the browser handle the copy in text fields
+                    }
+                    
+                    // Convert filenames to full paths
+                    const filesWithPaths = selectedFiles.map(file => {
+                        if (!file.includes('/')) {
+                            return `${currentDir}/${file}`;
+                        }
+                        return file;
+                    });
+                    
+                    // Save to localStorage using our function
+                    if (typeof window.saveToLocalStorage === 'function') {
+                    window.saveToLocalStorage(filesWithPaths);
+                    
+                    // Remove any previous cut operation
+                    localStorage.removeItem('clipboard-action');
+                    
+                    // Show success message
+                    window.triggerAlert('success', `Copied ${selectedFiles.length} file(s) to clipboard`);
+                    } else {
+                        console.error('saveToLocalStorage function not found');
+                        window.triggerAlert('warning', 'Copy operation failed');
+                    }
+                }
+                break;
+            
+            // Ctrl+X - Cut selected files
+            case e.ctrlKey && e.key === 'x':
+                console.log('Ctrl+X pressed, selected files:', selectedFiles.length);
+                if (selectedFiles.length > 0) {
+                    e.preventDefault();
+                    
+                    // Make sure we're not in a text input field
+                    if (document.activeElement.tagName === 'INPUT' || 
+                        document.activeElement.tagName === 'TEXTAREA' || 
+                        document.activeElement.isContentEditable) {
+                        return; // Let the browser handle the cut in text fields
+                    }
+                    
+                    // Convert filenames to full paths
+                    const filesWithPaths = selectedFiles.map(file => {
+                        if (!file.includes('/')) {
+                            return `${currentDir}/${file}`;
+                        }
+                        return file;
+                    });
+                    
+                    // Save to localStorage using our function
+                    if (typeof window.saveToLocalStorage === 'function') {
+                    window.saveToLocalStorage(filesWithPaths);
+                    
+                    // Mark as cut operation
+                    localStorage.setItem('clipboard-action', 'cut');
+                    
+                    // Show success message
+                    window.triggerAlert('info', `Cut ${selectedFiles.length} file(s) to clipboard`);
+                    } else {
+                        console.error('saveToLocalStorage function not found');
+                        window.triggerAlert('warning', 'Cut operation failed');
+                    }
+                }
+                break;
+            
+            // Ctrl+V - Paste files
+            case e.ctrlKey && e.key === 'v':
+                console.log('Ctrl+V pressed');
+                
+                // Make sure we're not in a text input field
+                if (document.activeElement.tagName === 'INPUT' || 
+                    document.activeElement.tagName === 'TEXTAREA' || 
+                    document.activeElement.isContentEditable) {
+                    return; // Let the browser handle the paste in text fields
+                }
+                
+                e.preventDefault();
+                
+                // Get files from clipboard using our function
+                if (typeof window.getFromLocalStorage === 'function') {
+                const files = window.getFromLocalStorage();
+                    
+                if (files && files.length > 0) {
+                    console.log('Pasting files:', files);
+                    console.log('Current directory:', currentDir);
+                    
+                    // Show a loading indicator
+                    window.triggerAlert('info', `Pasting ${files.length} item(s)...`);
+                    
+                        // Use sendBulkActionRequest instead of performBulkAction for better reliability
+                        if (typeof window.sendBulkActionRequest === 'function') {
+                            window.sendBulkActionRequest({
+                                action: 'paste',
+                                files: files,
+                                onSuccess: () => {
+                                    // Clear selection after successful operation
+                                    if (typeof window.clearFileSelection === 'function') {
+                                        window.clearFileSelection();
+                                    }
+                                    
+                                    window.triggerAlert('success', 'Files pasted successfully');
+                                    window.loadDirectory(currentDir, 1, csrf, key, isEnc);
+                                    
+                                    // Clear clipboard after paste if it was a cut operation
+                                    if (localStorage.getItem('clipboard-action') === 'cut') {
+                                        if (typeof window.freeclipbroad === 'function') {
+                                            window.freeclipbroad();
+                                        }
+                                        localStorage.removeItem('clipboard-action');
+                                    }
+                                }
+                            });
+                        } else {
+                            // Fallback to old method
+                    window.performBulkAction('paste', files, currentDir, csrf, key, isEnc);
+                    
+                            // Clear clipboard after paste if it was a cut operation
+                            if (localStorage.getItem('clipboard-action') === 'cut') {
+                                if (typeof window.freeclipbroad === 'function') {
+                    window.freeclipbroad();
+                                }
+                    localStorage.removeItem('clipboard-action');
+                            }
+                        }
+                } else {
+                    window.triggerAlert('warning', 'No items in clipboard');
+                    }
+                } else {
+                    console.error('getFromLocalStorage function not found');
+                    window.triggerAlert('warning', 'Paste operation failed');
+                }
+                break;
+            
+            // F2 - Rename selected file (if only one is selected)
+            case e.key === 'F2':
+                console.log('F2 pressed, selected files:', selectedFiles.length);
+                if (selectedFiles.length === 1) {
+                    e.preventDefault();
+                    window.renameFile(selectedFiles[0], csrf, currentDir, key, isEnc);
+                } else if (selectedFiles.length > 1) {
+                    window.triggerAlert('warning', 'Please select only one file to rename');
+                }
+                break;
+            
+            // F5 - Refresh directory
+            case e.key === 'F5':
+                console.log('F5 pressed');
+                e.preventDefault();
+                window.loadDirectory(currentDir, 1, csrf, key, isEnc);
+                window.triggerAlert('info', 'Refreshing directory...');
+                break;
+            
+            // Alt+Up - Navigate to parent directory
+            case e.altKey && e.key === 'ArrowUp':
+                console.log('Alt+Up pressed');
+                e.preventDefault();
+                const parentDirBtn = document.querySelector('.breadcrumb-item:nth-last-child(2) a');
+                if (parentDirBtn) {
+                    parentDirBtn.click();
+                }
+                break;
+            
+            // Escape - Deselect all files
+            case e.key === 'Escape':
+                console.log('Escape pressed');
+                // First check if any modal or dialog is open
+                const visibleModal = document.querySelector('.modal:not(.hidden)');
+                const visibleContextMenu = document.querySelector('#context-menu:not(.hidden)');
+                
+                if (visibleModal || visibleContextMenu) {
+                    // Let the modal/context menu handle the escape key
+                    return;
+                }
+                
+                e.preventDefault();
+                // Uncheck all checkboxes
+                document.querySelectorAll('.file-checkbox').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                // Update "Select All" checkbox if it exists
+                const selectAllCheckboxEsc = document.getElementById('selectAll');
+                if (selectAllCheckboxEsc) {
+                    selectAllCheckboxEsc.checked = false;
+                }
+                
+                // Clear selected files array
+                window.fileManagerState.selectedFiles = [];
+                
+                // Show message
+                window.triggerAlert('info', 'Deselected all files');
+                break;
+            
+            // ? - Show keyboard shortcut help
+            case e.key === '?':
+                console.log('? key pressed');
+                e.preventDefault();
+                showKeyboardShortcutsHelp();
+                break;
+        }
+    });
+    
+    console.log('Global keyboard shortcuts initialized');
+}
+
+// Function to expose utility functions to global scope
+function exposeUtilityFunctions() {
+    // Expose necessary functions to the global scope for keyboard shortcuts
+    window.updateSelectedFiles = typeof updateSelectedFiles === 'function' ? 
+        updateSelectedFiles : function() { console.error('updateSelectedFiles not found'); };
+        
+    // Add advanced search function to global scope
+    window.showAdvancedSearch = function() {
+        // Check if phpVars is available
+        if (!window.phpVars) {
+            console.error('phpVars not found');
+            triggerAlert('danger', 'Required configuration is missing. Please refresh the page and try again.');
+            return;
+        }
+        
+        // Create a new tab for advanced search if it doesn't exist
+        const tabName = 'Advanced Search';
+        const tabId = addNewTab(tabName, 'search');
+        
+        // Switch to the tab
+        switchToTab(tabId);
+        
+        // Get the tab content element
+        const tabContent = document.getElementById(`${tabId}-content`);
+        if (!tabContent) {
+            console.error('Search tab content not found');
+            return;
+        }
+        
+        // Clear existing content
+        tabContent.innerHTML = '';
+        
+        // Create search form
+        const searchForm = document.createElement('div');
+        searchForm.className = 'search-form bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-4';
+        searchForm.innerHTML = `
+            <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Advanced Search</h2>
+            <form id="advanced-search-form" class="space-y-4" onsubmit="event.preventDefault(); performAdvancedSearch(); return false;">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="search-query" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search Query</label>
+                        <input type="text" id="search-query" name="search-query" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Enter search text or pattern" required>
+                    </div>
+                    <div>
+                        <label for="search-path" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search Path</label>
+                        <input type="text" id="search-path" name="search-path" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Directory path" value="${window.fileManagerState?.currentDir || '.'}">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="file-extensions" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">File Extensions</label>
+                        <input type="text" id="file-extensions" name="file-extensions" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="e.g. php,js,html,css">
+                    </div>
+                    <div>
+                        <label for="max-results" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max Results</label>
+                        <input type="number" id="max-results" name="max-results" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="1000" min="10" max="10000">
+                    </div>
+                    <div>
+                        <label for="batch-size" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Batch Size</label>
+                        <input type="number" id="batch-size" name="batch-size" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="200" min="50" max="1000" title="Number of files to process per batch">
+                    </div>
+                    <div class="flex flex-col space-y-2">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="case-sensitive" name="case-sensitive" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="case-sensitive" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Case Sensitive</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="use-regex" name="use-regex" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="use-regex" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Use Regex</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="recursive-search" name="recursive-search" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
+                            <label for="recursive-search" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Recursive</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="writable-only" name="writable-only" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="writable-only" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Writable Files Only</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        Search
+                    </button>
+                </div>
+            </form>
+        `;
+        
+        // Create results container
+        const resultsContainer = document.createElement('div');
+        resultsContainer.id = 'search-results-container';
+        resultsContainer.className = 'search-results bg-white dark:bg-gray-800 p-4 rounded-lg shadow';
+        resultsContainer.innerHTML = `
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800 dark:text-white">Search Results</h2>
+                <div id="search-stats" class="text-sm text-gray-500 dark:text-gray-400"></div>
+            </div>
+            <div id="search-results" class="space-y-4">
+                <div class="text-gray-500 dark:text-gray-400 text-center py-8">Enter a search query and click Search</div>
+            </div>
+        `;
+        
+        // Append form and results to tab content
+        tabContent.appendChild(searchForm);
+        tabContent.appendChild(resultsContainer);
+        
+        // Add event listener to form submission
+        const form = document.getElementById('advanced-search-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                performAdvancedSearch();
+                return false;
+            });
+        }
+    };
+    
+    // Function to validate search path before sending request
+    function validateSearchPath(path) {
+        // Check if path is empty
+        if (!path || path.trim() === '') {
+            return { valid: false, message: 'Search path cannot be empty' };
+        }
+        
+        // We'll let the server handle path validation for security
+        // Just provide a warning for absolute paths but still allow them
+        if (path.startsWith('/')) {
+            console.warn("Using absolute path for search: " + path);
+        }
+        
+        return { valid: true };
+    }
+    
+    // Function to perform the advanced search
+    window.performAdvancedSearch = function(searchToken = null) {
+        const searchQuery = document.getElementById('search-query')?.value;
+        const searchPath = document.getElementById('search-path')?.value || '.';
+        const fileExtensions = document.getElementById('file-extensions')?.value || '';
+        const maxResults = document.getElementById('max-results')?.value || 1000;
+        const caseSensitive = document.getElementById('case-sensitive')?.checked || false;
+        const useRegex = document.getElementById('use-regex')?.checked || false;
+        const recursive = document.getElementById('recursive-search')?.checked || true;
+        const writableOnly = document.getElementById('writable-only')?.checked || false;
+        const batchSize = parseInt(document.getElementById('batch-size')?.value || '200', 10); // Number of files to process per request
+        
+        if (!searchQuery && !searchToken) {
+            triggerAlert('warning', 'Please enter a search query');
+            return;
+        }
+        
+        // Validate search path if this is a new search
+        if (!searchToken) {
+            const pathValidation = validateSearchPath(searchPath);
+            if (!pathValidation.valid) {
+                triggerAlert('warning', pathValidation.message);
+                return;
+            }
+        }
+        
+        // Get CSRF token and encryption settings from phpVars
+        const csrf = window.phpVars?.csrf || '';
+        const key = window.phpVars?.encryptionKey || '';
+        const isEnc = window.phpVars?.isEnc || false;
+        
+        // Check if CSRF token is available
+        if (!csrf) {
+            console.error('CSRF token not found in phpVars');
+            triggerAlert('danger', 'Security token missing. Please refresh the page and try again.');
+            return;
+        }
+        
+        // Show loading indicator if this is the first search request
+        const resultsContainer = document.getElementById('search-results');
+        if (resultsContainer && !searchToken) {
+            resultsContainer.innerHTML = `
+                <div class="flex justify-center items-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <span class="ml-2 text-gray-600 dark:text-gray-300">Searching...</span>
+                </div>
+            `;
+            
+            // Store the search parameters in the window object for continuation
+            window.currentSearch = {
+                query: searchQuery,
+                path: searchPath,
+                extensions: fileExtensions,
+                maxResults: maxResults,
+                caseSensitive: caseSensitive,
+                useRegex: useRegex,
+                recursive: recursive,
+                writableOnly: writableOnly,
+                results: {},
+                totalMatches: 0
+            };
+        } else if (!searchToken) {
+            // If no search token but we're calling this function again, it might be a new search
+            // Clear previous search results
+            window.currentSearch = {
+                query: searchQuery,
+                path: searchPath,
+                extensions: fileExtensions,
+                maxResults: maxResults,
+                caseSensitive: caseSensitive,
+                useRegex: useRegex,
+                recursive: recursive,
+                writableOnly: writableOnly,
+                results: {},
+                totalMatches: 0
+            };
+        }
+        
+        // Update progress indicator if this is a continuation
+        if (searchToken) {
+            const progressElement = document.getElementById('search-progress');
+            if (progressElement) {
+                progressElement.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2"></div>
+                        <span>Continuing search...</span>
+                    </div>
+                `;
+            }
+        }
+        
+        console.log('Sending advanced search request:', {
+            searchQuery,
+            searchPath,
+            fileExtensions,
+            maxResults,
+            caseSensitive,
+            useRegex,
+            recursive,
+            writableOnly,
+            searchToken,
+            batchSize
+        });
+        
+        // Send search request
+        sendRequest({
+            csrf,
+            action: 'advanced_search',
+            search_query: searchQuery,
+            search_path: searchPath,
+            file_extensions: fileExtensions,
+            max_results: maxResults,
+            case_sensitive: caseSensitive,
+            use_regex: useRegex,
+            recursive: recursive,
+            writable_only: writableOnly,
+            search_token: searchToken,
+            batch_size: batchSize
+        }, key, isEnc)
+        .then(response => {
+            console.log('Search response received:', response);
+            displaySearchResults(response, searchToken !== null);
+        })
+        .catch(error => {
+            console.error('Search error:', error);
+            
+            if (resultsContainer) {
+                resultsContainer.innerHTML = `
+                    <div class="text-red-500 dark:text-red-400 text-center py-4">
+                        Error: ${error.message || 'Failed to perform search'}
+                    </div>
+                    <div class="mt-4 p-4 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-800 rounded-md">
+                        <h3 class="font-medium text-red-800 dark:text-red-300 mb-2">Troubleshooting tips:</h3>
+                        <ul class="list-disc pl-5 text-sm text-red-700 dark:text-red-400 space-y-1">
+                            <li>Check if the search path exists and is accessible</li>
+                            <li>Try using a relative path like "./subdirectory" instead of an absolute path</li>
+                            <li>If using regex, verify your pattern is valid</li>
+                            <li>Try reducing the batch size if searching many files</li>
+                            <li>Check browser console for more detailed error information</li>
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            triggerAlert('danger', 'Search failed: ' + (error.message || 'Unknown error'));
+        });
+    };
+    
+    // Function to display search results
+    window.displaySearchResults = function(response, isIncremental = false) {
+        const resultsContainer = document.getElementById('search-results');
+        const searchStats = document.getElementById('search-stats');
+        
+        if (!resultsContainer) {
+            console.error('Results container not found');
+            return;
+        }
+        
+        if (response.error) {
+            resultsContainer.innerHTML = `
+                <div class="text-red-500 dark:text-red-400 text-center py-4">
+                    Error: ${response.error}
+                </div>
+            `;
+            return;
+        }
+        
+        // If this is an incremental update, merge the results with the existing ones
+        if (isIncremental && window.currentSearch) {
+            // Merge new results with existing ones
+            Object.assign(window.currentSearch.results, response.results);
+            window.currentSearch.totalMatches = response.total_matches;
+        } else {
+            // Initialize or reset current search data
+            if (!window.currentSearch) {
+                window.currentSearch = {};
+            }
+            window.currentSearch.results = response.results;
+            window.currentSearch.totalMatches = response.total_matches;
+        }
+        
+        // Update stats
+        if (searchStats) {
+            searchStats.textContent = `Found ${window.currentSearch.totalMatches} matches in ${Object.keys(window.currentSearch.results).length} files`;
+            
+            // Add warning if results were truncated due to memory limits
+            if (response.memory_limit_reached) {
+                searchStats.innerHTML += `
+                    <div class="mt-2 text-amber-600 dark:text-amber-400">
+                        <svg class="inline-block w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        Search was truncated due to memory limits. Try narrowing your search or searching in smaller directories.
+                    </div>
+                `;
+            }
+            
+            // Add progress information if search is not complete
+            if (!response.search_complete) {
+                const filesRemaining = response.files_remaining || 0;
+                const filesProcessed = response.files_processed || 0;
+                const totalFiles = filesProcessed + filesRemaining;
+                const progressPercent = totalFiles > 0 ? Math.round((filesProcessed / totalFiles) * 100) : 0;
+                
+                searchStats.innerHTML += `
+                    <div id="search-progress" class="mt-2">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-sm text-gray-700 dark:text-gray-300">
+                                Processed ${filesProcessed} of ${totalFiles} files (${progressPercent}%)
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${progressPercent}%"></div>
+                        </div>
+                        <div class="flex justify-between mt-2">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="auto-continue-search" class="mr-2">
+                                <label for="auto-continue-search" class="text-sm text-gray-700 dark:text-gray-300">Auto-continue</label>
+                            </div>
+                            <button id="continue-search" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700">
+                                Continue Search
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        if (window.currentSearch.totalMatches === 0 && response.search_complete) {
+            resultsContainer.innerHTML = `
+                <div class="text-gray-500 dark:text-gray-400 text-center py-8">
+                    No results found for "${response.search_query}"
+                </div>
+            `;
+            return;
+        }
+        
+        // Generate results HTML
+        let resultsHTML = '';
+        
+        // Sort files by number of matches (most matches first)
+        const sortedFiles = Object.keys(window.currentSearch.results).sort((a, b) => {
+            return window.currentSearch.results[b].length - window.currentSearch.results[a].length;
+        });
+        
+        sortedFiles.forEach(filePath => {
+            const matches = window.currentSearch.results[filePath];
+            const fileName = filePath.split('/').pop();
+            
+            // Check if file is writable
+            const isWritable = response.writable_files && response.writable_files.includes(filePath);
+            const writableBadge = isWritable ? 
+                `<span class="ml-2 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 rounded">Writable</span>` : 
+                '<span class="ml-2 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300 rounded">No Writable</span>';
+            
+            resultsHTML += `
+                <div class="file-result border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden mb-4">
+                    <div class="file-header bg-gray-100 dark:bg-gray-700 px-4 py-2 flex justify-between items-center">
+                        <div class="flex items-center">
+                            <span class="font-medium text-gray-800 dark:text-white">${fileName}</span>
+                            <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">${matches.length} matches</span>
+                            ${writableBadge}
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm" 
+                                    onclick="viewEditFile('${filePath}', '${window.phpVars?.csrf || ''}', '${window.phpVars?.encryptionKey || ''}', ${window.phpVars?.isEnc || false})">
+                                Edit
+                            </button>
+                            <button class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 text-sm toggle-matches" 
+                                    data-file="${filePath}">
+                                Hide Matches
+                            </button>
+                        </div>
+                    </div>
+                    <div class="file-matches bg-white dark:bg-gray-800 p-2">
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">${filePath}</div>
+                        <div class="matches-list space-y-1">
+            `;
+            
+            matches.forEach(match => {
+                // Escape HTML in line content
+                const escapedContent = match.line_content
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+                
+                // Highlight the match if not using regex
+                let highlightedContent = escapedContent;
+                if (!document.getElementById('use-regex')?.checked) {
+                    const searchQuery = document.getElementById('search-query')?.value || '';
+                    if (searchQuery) {
+                        // Create a regex to highlight all occurrences, respecting case sensitivity
+                        const flags = document.getElementById('case-sensitive')?.checked ? 'g' : 'gi';
+                        const regex = new RegExp(searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
+                        highlightedContent = escapedContent.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-700">$&</mark>');
+                    }
+                }
+                
+                resultsHTML += `
+                    <div class="match-line hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded">
+                        <a href="#" class="flex" onclick="viewEditFileAtLine('${filePath}', ${match.line_number}, '${window.phpVars?.csrf || ''}', '${window.phpVars?.encryptionKey || ''}', ${window.phpVars?.isEnc || false}); return false;">
+                            <span class="line-number w-12 inline-block text-right pr-2 text-gray-500 dark:text-gray-400 select-none">${match.line_number}</span>
+                            <span class="line-content font-mono text-gray-800 dark:text-gray-200 overflow-x-auto">${highlightedContent}</span>
+                        </a>
+                    </div>
+                `;
+            });
+            
+            resultsHTML += `
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        // Update results container
+        resultsContainer.innerHTML = resultsHTML;
+        
+        // Add event listeners to toggle buttons
+        document.querySelectorAll('.toggle-matches').forEach(button => {
+            button.addEventListener('click', function() {
+                const filePath = this.getAttribute('data-file');
+                const matchesContainer = this.closest('.file-result').querySelector('.matches-list');
+                
+                if (matchesContainer.style.display === 'none') {
+                    matchesContainer.style.display = 'block';
+                    this.textContent = 'Hide Matches';
+                } else {
+                    matchesContainer.style.display = 'none';
+                    this.textContent = 'Show Matches';
+                }
+            });
+        });
+        
+        // Add event listener to continue search button if search is not complete
+        if (!response.search_complete) {
+            const continueButton = document.getElementById('continue-search');
+            const autoContinueCheckbox = document.getElementById('auto-continue-search');
+            
+            if (continueButton) {
+                continueButton.addEventListener('click', function() {
+                    // Continue the search with the token
+                    performAdvancedSearch(response.search_token);
+                });
+            }
+            
+            // Auto-continue if checkbox is checked
+            if (autoContinueCheckbox) {
+                // Restore auto-continue preference from localStorage
+                const savedAutoContinue = localStorage.getItem('search-auto-continue');
+                if (savedAutoContinue === 'true') {
+                    autoContinueCheckbox.checked = true;
+                }
+                
+                // Save preference when changed
+                autoContinueCheckbox.addEventListener('change', function() {
+                    localStorage.setItem('search-auto-continue', this.checked);
+                });
+                
+                // Auto-continue if checked
+                if (autoContinueCheckbox.checked) {
+                    setTimeout(() => {
+                        performAdvancedSearch(response.search_token);
+                    }, 1000); // Small delay to allow UI to update
+                }
+            }
+        }
+    };
+    
+    // Function to open a file at a specific line
+    window.viewEditFileAtLine = function(filePath, lineNumber, csrf, key, isEnc) {
+        console.log(`Attempting to open ${filePath} at line ${lineNumber}`);
+        
+        // First open the file
+        viewEditFile(filePath, csrf, key, isEnc);
+        
+        // Wait for the editor to initialize with a longer timeout and check for editor existence
+        let attempts = 0;
+        const maxAttempts = 20; // Increase max attempts
+        const checkInterval = 300; // 300ms between checks
+        
+        const checkEditor = function() {
+            console.log(`Checking for editor (attempt ${attempts + 1}/${maxAttempts})`);
+            
+            if (window.editor) {
+                console.log(`Editor found, navigating to line ${lineNumber}`);
+                try {
+                    // Go to the specified line
+                    window.editor.setCursor(lineNumber - 1, 0);
+                    
+                    // Highlight the line
+                    window.editor.addLineClass(lineNumber - 1, 'background', 'bg-yellow-100');
+                    
+                    // Ensure the line is visible
+                    window.editor.scrollIntoView({line: lineNumber - 1, ch: 0}, 100);
+                    
+                    console.log('Successfully positioned editor at line', lineNumber);
+                } catch (error) {
+                    console.error('Error positioning editor:', error);
+                    triggerAlert('warning', 'Could not position to the selected line. Please try manually navigating to line ' + lineNumber);
+                }
+            } else {
+                attempts++;
+                if (attempts < maxAttempts) {
+                    console.log(`Editor not ready yet, attempt ${attempts}/${maxAttempts}`);
+                    setTimeout(checkEditor, checkInterval);
+                } else {
+                    console.error('Editor failed to initialize after multiple attempts');
+                    triggerAlert('warning', 'Could not position to the selected line. Please try manually navigating to line ' + lineNumber);
+                }
+            }
+        };
+        
+        // Start checking for editor after initial delay
+        setTimeout(checkEditor, 800); // Increase initial delay
+    };
+    
+    // Expose clipboard functions
+    window.saveToLocalStorage = saveToLocalStorage;
+    window.getFromLocalStorage = getFromLocalStorage;
+        
+    window.freeclipbroad = typeof freeclipbroad === 'function' ? 
+        freeclipbroad : function() { console.error('freeclipbroad not found'); };
+        
+    window.performBulkAction = typeof performBulkAction === 'function' ? 
+        performBulkAction : function() { console.error('performBulkAction not found'); };
+        
+    // Create a global wrapper for sendBulkActionRequest
+    window.sendBulkActionRequest = function({ action, files, options = null, onSuccess = null, onError = null }) {
+        // Get current state values
+        const currentDir = window.fileManagerState?.currentDir || phpVars?.currentDir;
+        const csrf = phpVars?.csrf;
+        const key = phpVars?.encryptionKey ? CryptoJS.enc.Utf8.parse(phpVars.encryptionKey) : null;
+        const isEnc = phpVars?.isEnc;
+        
+        // Show progress indicator
+        if (typeof progr === 'function') progr();
+        
+        console.log(`Sending ${action} request for ${files.length} file(s)`);
+        
+        // Prepare data
+        const data = {
+            csrf: csrf,
+            action: action,
+            file: files,
+            dir: currentDir
+        };
+        
+        // Add options for specific actions
+        if (action === 'zip' && options) {
+            data.zipExt = options.zipFileName;
+            data.compressionLevel = options.compressionLevel || '5';
+            data.archiveFormat = options.archiveFormat || 'zip';
+        }
+        
+        // Convert to JSON and encrypt if needed
+        const jsonData = JSON.stringify(data);
+        const requestData = (isEnc === '1') ? encrypt(jsonData, key) : jsonData;
+        
+        // Send the request
+        $.post('', requestData, function(response) {
+            try {
+                // Decrypt response if needed
+                const decryptedResponse = (isEnc === '1') ? decrypt(response, key) : response;
+                const result = JSON.parse(decryptedResponse);
+                
+                console.log('Response:', result);
+                
+                if (result.error) {
+                    triggerAlert('warning', result.error);
+                    if (onError) onError(result.error);
+                } else if (result.success) {
+                    if (onSuccess) onSuccess(result);
+                    else triggerAlert('success', result.success);
+                } else {
+                    if (onSuccess) onSuccess(result);
+                    else triggerAlert('success', 'Operation completed successfully');
+                }
+            } catch (error) {
+                console.error('Error processing response:', error);
+                triggerAlert('error', 'Failed to process server response');
+                if (onError) onError(error);
+            }
+            
+            // Hide progress indicator
+            if (typeof dprogr === 'function') dprogr();
+        }).fail(function(xhr, status, error) {
+            console.error('Request failed:', status, error);
+            triggerAlert('error', 'Request failed: ' + (error || 'Unknown error'));
+            if (onError) onError(error);
+            if (typeof dprogr === 'function') dprogr();
+        });
+    };
+        
+    window.renameFile = typeof renameFile === 'function' ? 
+        renameFile : function() { console.error('renameFile not found'); };
+        
+    window.loadDirectory = typeof loadDirectory === 'function' ? 
+        loadDirectory : function() { console.error('loadDirectory not found'); };
+        
+    window.triggerAlert = typeof triggerAlert === 'function' ? 
+        triggerAlert : function() { console.error('triggerAlert not found'); };
+        
+    window.showConfirmation = typeof showConfirmation === 'function' ? 
+        showConfirmation : function() { console.error('showConfirmation not found'); };
+        
+    // Expose encrypt and decrypt functions
+    window.encrypt = typeof encrypt === 'function' ? 
+        encrypt : function() { console.error('encrypt not found'); };
+        
+    window.decrypt = typeof decrypt === 'function' ? 
+        decrypt : function() { console.error('decrypt not found'); };
+        
+    // Expose progress indicator functions
+    window.progr = typeof progr === 'function' ? 
+        progr : function() { console.error('progr not found'); };
+        
+    window.dprogr = typeof dprogr === 'function' ? 
+        dprogr : function() { console.error('dprogr not found'); };
+}
+
+// Function to handle tab switching and ensure navigation elements visibility is updated
+function handleTabSwitch(tabId) {
+    console.log('Switching to tab:', tabId);
+    
+    // Get the tab container and content elements
+    const tabButton = document.querySelector(`[data-tabs-target="${tabId}"]`);
+    const tabContent = document.querySelector(tabId);
+    
+    if (!tabButton || !tabContent) {
+        console.error('Tab elements not found:', tabId);
+        return;
+    }
+    
+    // Deactivate all tabs
+    document.querySelectorAll('[role="tab"]').forEach(tab => {
+        tab.setAttribute('aria-selected', 'false');
+        tab.classList.remove('text-blue-600', 'border-blue-600');
+        tab.classList.add('border-transparent');
+    });
+    
+    // Hide all system tab contents
+    document.querySelectorAll('[role="tabpanel"]').forEach(panel => {
+        panel.classList.add('hidden');
+    });
+    
+    // Activate the selected tab
+    tabButton.setAttribute('aria-selected', 'true');
+    tabButton.classList.add('text-blue-600', 'border-blue-600');
+    tabButton.classList.remove('border-transparent');
+    
+    // Show the selected tab content
+    tabContent.classList.remove('hidden');
+    tabContent.classList.add('animate-fadeIn');
+    
+    // Update navigation elements visibility
+    const locationTabsContainer = document.querySelector('.mb-4.border-b.border-gray-200.dark\\:border-gray-700');
+    const breadcrumbs = document.getElementById('breadcrumbs');
+    
+    if (locationTabsContainer && breadcrumbs) {
+        // Hide for terminal, config, setting, sql, and network tabs
+        if (tabId === '#terminal' || tabId === '#config' || tabId === '#setting' || tabId === '#sql' || tabId === '#network') {
+            console.log('Hiding navigation elements for tab:', tabId);
+            locationTabsContainer.classList.add('hidden');
+            breadcrumbs.classList.add('hidden');
+            
+            // Hide fileManagerUI when switching to system tabs
+            const fileManagerUI = document.getElementById('fileManagerUI');
+            if (fileManagerUI) {
+                fileManagerUI.style.display = 'none';
+            }
+            
+            // Also hide custom tab content panels
+            document.querySelectorAll('.tabs-panel').forEach(panel => {
+                panel.classList.add('hidden');
+            });
+        } else {
+            console.log('Showing navigation elements for tab:', tabId);
+            locationTabsContainer.classList.remove('hidden');
+            breadcrumbs.classList.remove('hidden');
+            
+            // If it's the file tab, make sure fileManagerUI is visible
+            if (tabId === '#file') {
+                const fileManagerUI = document.getElementById('fileManagerUI');
+                if (fileManagerUI) {
+                    fileManagerUI.style.display = 'block';
+                }
+            }
+        }
+    }
+    
+    // Update terminal keyboard listener if needed
+    if (typeof window.updateKeydownListener === 'function') {
+        setTimeout(window.updateKeydownListener, 100);
+    }
+}
+
+// Add event listeners to tabs once DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click event listeners to all tabs
+    document.querySelectorAll('[data-tabs-target]').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const target = this.getAttribute('data-tabs-target');
+            handleTabSwitch(target);
+        });
+    });
+    
+    // Initial tab setup - find active tab or default to file tab
+    const activeTab = document.querySelector('[role="tab"][aria-selected="true"]');
+    const tabId = activeTab ? activeTab.getAttribute('data-tabs-target') : '#file';
+    handleTabSwitch(tabId);
+});
+
+    window.showConfirmation = typeof showConfirmation === 'function' ? 
+        showConfirmation : function() { console.error('showConfirmation not found'); };
+        
+    // Add diagnostic function
+    window.diagnoseFunctions = function() {
+        console.log('--- Function Diagnostic Report ---');
+        console.log('updateSelectedFiles:', typeof window.updateSelectedFiles === 'function' ? 'Available ✓' : 'Missing ✗');
+        console.log('saveToLocalStorage:', typeof window.saveToLocalStorage === 'function' ? 'Available ✓' : 'Missing ✗');
+        console.log('getFromLocalStorage:', typeof window.getFromLocalStorage === 'function' ? 'Available ✓' : 'Missing ✗');
+        console.log('freeclipbroad:', typeof window.freeclipbroad === 'function' ? 'Available ✓' : 'Missing ✗');
+        console.log('performBulkAction:', typeof window.performBulkAction === 'function' ? 'Available ✓' : 'Missing ✗');
+        console.log('renameFile:', typeof window.renameFile === 'function' ? 'Available ✓' : 'Missing ✗');
+        console.log('loadDirectory:', typeof window.loadDirectory === 'function' ? 'Available ✓' : 'Missing ✗');
+        console.log('triggerAlert:', typeof window.triggerAlert === 'function' ? 'Available ✓' : 'Missing ✗');
+        console.log('showConfirmation:', typeof window.showConfirmation === 'function' ? 'Available ✓' : 'Missing ✗');
+        console.log('showAdvancedSearch:', typeof window.showAdvancedSearch === 'function' ? 'Available ✓' : 'Missing ✗');
+        
+        console.log('--- fileManagerState Report ---');
+        console.log('fileManagerState:', window.fileManagerState ? 'Available ✓' : 'Missing ✗');
+        if (window.fileManagerState) {
+            console.log('selectedFiles:', Array.isArray(window.fileManagerState.selectedFiles) ? 
+                `Available ✓ (${window.fileManagerState.selectedFiles.length} items)` : 'Missing ✗');
+            console.log('currentDir:', window.fileManagerState.currentDir || 'Not set');
+        }
+        
+        console.log('--- phpVars Report ---');
+        console.log('phpVars:', window.phpVars ? 'Available ✓' : 'Missing ✗');
+        if (window.phpVars) {
+            console.log('csrf:', window.phpVars.csrf ? 'Available ✓' : 'Missing ✗');
+            console.log('isEnc:', window.phpVars.isEnc !== undefined ? 'Available ✓' : 'Missing ✗');
+            console.log('encryptionKey:', window.phpVars.encryptionKey ? 'Available ✓' : 'Missing ✗');
+        }
+    };
+    
+    // Run diagnostic on initialization
+    setTimeout(() => {
+        if (window.diagnoseFunctions) {
+            window.diagnoseFunctions();
+        }
+    }, 1000);
+    
+    console.log('Utility functions exposed to global scope');
+
+    // Initialize when DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM fully loaded');
+        
+        // Initialize theme toggle
+        initThemeToggle();
+        
+        // Initialize enhanced tabs
+        initEnhancedTabs();
+        
+        // Initialize settings panel
+        initSettings();
+        
+        // Initialize global keyboard shortcuts
+        initGlobalKeyboardShortcuts();
+        
+        // Expose utility functions to global scope
+        exposeUtilityFunctions();
+        
+        // Ensure phpVars is available globally
+        if (typeof phpVars !== 'undefined' && !window.phpVars) {
+            window.phpVars = phpVars;
+            console.log('phpVars initialized globally');
+        } else if (!window.phpVars) {
+            console.warn('phpVars not found in global scope');
+        }
+        
+        // Add event listener for advanced search button
+        document.querySelector('.advanced-search')?.addEventListener('click', function() {
+            if (typeof window.showAdvancedSearch === 'function') {
+                window.showAdvancedSearch();
+            } else {
+                console.error('Advanced search function not found');
+                triggerAlert('warning', 'Advanced search feature is not available');
+            }
+        });
+    });
+
+         // Function to save tabs state to localStorage
+    window.saveTabsToLocalStorage = function() {
+        try {
+            // Don't save tab content, just the metadata
+            const tabsToSave = fileManagerState.tabs.map(tab => ({
+                id: tab.id,
+                path: tab.path,
+                active: tab.active,
+                name: tab.name,
+                type: tab.type || 'filemanager'
+            }));
+            
+            // Save active tab ID separately
+            localStorage.setItem('fileManager_activeTabId', fileManagerState.activeTabId);
+            
+            // Save tabs array
+            localStorage.setItem('fileManager_tabs', JSON.stringify(tabsToSave));
+            
+            console.log('Tabs saved to localStorage:', tabsToSave);
+        } catch (error) {
+            console.error('Error saving tabs to localStorage:', error);
+        }
+    }
+
+    // Function to load tabs from localStorage
+    window.loadTabsFromLocalStorage = function() {
+        try {
+            // Get saved tabs
+            const savedTabsJson = localStorage.getItem('fileManager_tabs');
+            if (!savedTabsJson) {
+                console.log('No saved tabs found in localStorage');
+                return false;
+            }
+            
+            // Parse saved tabs
+            const savedTabs = JSON.parse(savedTabsJson);
+            if (!Array.isArray(savedTabs) || savedTabs.length === 0) {
+                console.log('Invalid or empty tabs data in localStorage');
+                return false;
+            }
+            
+            // Get active tab ID
+            const savedActiveTabId = localStorage.getItem('fileManager_activeTabId');
+            
+            // Restore tabs
+            fileManagerState.tabs = savedTabs;
+            
+            // Restore active tab
+            if (savedActiveTabId && fileManagerState.tabs.find(tab => tab.id === savedActiveTabId)) {
+                fileManagerState.activeTabId = savedActiveTabId;
+                
+                // Ensure only one tab is active
+                fileManagerState.tabs.forEach(tab => {
+                    tab.active = (tab.id === savedActiveTabId);
+                });
+            } else {
+                // If active tab not found, set the first tab as active
+                fileManagerState.tabs[0].active = true;
+                fileManagerState.activeTabId = fileManagerState.tabs[0].id;
+            }
+            
+            console.log('Tabs loaded from localStorage:', fileManagerState.tabs);
+            return true;
+        } catch (error) {
+            console.error('Error loading tabs from localStorage:', error);
+            return false;
+        }
+    }
+
+    // Function to save file paths to localStorage
+    function saveToLocalStorage(fileNames) {
+        try {
+            // Ensure all paths are properly formatted
+            const normalizedPaths = fileNames.map(file => {
+                // If it's already a full path, use it
+                if (file.startsWith('/') || file.includes(':/')) {
+                    return file;
+                }
+                
+                // Get current directory from global state
+                const currentDir = window.fileManagerState?.currentDir || phpVars?.currentDir;
+                
+                // Join the paths properly
+                if (currentDir.endsWith('/')) {
+                    return currentDir + file;
+                } else {
+                    return currentDir + '/' + file;
+                }
+            });
+            
+            localStorage.setItem('copiedFiles', JSON.stringify(normalizedPaths));
+            console.log('Saved to clipboard:', normalizedPaths);
+            return normalizedPaths;
+        } catch (error) {
+            console.error('Error saving to localStorage:', error);
+            return [];
+        }
+    }
+
+    // Function to retrieve file paths from localStorage
+    function getFromLocalStorage() {
+        try {
+            const storedFiles = localStorage.getItem('copiedFiles');
+            if (!storedFiles) {
+                console.log('No files found in clipboard');
+                return [];
+            }
+            
+            const files = JSON.parse(storedFiles);
+            console.log('Retrieved from clipboard:', files);
+            return files;
+        } catch (error) {
+            console.error('Error retrieving from localStorage:', error);
+            return [];
+        }
+    }
+
+    // Network Tools Functions
+    // Initialize the Network Tools tab when clicked
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if Network tab exists
+        const networkTab = document.getElementById('network-tab');
+        if (networkTab) {
+            networkTab.addEventListener('click', function() {
+                initNetworkTools();
+            });
+        }
+    });
+
+    // Initialize all network tools
+    function initNetworkTools() {
+        // Initialize Port Scanner
+        const portScannerForm = document.getElementById('portScannerForm');
+        if (portScannerForm) {
+            portScannerForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                performPortScan();
+            });
+        }
+        
+        // Initialize Network Info button
+        const getNetworkInfoBtn = document.getElementById('getNetworkInfo');
+        if (getNetworkInfoBtn) {
+            getNetworkInfoBtn.addEventListener('click', function() {
+                getNetworkInfo();
+            });
+        }
+        
+        // Initialize ARP Table button
+        const getArpTableBtn = document.getElementById('getArpTable');
+        if (getArpTableBtn) {
+            getArpTableBtn.addEventListener('click', function() {
+                getArpTable();
+            });
+        }
+        
+        // Initialize Ping Tool
+        const pingForm = document.getElementById('pingForm');
+        if (pingForm) {
+            pingForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                performPing();
+            });
+        }
+        
+        // Initialize DNS Lookup Tool
+        const dnsLookupForm = document.getElementById('dnsLookupForm');
+        if (dnsLookupForm) {
+            dnsLookupForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                performDnsLookup();
+            });
+        }
+    }
+
+    // Port Scanner
+    function performPortScan() {
+        const host = document.getElementById('hostInput').value;
+        const startPort = parseInt(document.getElementById('startPortInput').value);
+        const endPort = parseInt(document.getElementById('endPortInput').value);
+        const timeout = parseInt(document.getElementById('timeoutInput').value);
+        const commonPortsOnly = document.getElementById('commonPortsOnly').checked;
+        
+        if (!host) {
+            triggerAlert('warning', 'Please enter a host/IP address');
+            return;
+        }
+        
+        // Show results container and set status
+        const resultsContainer = document.getElementById('portScanResults');
+        const scanStatus = document.getElementById('scanStatus');
+        const resultsBody = document.getElementById('portScanResultsBody');
+        
+        resultsContainer.classList.remove('hidden');
+        scanStatus.textContent = `Scanning ${host}...`;
+        resultsBody.innerHTML = '<tr><td colspan="3" class="text-center py-2">Scanning...</td></tr>';
+        
+        // Send request to server
+        const params = {
+            host: host,
+            start_port: startPort,
+            end_port: endPort,
+            timeout: timeout,
+            common_ports_only: commonPortsOnly
+        };
+        
+        sendNetworkRequest('port_scan', params)
+            .then(response => {
+                if (response.error) {
+                    triggerAlert('warning', response.error);
+                    scanStatus.textContent = `Scan failed: ${response.error}`;
+                    resultsBody.innerHTML = '<tr><td colspan="3" class="text-center py-2 text-red-500">Scan failed</td></tr>';
+                    return;
+                }
+                
+                // Update status
+                scanStatus.textContent = `Scan completed for ${response.host}`;
+                
+                // Clear results table
+                resultsBody.innerHTML = '';
+                
+                // Filter to show only open ports first
+                const openPorts = response.results.filter(result => result.status === 'open');
+                const closedPorts = response.results.filter(result => result.status === 'closed');
+                
+                // Add open ports to table
+                if (openPorts.length === 0) {
+                    resultsBody.innerHTML = '<tr><td colspan="3" class="text-center py-2">No open ports found</td></tr>';
+                } else {
+                    openPorts.forEach(result => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="px-4 py-2">${result.port}</td>
+                            <td class="px-4 py-2"><span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">open</span></td>
+                            <td class="px-4 py-2">${result.service || 'unknown'}</td>
+                        `;
+                        resultsBody.appendChild(row);
+                    });
+                    
+                    // Add summary row for closed ports
+                    if (closedPorts.length > 0) {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td colspan="3" class="px-4 py-2 text-gray-500 italic">${closedPorts.length} port(s) closed or filtered</td>
+                        `;
+                        resultsBody.appendChild(row);
+                    }
+                }
+            })
+            .catch(error => {
+                triggerAlert('warning', 'Error performing port scan');
+                scanStatus.textContent = 'Scan failed';
+                resultsBody.innerHTML = '<tr><td colspan="3" class="text-center py-2 text-red-500">Error connecting to server</td></tr>';
+            });
+    }
+
+    // Network Information
+    function getNetworkInfo() {
+        const resultsContainer = document.getElementById('networkInfoResults');
+        resultsContainer.classList.remove('hidden');
+        resultsContainer.innerHTML = '<div class="text-center py-2">Loading network information...</div>';
+        
+        sendNetworkRequest('network_info', {})
+            .then(response => {
+                if (response.error) {
+                    triggerAlert('warning', response.error);
+                    resultsContainer.innerHTML = `<div class="text-center py-2 text-red-500">${response.error}</div>`;
+                    return;
+                }
+                
+                // Display network interfaces
+                let html = '<div class="space-y-4">';
+                
+                if (response.interfaces.length === 0) {
+                    html += '<div class="text-center py-2">No network interfaces found</div>';
+                } else {
+                    response.interfaces.forEach(iface => {
+                        html += `
+                            <div class="border-b pb-3 dark:border-gray-600">
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200">${iface.name}</h4>
+                                <div class="mt-2">
+                        `;
+                        
+                        if (iface.addresses.length === 0) {
+                            html += '<p class="text-sm text-gray-600 dark:text-gray-400">No addresses</p>';
+                        } else {
+                            iface.addresses.forEach(addr => {
+                                html += `
+                                    <div class="flex flex-col text-sm">
+                                        <span class="text-gray-700 dark:text-gray-300">
+                                            <span class="font-medium">${addr.family}:</span> ${addr.address}
+                                        </span>
+                                        <span class="text-gray-600 dark:text-gray-400">
+                                            Netmask: ${addr.netmask || 'N/A'}
+                                        </span>
+                                    </div>
+                                `;
+                            });
+                        }
+                        
+                        html += '</div></div>';
+                    });
+                }
+                
+                html += '</div>';
+                resultsContainer.innerHTML = html;
+            })
+            .catch(error => {
+                triggerAlert('warning', 'Error getting network information');
+                resultsContainer.innerHTML = '<div class="text-center py-2 text-red-500">Error connecting to server</div>';
+            });
+    }
+
+    // ARP Table
+    function getArpTable() {
+        const resultsContainer = document.getElementById('arpTableResults');
+        resultsContainer.classList.remove('hidden');
+        resultsContainer.innerHTML = '<div class="text-center py-2">Loading ARP table...</div>';
+        
+        sendNetworkRequest('arp_table', {})
+            .then(response => {
+                if (response.error) {
+                    triggerAlert('warning', response.error);
+                    resultsContainer.innerHTML = `<div class="text-center py-2 text-red-500">${response.error}</div>`;
+                    return;
+                }
+                
+                // Display ARP table
+                if (response.arp_table.length === 0) {
+                    resultsContainer.innerHTML = '<div class="text-center py-2">No ARP entries found</div>';
+                    return;
+                }
+                
+                let html = `
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-800 dark:text-gray-400">
+                            <tr>
+                                <th scope="col" class="px-4 py-2">IP Address</th>
+                                <th scope="col" class="px-4 py-2">MAC Address</th>
+                                <th scope="col" class="px-4 py-2">Interface</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                response.arp_table.forEach(entry => {
+                    html += `
+                        <tr>
+                            <td class="px-4 py-2">${entry.ip}</td>
+                            <td class="px-4 py-2">${entry.mac}</td>
+                            <td class="px-4 py-2">${entry.interface}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                resultsContainer.innerHTML = html;
+            })
+            .catch(error => {
+                triggerAlert('warning', 'Error getting ARP table');
+                resultsContainer.innerHTML = '<div class="text-center py-2 text-red-500">Error connecting to server</div>';
+            });
+    }
+
+    // Ping Tool
+    function performPing() {
+        const host = document.getElementById('pingHost').value;
+        const count = parseInt(document.getElementById('pingCount').value);
+        const timeout = parseInt(document.getElementById('pingTimeout').value);
+        
+        if (!host) {
+            triggerAlert('warning', 'Please enter a host/IP address');
+            return;
+        }
+        
+        // Show results container
+        const resultsContainer = document.getElementById('pingResults');
+        const resultsDiv = resultsContainer.querySelector('div');
+        
+        resultsContainer.classList.remove('hidden');
+        resultsDiv.innerHTML = '<div class="text-center py-2">Pinging ' + host + '...</div>';
+        
+        // Send request to server
+        const params = {
+            host: host,
+            count: count,
+            timeout: timeout
+        };
+        
+        sendNetworkRequest('ping', params)
+            .then(response => {
+                if (response.error) {
+                    triggerAlert('warning', response.error);
+                    resultsDiv.innerHTML = `<div class="text-center py-2 text-red-500">${response.error}</div>`;
+                    return;
+                }
+                
+                // Display ping results
+                let html = '';
+                response.results.forEach(line => {
+                    html += line + '<br>';
+                });
+                
+                resultsDiv.innerHTML = html;
+            })
+            .catch(error => {
+                triggerAlert('warning', 'Error performing ping');
+                resultsDiv.innerHTML = '<div class="text-center py-2 text-red-500">Error connecting to server</div>';
+            });
+    }
+
+    // DNS Lookup
+    function performDnsLookup() {
+        const host = document.getElementById('dnsHost').value;
+        const type = document.getElementById('dnsType').value;
+        
+        if (!host) {
+            triggerAlert('warning', 'Please enter a domain name');
+            return;
+        }
+        
+        // Show results container
+        const resultsContainer = document.getElementById('dnsResults');
+        const resultsDiv = resultsContainer.querySelector('div');
+        
+        resultsContainer.classList.remove('hidden');
+        resultsDiv.innerHTML = '<div class="text-center py-2">Looking up ' + host + '...</div>';
+        
+        // Send request to server
+        const params = {
+            host: host,
+            type: type
+        };
+        
+        sendNetworkRequest('dns_lookup', params)
+            .then(response => {
+                if (response.error) {
+                    triggerAlert('warning', response.error);
+                    resultsDiv.innerHTML = `<div class="text-center py-2 text-red-500">${response.error}</div>`;
+                    return;
+                }
+                
+                // Display DNS results
+                if (response.results.length === 0) {
+                    resultsDiv.innerHTML = `<div class="text-center py-2">No ${type} records found for ${host}</div>`;
+                    return;
+                }
+                
+                let html = `<div class="space-y-4">`;
+                
+                response.results.forEach(record => {
+                    html += `
+                        <div class="border-b pb-3 dark:border-gray-600">
+                            <h4 class="font-medium text-gray-800 dark:text-gray-200">${record.type} Record</h4>
+                            <div class="mt-2 space-y-1">
+                    `;
+                    
+                    // Format record data based on type
+                    const data = record.data;
+                    for (const [key, value] of Object.entries(data)) {
+                        if (key !== 'type' && key !== 'class') {
+                            html += `
+                                <div class="text-sm">
+                                    <span class="font-medium text-gray-700 dark:text-gray-300">${key}:</span>
+                                    <span class="text-gray-600 dark:text-gray-400">${value}</span>
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    html += '</div></div>';
+                });
+                
+                html += '</div>';
+                resultsDiv.innerHTML = html;
+            })
+            .catch(error => {
+                triggerAlert('warning', 'Error performing DNS lookup');
+                resultsDiv.innerHTML = '<div class="text-center py-2 text-red-500">Error connecting to server</div>';
+            });
+    }
+
+    // Helper function for network requests
+    function sendNetworkRequest(tool, params) {
+        return new Promise((resolve, reject) => {
+            // Show progress indicator
+            progr();
+            
+            const data = {
+                action: 'network_tool',
+                tool: tool,
+                params: params,
+                csrf: phpVars.csrf
+            };
+            
+            const jsonData = JSON.stringify(data);
+            const isEnc = phpVars.isEnc === '1';
+            const encryptedData = isEnc ? encrypt(jsonData, phpVars.encryptionKey) : jsonData;
+            
+            fetch('', {
+                method: 'POST',
+                body: encryptedData
+            })
+            .then(response => response.text())
+            .then(data => {
+                try {
+                    // Hide progress indicator
+                    dprogr();
+                    
+                    // Check if response is encrypted
+                    const decrypted = isEnc ? decrypt(data, phpVars.encryptionKey) : data;
+                    const json = JSON.parse(decrypted);
+                    resolve(json);
+                } catch (error) {
+                    dprogr();
+                    reject(error);
+                }
+            })
+            .catch(error => {
+                dprogr();
+                reject(error);
+            });
+        });
+    }
+
+
+
