@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // console.log('DOM fully loaded and parsed');
-
+ 
     // Initialize SQL Explorer when the SQL tab is selected
     document.getElementById('sql-tab')?.addEventListener('click', function() {
         if (typeof window.initSQLExplorer === 'function') {
@@ -106,50 +105,80 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     // Start checking if Flowbite is loaded
-    checkFlowbiteLoaded();
+    // checkFlowbiteLoaded();
 
     // Utility functions
     function showDialog(title, message, confirmButtonText, defaultValue = '', callback) {
+        // Check if dark mode is enabled
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        
         Swal.fire({
             title: title,
-            input: 'text',
-            inputLabel: message,
-            inputValue: defaultValue,
+            html: `
+                <div class="flex flex-col w-full">
+                    <label for="dialog-input" class="text-left mb-2 text-gray-700 dark:text-gray-300 text-sm font-medium">${message}</label>
+                    <input id="dialog-input" type="text" value="${defaultValue}" class="w-full p-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                </div>
+            `,
             showCancelButton: true,
             confirmButtonText: confirmButtonText,
+            cancelButtonText: 'Cancel',
             customClass: {
-                popup: 'dark:bg-gray-800 dark:text-white'
+                popup: 'dark:bg-gray-800 dark:text-gray-200',
+                title: 'text-gray-800 dark:text-gray-200',
+                confirmButton: 'bg-blue-600 hover:bg-blue-700 text-white',
+                cancelButton: 'bg-gray-500 hover:bg-gray-600 text-white'
             },
-            inputValidator: (value) => {
-                if (!value) {
-                    return 'You need to enter a value!';
+            background: isDarkMode ? '#1F2937' : '#FFFFFF',
+            focusConfirm: false,
+            preConfirm: () => {
+                const value = document.getElementById('dialog-input').value;
+                if (!value || value.trim() === '') {
+                    Swal.showValidationMessage('You need to enter a value!');
+                    return false;
                 }
+                return value;
             }
         }).then((result) => {
-            if (result.isConfirmed) {
+            if (result.isConfirmed && result.value) {
                 callback(result.value);
             }
         });
     }
 
     function showRenameDialog(title, message, confirmButtonText, defaultValue = '', callback) {
+        // Check if dark mode is enabled
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        
         Swal.fire({
             title: title,
-            input: 'text',
-            inputLabel: message,
-            inputValue: defaultValue,
+            html: `
+                <div class="flex flex-col w-full">
+                    <label for="rename-input" class="text-left mb-2 text-gray-700 dark:text-gray-300 text-sm font-medium">${message}</label>
+                    <input id="rename-input" type="text" value="${defaultValue}" class="w-full p-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                </div>
+            `,
             showCancelButton: true,
             confirmButtonText: confirmButtonText,
+            cancelButtonText: 'Cancel',
             customClass: {
-                popup: 'dark:bg-gray-800 dark:text-white'
+                popup: 'dark:bg-gray-800 dark:text-gray-200',
+                title: 'text-gray-800 dark:text-gray-200',
+                confirmButton: 'bg-blue-600 hover:bg-blue-700 text-white',
+                cancelButton: 'bg-gray-500 hover:bg-gray-600 text-white'
             },
-            inputValidator: (value) => {
-                if (!value) {
-                    return 'You need to enter a value!';
+            background: isDarkMode ? '#1F2937' : '#FFFFFF',
+            focusConfirm: false,
+            preConfirm: () => {
+                const value = document.getElementById('rename-input').value;
+                if (!value || value.trim() === '') {
+                    Swal.showValidationMessage('You need to enter a value!');
+                    return false;
                 }
+                return value;
             }
         }).then((result) => {
-            if (result.isConfirmed) {
+            if (result.isConfirmed && result.value) {
                 callback(result.value);
             }
         });
@@ -232,16 +261,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showConfirmation(title, message, confirmButtonText, callback) {
+        // Check if dark mode is enabled
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        
         Swal.fire({
             title: title,
             text: message,
             icon: 'warning',
+            iconColor: isDarkMode ? '#FBBF24' : '#F59E0B', // Amber color for warning icon
             showCancelButton: true,
             confirmButtonText: confirmButtonText,
             cancelButtonText: 'Cancel',
             customClass: {
-                popup: 'dark:bg-gray-800 dark:text-white'
-            }
+                popup: 'dark:bg-gray-800 dark:text-gray-200',
+                title: 'text-gray-800 dark:text-gray-200',
+                confirmButton: 'bg-blue-600 hover:bg-blue-700 text-white',
+                cancelButton: 'bg-gray-500 hover:bg-gray-600 text-white'
+            },
+            background: isDarkMode ? '#1F2937' : '#FFFFFF'
         }).then((result) => {
             if (result.isConfirmed) {
                 callback();
@@ -266,8 +303,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const activeTab = fileManagerState.tabs.find(tab => tab.active);
         if (activeTab) {
             currentDir = activeTab.path;
-            console.log('Restored current directory from saved tabs:', currentDir);
-        }
+         }
     }
 
     // Initialize the file manager
@@ -881,8 +917,7 @@ document.addEventListener('DOMContentLoaded', function () {
         
         // Update the UI
         renderTabs();
-        console.log('Switching to tab:', tabId, 'type:', tab.type);
-        
+         
         // Save tabs state to localStorage
         saveTabsToLocalStorage();
         
@@ -939,8 +974,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         } else {
-            console.log('Handling filemanager tab');
-            // File manager tab - show fileManagerUI and the file tab content
+             // File manager tab - show fileManagerUI and the file tab content
             const fileManagerUI = document.getElementById('fileManagerUI');
             const fileTabContent = document.getElementById('file');
             
@@ -978,8 +1012,7 @@ document.addEventListener('DOMContentLoaded', function () {
         
         // Update the UI
         renderTabs();
-        console.log('Switching to tab:', tabId, 'type:', tab.type);
-        
+         
         // Hide all system tab contents first
         document.querySelectorAll('[role="tabpanel"]').forEach(panel => {
             panel.classList.add('hidden');
@@ -1033,8 +1066,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         } else {
-            console.log('Handling filemanager tab');
-            // File manager tab - show fileManagerUI and the file tab content
+             // File manager tab - show fileManagerUI and the file tab content
             const fileManagerUI = document.getElementById('fileManagerUI');
             const fileTabContent = document.getElementById('file');
             
@@ -2048,8 +2080,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 activeTabId: 'tab-1'
             };
         }
-        console.log('fileManagerState initialized:', window.fileManagerState);
-        
+         
         // Load the initial directory
         loadDirectory(currentDir, 1, csrf, key, isEnc);
         
@@ -2230,19 +2261,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const locationTabsContainer = document.querySelector('.mb-4.border-b.border-gray-200.dark\\:border-gray-700');
         const breadcrumbs = document.getElementById('breadcrumbs');
         
-        console.log('Toggle Navigation - Active Tab:', activeTabId);
-        console.log('Location Tabs Container:', locationTabsContainer);
-        console.log('Breadcrumbs:', breadcrumbs);
-        
+         
         if (activeTabId && locationTabsContainer && breadcrumbs) {
             // Hide for terminal, config, and setting tabs
             if (activeTabId === '#terminal' || activeTabId === '#config' || activeTabId === '#setting') {
-                console.log('Hiding navigation elements');
-                locationTabsContainer.classList.add('hidden');
+                 locationTabsContainer.classList.add('hidden');
                 breadcrumbs.classList.add('hidden');
             } else {
-                console.log('Showing navigation elements');
-                locationTabsContainer.classList.remove('hidden');
+                 locationTabsContainer.classList.remove('hidden');
                 breadcrumbs.classList.remove('hidden');
             }
         } else {
@@ -2461,33 +2487,72 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     function excute(code, csrf, currentDir, key, isEnc) {
-        // Call the SweetAlert2 dialog
-        showDialog(
-            'Execute PHP Code', // Title
-            'Enter the PHP code to execute:', // Input label
-            'Execute', // Confirm button text
-            "", // Default value (empty for code input)
-            (phpCode) => {
-                // Callback function executed when the user confirms
-                if (phpCode && phpCode.trim() !== "") {
-                    // Send the PHP code to the backend for execution
-                    sendRequest({ 
-                        csrf, 
-                        action: 'execute', 
-                        code: phpCode.trim(), 
-                        dir: currentDir 
-                    }, key, isEnc)
-                        .then(response => {
-                            // Display the result of the PHP execution
-                            showEdit(response.output); // Assuming the response contains an 'output' field
-                        })
-                        .catch(error => {
-                            triggerAlert('warning', error); // Show error message
-                            console.error('Error executing PHP code:', error); // Log error for debugging
-                        });
+        // Check if dark mode is enabled
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        
+        // Call the SweetAlert2 dialog with enhanced dark mode support
+        Swal.fire({
+            title: 'Execute PHP Code',
+            html: `
+                <div class="flex flex-col w-full">
+                    <label for="php-code-input" class="text-left mb-2 text-gray-700 dark:text-gray-300 text-sm font-medium">Enter the PHP code to execute:</label>
+                    <textarea id="php-code-input" rows="8" class="w-full p-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 font-mono text-sm"></textarea>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Execute',
+            cancelButtonText: 'Cancel',
+            customClass: {
+                popup: 'dark:bg-gray-800 dark:text-gray-200',
+                title: 'text-gray-800 dark:text-gray-200',
+                confirmButton: 'bg-blue-600 hover:bg-blue-700 text-white',
+                cancelButton: 'bg-gray-500 hover:bg-gray-600 text-white'
+            },
+            background: isDarkMode ? '#1F2937' : '#FFFFFF',
+            focusConfirm: false,
+            preConfirm: () => {
+                const phpCode = document.getElementById('php-code-input').value;
+                if (!phpCode || phpCode.trim() === '') {
+                    Swal.showValidationMessage('Please enter PHP code to execute');
+                    return false;
                 }
+                return phpCode;
             }
-        );
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                const phpCode = result.value;
+                // Send the PHP code to the backend for execution
+                sendRequest({ 
+                    csrf, 
+                    action: 'execute', 
+                    code: phpCode.trim(), 
+                    dir: currentDir 
+                }, key, isEnc)
+                    .then(response => {
+                        // Display the result of the PHP execution in a new dialog with improved dark mode
+                        Swal.fire({
+                            title: 'PHP Execution Result',
+                            html: `<div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
+                                    <pre class="text-left overflow-auto max-h-96 text-gray-800 dark:text-gray-200 font-mono text-sm bg-gray-100 dark:bg-gray-700 p-4 rounded">${response.output}</pre>
+                                  </div>`,
+                            icon: 'info',
+                            confirmButtonText: 'Close',
+                            customClass: {
+                                popup: 'dark:bg-gray-800 dark:text-gray-200',
+                                title: 'text-gray-800 dark:text-gray-200',
+                                confirmButton: 'bg-blue-600 hover:bg-blue-700 text-white',
+                                htmlContainer: 'p-0'
+                            },
+                            background: isDarkMode ? '#1F2937' : '#FFFFFF',
+                            iconColor: isDarkMode ? '#3B82F6' : '#3B82F6'
+                        });
+                    })
+                    .catch(error => {
+                        triggerAlert('warning', error); // Show error message
+                        console.error('Error executing PHP code:', error); // Log error for debugging
+                    });
+            }
+        });
     }
       // Event delegation for rename button
   document.addEventListener('click', function (event) {
@@ -2534,8 +2599,7 @@ function initThemeToggle() {
 
 // Function to initialize enhanced tabs with animation using Flowbite
 function initEnhancedTabs() {
-    console.log('Initializing enhanced tabs');
-    
+     
     // Create tab elements array after verifying DOM elements exist
     const tabElements = [];
     
@@ -2694,20 +2758,17 @@ function initEnhancedTabs() {
         const activeTab = document.querySelector('[role="tab"][aria-selected="true"]');
         if (activeTab) {
             const tabId = activeTab.getAttribute('data-tabs-target');
-            console.log('Active tab on init:', tabId);
-            
+             
             // Update navigation elements visibility
             const locationTabsContainer = document.querySelector('.mb-4.border-b.border-gray-200.dark\\:border-gray-700');
             const breadcrumbs = document.getElementById('breadcrumbs');
             
             if (locationTabsContainer && breadcrumbs) {
                 if (tabId === '#terminal' || tabId === '#config' || tabId === '#setting') {
-                    console.log('Hiding navigation elements on init');
-                    locationTabsContainer.classList.add('hidden');
+                     locationTabsContainer.classList.add('hidden');
                     breadcrumbs.classList.add('hidden');
                 } else {
-                    console.log('Showing navigation elements on init');
-                    locationTabsContainer.classList.remove('hidden');
+                     locationTabsContainer.classList.remove('hidden');
                     breadcrumbs.classList.remove('hidden');
                 }
             }
@@ -2768,7 +2829,87 @@ function initSettings() {
         });
     }
     
-    // Editor theme select
+    // UI Animation toggle
+    const enableAnimations = document.getElementById('enable-animations');
+    if (enableAnimations) {
+        enableAnimations.addEventListener('change', (e) => {
+            document.body.classList.toggle('disable-animations', !e.target.checked);
+            localStorage.setItem('enable-animations', e.target.checked);
+        });
+    }
+
+    // File Manager Settings
+    const showHiddenFiles = document.getElementById('show-hidden');
+    if (showHiddenFiles) {
+        showHiddenFiles.addEventListener('change', (e) => {
+            localStorage.setItem('show-hidden-files', e.target.checked);
+            // Reload current directory to apply changes
+            loadDirectory(currentDir, 1, csrf, key, isEnc);
+        });
+    }
+
+    const showFileSize = document.getElementById('show-file-size');
+    if (showFileSize) {
+        showFileSize.addEventListener('change', (e) => {
+            localStorage.setItem('show-file-size', e.target.checked);
+            // Reload current directory to apply changes
+            loadDirectory(currentDir, 1, csrf, key, isEnc);
+        });
+    }
+
+    const showFileDate = document.getElementById('show-file-date');
+    if (showFileDate) {
+        showFileDate.addEventListener('change', (e) => {
+            localStorage.setItem('show-file-date', e.target.checked);
+            // Reload current directory to apply changes
+            loadDirectory(currentDir, 1, csrf, key, isEnc);
+        });
+    }
+
+    const defaultSort = document.getElementById('default-sort');
+    if (defaultSort) {
+        defaultSort.addEventListener('change', (e) => {
+            localStorage.setItem('default-sort', e.target.value);
+            // Reload current directory to apply changes
+            loadDirectory(currentDir, 1, csrf, key, isEnc);
+        });
+    }
+
+    // Terminal Settings
+    const terminalWrap = document.getElementById('terminal-wrap');
+    if (terminalWrap) {
+        terminalWrap.addEventListener('change', (e) => {
+            localStorage.setItem('terminal-wrap', e.target.checked);
+            // Apply terminal wrap setting
+            if (window.terminal) {
+                window.terminal.setOption('wrap', e.target.checked);
+            }
+        });
+    }
+
+    const terminalBell = document.getElementById('terminal-bell');
+    if (terminalBell) {
+        terminalBell.addEventListener('change', (e) => {
+            localStorage.setItem('terminal-bell', e.target.checked);
+            // Apply terminal bell setting
+            if (window.terminal) {
+                window.terminal.setOption('bellStyle', e.target.checked ? 'sound' : 'none');
+            }
+        });
+    }
+
+    const terminalTheme = document.getElementById('terminal-theme');
+    if (terminalTheme) {
+        terminalTheme.addEventListener('change', (e) => {
+            localStorage.setItem('terminal-theme', e.target.value);
+            // Apply terminal theme
+            if (window.terminal) {
+                window.terminal.setOption('theme', e.target.value);
+            }
+        });
+    }
+
+    // Editor Settings
     const editorThemeSelect = document.getElementById('editor-theme');
     if (editorThemeSelect) {
         editorThemeSelect.addEventListener('change', (e) => {
@@ -2796,15 +2937,34 @@ function initSettings() {
         });
     }
     
-    // Word wrap checkbox
+    // Editor options
     const wordWrapCheckbox = document.getElementById('word-wrap');
     if (wordWrapCheckbox) {
         wordWrapCheckbox.addEventListener('change', (e) => {
-            const wordWrap = e.target.checked ? 'on' : 'off';
             if (window.editor) {
-                window.editor.setOption('lineWrapping', wordWrap === 'on');
+                window.editor.setOption('lineWrapping', e.target.checked);
             }
-            localStorage.setItem('word-wrap', wordWrap);
+            localStorage.setItem('word-wrap', e.target.checked);
+        });
+    }
+
+    const autoCloseBrackets = document.getElementById('auto-close-brackets');
+    if (autoCloseBrackets) {
+        autoCloseBrackets.addEventListener('change', (e) => {
+            if (window.editor) {
+                window.editor.setOption('autoCloseBrackets', e.target.checked);
+            }
+            localStorage.setItem('auto-close-brackets', e.target.checked);
+        });
+    }
+
+    const highlightActiveLine = document.getElementById('highlight-active-line');
+    if (highlightActiveLine) {
+        highlightActiveLine.addEventListener('change', (e) => {
+            if (window.editor) {
+                window.editor.setOption('styleActiveLine', e.target.checked);
+            }
+            localStorage.setItem('highlight-active-line', e.target.checked);
         });
     }
     
@@ -2847,6 +3007,42 @@ function loadSettings() {
     if (terminalContent) terminalContent.style.fontSize = terminalFontSize + 'px';
     const terminalFontSizeSlider = document.getElementById('terminal-font-size');
     if (terminalFontSizeSlider) terminalFontSizeSlider.value = terminalFontSize;
+
+    // UI Animations
+    const enableAnimations = localStorage.getItem('enable-animations') !== 'false';
+    document.body.classList.toggle('disable-animations', !enableAnimations);
+    const animationsCheckbox = document.getElementById('enable-animations');
+    if (animationsCheckbox) animationsCheckbox.checked = enableAnimations;
+
+    // File Manager Settings
+    const showHidden = localStorage.getItem('show-hidden-files') === 'true';
+    const showHiddenCheckbox = document.getElementById('show-hidden');
+    if (showHiddenCheckbox) showHiddenCheckbox.checked = showHidden;
+
+    const showFileSize = localStorage.getItem('show-file-size') !== 'false';
+    const showFileSizeCheckbox = document.getElementById('show-file-size');
+    if (showFileSizeCheckbox) showFileSizeCheckbox.checked = showFileSize;
+
+    const showFileDate = localStorage.getItem('show-file-date') !== 'false';
+    const showFileDateCheckbox = document.getElementById('show-file-date');
+    if (showFileDateCheckbox) showFileDateCheckbox.checked = showFileDate;
+
+    const defaultSort = localStorage.getItem('default-sort') || 'date-desc';
+    const defaultSortSelect = document.getElementById('default-sort');
+    if (defaultSortSelect) defaultSortSelect.value = defaultSort;
+
+    // Terminal Settings
+    const terminalWrap = localStorage.getItem('terminal-wrap') !== 'false';
+    const terminalWrapCheckbox = document.getElementById('terminal-wrap');
+    if (terminalWrapCheckbox) terminalWrapCheckbox.checked = terminalWrap;
+
+    const terminalBell = localStorage.getItem('terminal-bell') === 'true';
+    const terminalBellCheckbox = document.getElementById('terminal-bell');
+    if (terminalBellCheckbox) terminalBellCheckbox.checked = terminalBell;
+
+    const terminalTheme = localStorage.getItem('terminal-theme') || 'default';
+    const terminalThemeSelect = document.getElementById('terminal-theme');
+    if (terminalThemeSelect) terminalThemeSelect.value = terminalTheme;
     
     // Editor theme
     const editorTheme = localStorage.getItem('editor-theme') || 'system';
@@ -2858,10 +3054,18 @@ function loadSettings() {
     const tabSizeSelect = document.getElementById('tab-size');
     if (tabSizeSelect) tabSizeSelect.value = tabSize;
     
-    // Word wrap
-    const wordWrap = localStorage.getItem('word-wrap') || 'on';
+    // Editor options
+    const wordWrap = localStorage.getItem('word-wrap') !== 'false';
     const wordWrapCheckbox = document.getElementById('word-wrap');
-    if (wordWrapCheckbox) wordWrapCheckbox.checked = wordWrap === 'on';
+    if (wordWrapCheckbox) wordWrapCheckbox.checked = wordWrap;
+
+    const autoCloseBrackets = localStorage.getItem('auto-close-brackets') !== 'false';
+    const autoCloseBracketsCheckbox = document.getElementById('auto-close-brackets');
+    if (autoCloseBracketsCheckbox) autoCloseBracketsCheckbox.checked = autoCloseBrackets;
+
+    const highlightActiveLine = localStorage.getItem('highlight-active-line') !== 'false';
+    const highlightActiveLineCheckbox = document.getElementById('highlight-active-line');
+    if (highlightActiveLineCheckbox) highlightActiveLineCheckbox.checked = highlightActiveLine;
     
     // Default items per page
     const defaultItems = localStorage.getItem('default-items-per-page') || '50';
@@ -2884,6 +3088,33 @@ function saveSettings() {
     // Terminal font size
     const terminalFontSizeSlider = document.getElementById('terminal-font-size');
     if (terminalFontSizeSlider) localStorage.setItem('terminal-font-size', terminalFontSizeSlider.value);
+
+    // UI Animations
+    const enableAnimations = document.getElementById('enable-animations');
+    if (enableAnimations) localStorage.setItem('enable-animations', enableAnimations.checked);
+
+    // File Manager Settings
+    const showHidden = document.getElementById('show-hidden');
+    if (showHidden) localStorage.setItem('show-hidden-files', showHidden.checked);
+
+    const showFileSize = document.getElementById('show-file-size');
+    if (showFileSize) localStorage.setItem('show-file-size', showFileSize.checked);
+
+    const showFileDate = document.getElementById('show-file-date');
+    if (showFileDate) localStorage.setItem('show-file-date', showFileDate.checked);
+
+    const defaultSort = document.getElementById('default-sort');
+    if (defaultSort) localStorage.setItem('default-sort', defaultSort.value);
+
+    // Terminal Settings
+    const terminalWrap = document.getElementById('terminal-wrap');
+    if (terminalWrap) localStorage.setItem('terminal-wrap', terminalWrap.checked);
+
+    const terminalBell = document.getElementById('terminal-bell');
+    if (terminalBell) localStorage.setItem('terminal-bell', terminalBell.checked);
+
+    const terminalTheme = document.getElementById('terminal-theme');
+    if (terminalTheme) localStorage.setItem('terminal-theme', terminalTheme.value);
     
     // Editor theme
     const editorThemeSelect = document.getElementById('editor-theme');
@@ -2893,9 +3124,15 @@ function saveSettings() {
     const tabSizeSelect = document.getElementById('tab-size');
     if (tabSizeSelect) localStorage.setItem('tab-size', tabSizeSelect.value);
     
-    // Word wrap
+    // Editor options
     const wordWrapCheckbox = document.getElementById('word-wrap');
-    if (wordWrapCheckbox) localStorage.setItem('word-wrap', wordWrapCheckbox.checked ? 'on' : 'off');
+    if (wordWrapCheckbox) localStorage.setItem('word-wrap', wordWrapCheckbox.checked);
+
+    const autoCloseBrackets = document.getElementById('auto-close-brackets');
+    if (autoCloseBrackets) localStorage.setItem('auto-close-brackets', autoCloseBrackets.checked);
+
+    const highlightActiveLine = document.getElementById('highlight-active-line');
+    if (highlightActiveLine) localStorage.setItem('highlight-active-line', highlightActiveLine.checked);
     
     // Default items per page
     const defaultItemsSelect = document.getElementById('default-items');
@@ -3346,8 +3583,7 @@ function initGlobalKeyboardShortcuts() {
         }
     });
     
-    console.log('Global keyboard shortcuts initialized');
-}
+ }
 
 // Function to expose utility functions to global scope
 function exposeUtilityFunctions() {
@@ -3387,30 +3623,45 @@ function exposeUtilityFunctions() {
         searchForm.innerHTML = `
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Advanced Search</h2>
             <form id="advanced-search-form" class="space-y-4" onsubmit="event.preventDefault(); performAdvancedSearch(); return false;">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="search-query" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search Query</label>
-                        <input type="text" id="search-query" name="search-query" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Enter search text or pattern" required>
+                <!-- Search Mode Selector -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search Mode</label>
+                    <div class="flex space-x-4">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="search-mode" value="text" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" checked onchange="toggleSearchMode('text')">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Text Search</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="search-mode" value="permission" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" onchange="toggleSearchMode('permission')">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Permission Search</span>
+                        </label>
                     </div>
+                </div>
+
+                <!-- Common Settings -->
+                <div class="mb-4">
                     <div>
                         <label for="search-path" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search Path</label>
                         <input type="text" id="search-path" name="search-path" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Directory path" value="${window.fileManagerState?.currentDir || '.'}">
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                <!-- Text Search Section -->
+                <div id="text-search-section" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="search-query" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search Query</label>
+                            <input type="text" id="search-query" name="search-query" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Enter search text or pattern">
+                        </div>
                     <div>
                         <label for="file-extensions" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">File Extensions</label>
                         <input type="text" id="file-extensions" name="file-extensions" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="e.g. php,js,html,css">
                     </div>
-                    <div>
-                        <label for="max-results" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max Results</label>
-                        <input type="number" id="max-results" name="max-results" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="1000" min="10" max="10000">
                     </div>
-                    <div>
-                        <label for="batch-size" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Batch Size</label>
-                        <input type="number" id="batch-size" name="batch-size" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="200" min="50" max="1000" title="Number of files to process per batch">
-                    </div>
-                    <div class="flex flex-col space-y-2">
+
+                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Text Search Options</h3>
+                        <div class="space-y-2">
                         <div class="flex items-center">
                             <input type="checkbox" id="case-sensitive" name="case-sensitive" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                             <label for="case-sensitive" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Case Sensitive</label>
@@ -3419,13 +3670,54 @@ function exposeUtilityFunctions() {
                             <input type="checkbox" id="use-regex" name="use-regex" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                             <label for="use-regex" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Use Regex</label>
                         </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="recursive-search" name="recursive-search" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
-                            <label for="recursive-search" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Recursive</label>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Permission Search Section -->
+                <div id="permission-search-section" class="space-y-4 hidden">
+                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Permission Filters</h3>
+                        <div class="space-y-2">
                         <div class="flex items-center">
                             <input type="checkbox" id="writable-only" name="writable-only" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                             <label for="writable-only" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Writable Files Only</label>
+                        </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="writable-folders" name="writable-folders" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="writable-folders" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Writable Folders Only</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="executable-only" name="executable-only" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="executable-only" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Executable Files</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="suid-binaries" name="suid-binaries" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="suid-binaries" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">SUID Binaries</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="include-hidden" name="include-hidden" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="include-hidden" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Include Hidden Files/Folders</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Common Options -->
+                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Search Settings</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="max-results" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max Results</label>
+                            <input type="number" id="max-results" name="max-results" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="1000" min="10" max="10000">
+                        </div>
+                        <div>
+                            <label for="batch-size" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Batch Size</label>
+                            <input type="number" id="batch-size" name="batch-size" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="200" min="50" max="1000" title="Number of files to process per batch">
+                        </div>
+                        <div class="flex items-center pt-6">
+                            <input type="checkbox" id="recursive-search" name="recursive-search" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
+                            <label for="recursive-search" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Recursive Search</label>
                         </div>
                     </div>
                 </div>
@@ -3485,20 +3777,50 @@ function exposeUtilityFunctions() {
         return { valid: true };
     }
     
+    // Function to toggle between search modes
+    window.toggleSearchMode = function(mode) {
+        const textSection = document.getElementById('text-search-section');
+        const permissionSection = document.getElementById('permission-search-section');
+        const searchQuery = document.getElementById('search-query');
+        
+        if (mode === 'text') {
+            textSection.classList.remove('hidden');
+            permissionSection.classList.add('hidden');
+            searchQuery.setAttribute('required', '');
+        } else {
+            textSection.classList.add('hidden');
+            permissionSection.classList.remove('hidden');
+            searchQuery.removeAttribute('required');
+        }
+    };
+    
     // Function to perform the advanced search
     window.performAdvancedSearch = function(searchToken = null) {
-        const searchQuery = document.getElementById('search-query')?.value;
+        const searchMode = document.querySelector('input[name="search-mode"]:checked').value;
         const searchPath = document.getElementById('search-path')?.value || '.';
         const fileExtensions = document.getElementById('file-extensions')?.value || '';
         const maxResults = document.getElementById('max-results')?.value || 1000;
+        const recursive = document.getElementById('recursive-search')?.checked || true;
+        const batchSize = parseInt(document.getElementById('batch-size')?.value || '200', 10);
+
+        // Text search specific parameters
+        const searchQuery = document.getElementById('search-query')?.value || '';
         const caseSensitive = document.getElementById('case-sensitive')?.checked || false;
         const useRegex = document.getElementById('use-regex')?.checked || false;
-        const recursive = document.getElementById('recursive-search')?.checked || true;
+
+        // Permission search specific parameters
         const writableOnly = document.getElementById('writable-only')?.checked || false;
-        const batchSize = parseInt(document.getElementById('batch-size')?.value || '200', 10); // Number of files to process per request
-        
-        if (!searchQuery && !searchToken) {
-            triggerAlert('warning', 'Please enter a search query');
+        const writableFolders = document.getElementById('writable-folders')?.checked || false;
+        const executableOnly = document.getElementById('executable-only')?.checked || false;
+        const suidBinaries = document.getElementById('suid-binaries')?.checked || false;
+        const includeHidden = document.getElementById('include-hidden')?.checked || false;
+
+        // Validate based on search mode
+        if (searchMode === 'text' && !searchQuery && !searchToken) {
+            triggerAlert('warning', 'Please enter a search query for text search');
+            return;
+        } else if (searchMode === 'permission' && !writableOnly && !writableFolders && !executableOnly && !suidBinaries) {
+            triggerAlert('warning', 'Please select at least one permission filter');
             return;
         }
         
@@ -3543,6 +3865,10 @@ function exposeUtilityFunctions() {
                 useRegex: useRegex,
                 recursive: recursive,
                 writableOnly: writableOnly,
+                writableFolders: writableFolders,
+                executableOnly: executableOnly,
+                suidBinaries: suidBinaries,
+                includeHidden: includeHidden,
                 results: {},
                 totalMatches: 0
             };
@@ -3558,6 +3884,10 @@ function exposeUtilityFunctions() {
                 useRegex: useRegex,
                 recursive: recursive,
                 writableOnly: writableOnly,
+                writableFolders: writableFolders,
+                executableOnly: executableOnly,
+                suidBinaries: suidBinaries,
+                includeHidden: includeHidden,
                 results: {},
                 totalMatches: 0
             };
@@ -3585,15 +3915,27 @@ function exposeUtilityFunctions() {
             useRegex,
             recursive,
             writableOnly,
+            writableFolders,
+            executableOnly,
+            suidBinaries,
+            includeHidden,
             searchToken,
             batchSize
         });
         
         // Send search request
+        // Format the encryption key properly for CryptoJS
+        let encryptionKey = key;
+        if (isEnc === '1' && typeof key === 'string') {
+            encryptionKey = CryptoJS.enc.Utf8.parse(key);
+            console.log('Using formatted encryption key for advanced search');
+        }
+        
         sendRequest({
             csrf,
             action: 'advanced_search',
-            search_query: searchQuery,
+            search_mode: searchMode,
+            search_query: searchMode === 'text' ? searchQuery : '',  // Only send query for text mode
             search_path: searchPath,
             file_extensions: fileExtensions,
             max_results: maxResults,
@@ -3601,9 +3943,13 @@ function exposeUtilityFunctions() {
             use_regex: useRegex,
             recursive: recursive,
             writable_only: writableOnly,
+            writable_folders: writableFolders,
+            executable_only: executableOnly,
+            suid_binaries: suidBinaries,
+            include_hidden: includeHidden,
             search_token: searchToken,
             batch_size: batchSize
-        }, key, isEnc)
+        }, encryptionKey, isEnc)
         .then(response => {
             console.log('Search response received:', response);
             displaySearchResults(response, searchToken !== null);
@@ -4008,8 +4354,7 @@ function exposeUtilityFunctions() {
 
 // Function to handle tab switching and ensure navigation elements visibility is updated
 function handleTabSwitch(tabId) {
-    console.log('Switching to tab:', tabId);
-    
+     
     // Get the tab container and content elements
     const tabButton = document.querySelector(`[data-tabs-target="${tabId}"]`);
     const tabContent = document.querySelector(tabId);
@@ -4062,8 +4407,7 @@ function handleTabSwitch(tabId) {
                 panel.classList.add('hidden');
             });
         } else {
-            console.log('Showing navigation elements for tab:', tabId);
-            locationTabsContainer.classList.remove('hidden');
+             locationTabsContainer.classList.remove('hidden');
             breadcrumbs.classList.remove('hidden');
             
             // If it's the file tab, make sure fileManagerUI is visible
@@ -4139,12 +4483,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 1000);
     
-    console.log('Utility functions exposed to global scope');
-
+ 
     // Initialize when DOM is fully loaded
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM fully loaded');
-        
+         
         // Initialize theme toggle
         initThemeToggle();
         
@@ -4197,8 +4539,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Save tabs array
             localStorage.setItem('fileManager_tabs', JSON.stringify(tabsToSave));
             
-            console.log('Tabs saved to localStorage:', tabsToSave);
-        } catch (error) {
+         } catch (error) {
             console.error('Error saving tabs to localStorage:', error);
         }
     }
@@ -4240,8 +4581,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 fileManagerState.activeTabId = fileManagerState.tabs[0].id;
             }
             
-            console.log('Tabs loaded from localStorage:', fileManagerState.tabs);
-            return true;
+             return true;
         } catch (error) {
             console.error('Error loading tabs from localStorage:', error);
             return false;
@@ -4350,6 +4690,24 @@ document.addEventListener('DOMContentLoaded', function() {
             dnsLookupForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 performDnsLookup();
+            });
+        }
+        
+        // Initialize Traceroute Tool
+        const tracerouteForm = document.getElementById('tracerouteForm');
+        if (tracerouteForm) {
+            tracerouteForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                performTraceroute();
+            });
+        }
+        
+        // Initialize Whois Lookup Tool
+        const whoisForm = document.getElementById('whoisForm');
+        if (whoisForm) {
+            whoisForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                performWhoisLookup();
             });
         }
     }
@@ -4661,6 +5019,99 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
+    // Traceroute Tool
+    function performTraceroute() {
+        const host = document.getElementById('tracerouteHost').value;
+        const maxHops = parseInt(document.getElementById('tracerouteMaxHops').value);
+        const timeout = parseInt(document.getElementById('tracerouteTimeout').value);
+        
+        if (!host) {
+            triggerAlert('warning', 'Please enter a host/IP address');
+            return;
+        }
+        
+        // Show results container
+        const resultsContainer = document.getElementById('tracerouteResults');
+        const resultsDiv = resultsContainer.querySelector('div');
+        
+        resultsContainer.classList.remove('hidden');
+        resultsDiv.innerHTML = '<div class="text-center py-2">Tracing route to ' + host + '...</div>';
+        
+        // Send request to server
+        const params = {
+            host: host,
+            max_hops: maxHops,
+            timeout: timeout
+        };
+        
+        sendNetworkRequest('traceroute', params)
+            .then(response => {
+                if (response.error) {
+                    triggerAlert('warning', response.error);
+                    resultsDiv.innerHTML = `<div class="text-center py-2 text-red-500">${response.error}</div>`;
+                    return;
+                }
+                
+                // Display traceroute results
+                let html = '<div class="font-mono">';
+                html += `<div class="mb-2">Traceroute to ${response.host}, ${maxHops} hops max:</div>`;
+                
+                response.results.forEach((line, index) => {
+                    html += `<div>${line}</div>`;
+                });
+                
+                html += '</div>';
+                resultsDiv.innerHTML = html;
+            })
+            .catch(error => {
+                triggerAlert('warning', 'Error performing traceroute');
+                resultsDiv.innerHTML = '<div class="text-center py-2 text-red-500">Error connecting to server</div>';
+            });
+    }
+    
+    // Whois Lookup Tool
+    function performWhoisLookup() {
+        const domain = document.getElementById('whoisDomain').value;
+        
+        if (!domain) {
+            triggerAlert('warning', 'Please enter a domain or IP address');
+            return;
+        }
+        
+        // Show results container
+        const resultsContainer = document.getElementById('whoisResults');
+        const resultsDiv = resultsContainer.querySelector('div');
+        
+        resultsContainer.classList.remove('hidden');
+        resultsDiv.innerHTML = '<div class="text-center py-2">Looking up WHOIS information for ' + domain + '...</div>';
+        
+        // Send request to server
+        const params = {
+            domain: domain
+        };
+        
+        sendNetworkRequest('whois', params)
+            .then(response => {
+                if (response.error) {
+                    triggerAlert('warning', response.error);
+                    resultsDiv.innerHTML = `<div class="text-center py-2 text-red-500">${response.error}</div>`;
+                    return;
+                }
+                
+                // Display whois results
+                if (!response.results) {
+                    resultsDiv.innerHTML = `<div class="text-center py-2">No WHOIS information found for ${domain}</div>`;
+                    return;
+                }
+                
+                resultsDiv.textContent = response.results;
+            })
+            .catch(error => {
+                triggerAlert('warning', 'Error performing WHOIS lookup');
+                resultsDiv.innerHTML = '<div class="text-center py-2 text-red-500">Error connecting to server</div>';
+            });
+    }
+
     // Helper function for network requests
     function sendNetworkRequest(tool, params) {
         return new Promise((resolve, reject) => {
@@ -4676,7 +5127,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const jsonData = JSON.stringify(data);
             const isEnc = phpVars.isEnc === '1';
-            const encryptedData = isEnc ? encrypt(jsonData, phpVars.encryptionKey) : jsonData;
+            // Use the correct encryption key format from phpVars
+            const key = CryptoJS.enc.Utf8.parse(phpVars.encryptionKey);
+            const encryptedData = isEnc ? encrypt(jsonData, key) : jsonData;
             
             fetch('', {
                 method: 'POST',
@@ -4688,16 +5141,35 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Hide progress indicator
                     dprogr();
                     
-                    // Check if response is encrypted
-                    const decrypted = isEnc ? decrypt(data, phpVars.encryptionKey) : data;
-                    const json = JSON.parse(decrypted);
-                    resolve(json);
+                    let responseJson;
+                    if (isEnc) {
+                        // When encryption is enabled, decrypt the response first
+                        try {
+                            console.log("Attempting to decrypt response");
+                            const decryptedData = decrypt(data, key);
+                            console.log("Decrypted data:", decryptedData.substring(0, 100) + "...");
+                            responseJson = JSON.parse(decryptedData);
+                        } catch (decryptError) {
+                            console.error("Decryption error:", decryptError);
+                            console.log("Attempting direct JSON parse as fallback");
+                            // Try direct JSON parse as fallback
+                            responseJson = JSON.parse(data);
+                        }
+                    } else {
+                        // When encryption is disabled, parse the response directly
+                        responseJson = JSON.parse(data);
+                    }
+                    
+                    resolve(responseJson);
                 } catch (error) {
+                    console.error("Error processing response:", error);
+                    console.error("Raw response:", data);
                     dprogr();
                     reject(error);
                 }
             })
             .catch(error => {
+                console.error("Network error:", error);
                 dprogr();
                 reject(error);
             });
