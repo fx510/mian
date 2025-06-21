@@ -81,13 +81,36 @@ function sendRequest(data, key, isEnc) {
     }
  
     const jsonData = JSON.stringify(data);
-    const encryptedData = ( isEnc === '1') ? encrypt(jsonData, key) : jsonData;
+    
+    // Make sure key is properly formatted for CryptoJS
+    let encryptionKey = key;
+    if (isEnc === '1' && typeof key === 'string') {
+        encryptionKey = CryptoJS.enc.Utf8.parse(key);
+    }
+    
+    const encryptedData = (isEnc === '1') ? encrypt(jsonData, encryptionKey) : jsonData;
  
     return new Promise((resolve, reject) => {
+        console.log('Sending request with encryption:', isEnc === '1');
         $.post('', encryptedData)
             .done(response => {
                 try {
-                    let decryptedResponse = isEnc === '1' ? decrypt(response, key) : response;
+                    console.log('Raw response:', response.substring(0, 50) + (response.length > 50 ? '...' : ''));
+                    
+                    let decryptedResponse;
+                    if (isEnc === '1') {
+                        try {
+                            decryptedResponse = decrypt(response, encryptionKey);
+                            console.log('Decryption succeeded');
+                        } catch (decryptError) {
+                            console.error('Decryption failed:', decryptError);
+                            console.log('Attempting to parse response as-is');
+                            decryptedResponse = response;
+                        }
+                    } else {
+                        decryptedResponse = response;
+                    }
+                    
                     const result = JSON.parse(decryptedResponse);
 
                     if (result.error) {
@@ -159,12 +182,11 @@ function showConfirmation(title, text, confirmButtonText, onConfirm) {
     });
 }
 function renameFile(oldName, csrf, currentDir, key, isEnc) {
-    // Call the SweetAlert2 dialog
-    showDialog(
-        'Rename File', // Title
-        'Enter the new name for the file:', // Input label
-        'Rename', // Confirm button text
-        oldName, // Current name
+     showDialog(
+        'Rename File',  
+        'Enter the new name for the file:',  
+        'Rename', 
+        oldName,  
         (newName) => {
             // Callback function executed when the user confirms
             if (newName && newName.trim() !== oldName) {
@@ -275,8 +297,7 @@ function loadDirectory(dir, page, csrf, key, isEnc, itemsPerPage) {
         itemsPerPage = 50;
     }
     
-    console.log(`Loading directory with ${itemsPerPage} items per page`);
-    
+     
     const data = {
         csrf: csrf,
         action: 'list',
@@ -367,11 +388,32 @@ function handleDirectoryResponse(response, isEnc, key, dir, page, csrf) {
 
 function createFileRow(file, currentDir, csrf, key, isEnc) {
     let iconColorClass = 'text-blue-600 dark:text-blue-400';
-    let permsColor = file.wr ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
-    let permsTooltip = file.wr ? 'Writable' : 'Not writable';
-    let permsIcon = file.wr ? 
-        '<i title="Writable"></i>' : 
-        '<i title="Not writable"></i>';
+    
+    // Determine permission colors based on actual file access
+    let permsColor;
+    let permsTooltip;
+    let rowBgClass;
+    
+    // Use file.wr to determine if file is writable
+    if (file.wr) {
+        permsColor = 'text-green-600 dark:text-green-400';
+        permsTooltip = 'Writable';
+        rowBgClass = 'bg-green-50 dark:bg-green-900/10';
+    } 
+    // If not writable but can read (assuming we can read it since we're seeing it)
+    else if (file.perms && file.perms.includes('r')) {
+        permsColor = 'text-yellow-600 dark:text-yellow-400';
+        permsTooltip = 'Read Only';
+        rowBgClass = 'bg-yellow-50 dark:bg-yellow-900/10';
+    } 
+    // No read/write permissions
+    else {
+        permsColor = 'text-blue-600 dark:text-blue-400';
+        permsTooltip = 'No Read/Write Access';
+        rowBgClass = 'bg-blue-50 dark:bg-blue-900/10';
+    }
+    
+    let permsIcon = '';
     
     // Set icon color based on file type
     if (file.is_dir) {
@@ -395,7 +437,16 @@ function createFileRow(file, currentDir, csrf, key, isEnc) {
                        window.fileManagerState.selectedFiles.includes(file.name));
     
     const checkedAttr = isSelected ? 'checked' : '';
-    const rowClass = isSelected ? 'border-b border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-700 transition-colors duration-150 bg-blue-50 dark:bg-blue-900/20' : 'border-b border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-700 transition-colors duration-150';
+    
+    // Create row class with permission-based colors
+    let rowClass = 'border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150';
+    
+    // If selected, use the selection color instead of permission color
+    if (isSelected) {
+        rowClass += ' bg-blue-50 dark:bg-blue-900/20';
+    } else {
+        rowClass += ' ' + rowBgClass;
+    }
 
     return `
         <tr class="${rowClass}" data-file="${file.name}" data-full-path="${fullPath}">
@@ -419,7 +470,9 @@ function createFileRow(file, currentDir, csrf, key, isEnc) {
             <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${file.size}</td>
             <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${file.mtime}</td>
             <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${file.owner}</td>
-            <td class="py-3 px-6 text-left ${permsColor}" title="${permsTooltip}">${file.perms} ${permsIcon}</td>
+            <td class="py-3 px-6 text-left" title="${permsTooltip}">
+                ${formatPermissions(file.perms, file.wr)}
+            </td>
             <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">
                 <div class="flex space-x-2">
                 ${!file.is_dir
@@ -514,9 +567,7 @@ function renderFiles(files, currentDir, csrf, key, isEnc) {
     const searchBar = document.getElementById('searchBar') || document.querySelector('#searchBar');
     const searchQuery = searchBar ? searchBar.value.toLowerCase().trim() : '';
     
-    console.log('Rendering files with search query:', searchQuery);
-    console.log('Number of files before filtering:', files ? files.length : 0);
-    
+     
     // Get the file list element
     const fileList = document.getElementById('fileList');
     if (!fileList) {
@@ -534,8 +585,7 @@ function renderFiles(files, currentDir, csrf, key, isEnc) {
 
     // Filter files using the searchFiles function
     const filteredFiles = searchFiles(files, searchQuery);
-    console.log('Number of files after filtering:', filteredFiles.length);
-
+ 
     // Generate HTML for filtered files
     if (filteredFiles.length === 0) {
         fileList.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-gray-500">No matching files found</td></tr>';
@@ -592,10 +642,8 @@ function appendFiles(files, currentDir, csrf, key, isEnc) {
 
 // Function to add event listeners to checkboxes
 function addCheckboxEventListeners() {
-    console.log('Adding checkbox event listeners');
-    const checkboxes = document.querySelectorAll('.file-checkbox');
-    console.log('Found checkboxes:', checkboxes.length);
-    
+     const checkboxes = document.querySelectorAll('.file-checkbox');
+     
     // Ensure fileManagerState exists
     if (!window.fileManagerState) {
         window.fileManagerState = { selectedFiles: [] };
@@ -606,8 +654,7 @@ function addCheckboxEventListeners() {
         window.fileManagerState.selectedFiles = [];
     }
     
-    console.log('Current selected files:', window.fileManagerState.selectedFiles);
-    
+     
     checkboxes.forEach(checkbox => {
         // Remove any existing event listeners
         checkbox.removeEventListener('change', checkboxChangeHandler);
@@ -651,9 +698,7 @@ function updateSelectAllCheckbox() {
     
     selectAllCheckbox.checked = allChecked;
     selectAllCheckbox.indeterminate = !allChecked && anyChecked;
-    
-    console.log('Updated selectAll checkbox:', 
-        allChecked ? 'all checked' : (anyChecked ? 'some checked' : 'none checked'));
+   
 }
 
 // Separate change handler function for checkboxes
@@ -1075,8 +1120,7 @@ function initContextMenu(options = {}) {
     // Add click handlers for all menu items
     addMenuItemEventListeners();
     
-    console.log('Context menu initialized');
-}
+ }
 
 /**
  * Create the context menu DOM element
@@ -1531,46 +1575,7 @@ function handleMenuAction(action) {
             }
             break;
             
-        case 'new-file':
-            showDialog(
-                'Create File',
-                'Enter the name of new File:',
-                'touch',
-                'File',
-                (fileName) => {
-                    if (fileName) {
-                        const data = {
-                            csrf: csrf,
-                            action: 'touch',
-                            dir: currentDir,
-                            dirName: fileName
-                        };
-                        handleCreate(data, 'file', key, isEnc, currentDir, csrf);
-                    }
-                }
-            );
-            break;
-            
-        case 'new-folder':
-            showDialog(
-                'Create Folder',
-                'Enter the name of new folder:',
-                'mkdir',
-                'NewFolder',
-                (dirName) => {
-                    if (dirName) {
-                        const data = {
-                            csrf: csrf,
-                            action: 'mkdir',
-                            dir: currentDir,
-                            dirName: dirName
-                        };
-                        handleCreate(data, 'folder', key, isEnc, currentDir, csrf);
-                    }
-                }
-            );
-            break;
-            
+       
         case 'refresh':
             loadDirectory(currentDir, 1, csrf, key, isEnc);
             break;
@@ -1642,7 +1647,54 @@ function getLanguageFromFileName(fileName) {
     return modeMap[extension] || 'plaintext';
 }
 
+/**
+ * Format file permissions with colored characters
+ * @param {string} permsString - The permissions string in rwx format
+ * @returns {string} - HTML with colored permission characters
+ */
+function formatPermissions(permsString, isWritable = null, isReadable = true) {
+    if (!permsString || typeof permsString !== 'string' || permsString.length !== 9) {
+        return '<span class="text-blue-600 dark:text-blue-400">invalid</span>';
+    }
 
+    // Determine the overall permission color based on actual file access
+    let permColor;
+    if (isWritable !== null) {
+        // If writability is explicitly provided
+        if (isWritable) {
+            // Has write permission - green
+            permColor = 'text-green-600 dark:text-green-400';
+        } else if (isReadable) {
+            // Read-only - yellow
+            permColor = 'text-yellow-600 dark:text-yellow-400';
+        } else {
+            // No access - blue
+            permColor = 'text-blue-600 dark:text-blue-400';
+        }
+    } else {
+        // Fall back to string-based detection if no explicit writability provided
+        if (permsString.includes('w')) {
+            permColor = 'text-green-600 dark:text-green-400';
+        } else if (permsString.includes('r')) {
+            permColor = 'text-yellow-600 dark:text-yellow-400';
+        } else {
+            permColor = 'text-blue-600 dark:text-blue-400';
+        }
+    }
+    
+    // Format the permission string with spaces between groups
+    let formatted = '';
+    for (let i = 0; i < permsString.length; i++) {
+        formatted += permsString[i];
+        // Add space between groups (user/group/world)
+        if (i === 2 || i === 5) {
+            formatted += ' ';
+        }
+    }
+    
+    // Return the entire string in a single color
+    return `<span class="${permColor} font-mono">${formatted}</span>`;
+}
 
 // Make renderFiles available globally
 window.renderFiles = renderFiles;
@@ -1814,10 +1866,11 @@ function exposeGlobalFunctions() {
     window.debounce = debounce;
     window.diagnoseSearch = diagnoseSearch;
     window.updateFileTableFooter = updateFileTableFooter;
+    window.formatPermissions = formatPermissions;
     
     console.log('Utility functions exposed globally');
 }
 
 // Call this function to expose all utility functions
-exposeGlobalFunctions();
+// exposeGlobalFunctions();
 
