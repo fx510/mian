@@ -129,12 +129,36 @@ function getCsrfToken() {
     return '';
 }
 
+// --- Encryption/Decryption helpers (copied from utils.js if not present) ---
+if (typeof encrypt !== 'function') {
+    function encrypt(message, key) {
+        return CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse(message), key, {
+            mode: CryptoJS.mode.ECB,
+            padding: CryptoJS.pad.Pkcs7
+        }).toString();
+    }
+}
+if (typeof decrypt !== 'function') {
+    function decrypt(encryptedMessage, key) {
+        return CryptoJS.AES.decrypt(encryptedMessage, key, {
+            mode: CryptoJS.mode.ECB,
+            padding: CryptoJS.pad.Pkcs7
+        }).toString(CryptoJS.enc.Utf8);
+    }
+}
+// ... existing code ...
+
 /**
  * Custom sendRequest function for SQL Explorer
  */
 function sqlSendRequest(data) {
     sqlDebugLog('Sending SQL request', data);
-    
+    // --- Encryption logic ---
+    const isEnc = (window.phpVars && window.phpVars.isEnc === '1');
+    const encryptionKey = window.phpVars ? window.phpVars.encryptionKey : null;
+    let jsonData = JSON.stringify(data);
+    const encryptedData = isEnc ? encrypt(jsonData, CryptoJS.enc.Utf8.parse(encryptionKey)) : jsonData;
+    // ... existing code ...
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', window.location.href, true);
@@ -144,7 +168,9 @@ function sqlSendRequest(data) {
                 if (xhr.status === 200) {
                     try {
                         sqlDebugLog('SQL response received', xhr.responseText);
-                        const response = JSON.parse(xhr.responseText);
+                        // --- Decryption logic ---
+                        const decrypted = isEnc ? decrypt(xhr.responseText, CryptoJS.enc.Utf8.parse(encryptionKey)) : xhr.responseText;
+                        const response = JSON.parse(decrypted);
                         sqlDebugLog('SQL response parsed', response);
                         resolve(response);
                     } catch (error) {
@@ -164,7 +190,7 @@ function sqlSendRequest(data) {
             sqlDebugLog('SQL network error', errorMsg);
             reject(errorMsg);
         };
-        xhr.send(JSON.stringify(data));
+        xhr.send(encryptedData);
     });
 }
 
