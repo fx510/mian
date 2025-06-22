@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // Access the PHP variables from the global phpVars object
     const csrf = phpVars.csrf;
     let currentDir = phpVars.currentDir;
     const isEnc = phpVars.isEnc;
@@ -6,16 +7,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const homeDir = phpVars.currentDir;
     let updir;
  
+    // Initialize SQL Explorer when the SQL tab is selected
     document.getElementById('sql-tab')?.addEventListener('click', function() {
         if (typeof window.initSQLExplorer === 'function') {
             window.initSQLExplorer();
         }
     });
     
+    // Initialize context menu for file/folder operations
     if (typeof window.initContextMenu === 'function') {
         window.initContextMenu();
     }
     
+    // Initialize file manager state
+    // Load saved tabs from localStorage or use default
     const savedTabs = loadTabsFromLocalStorage();
     window.fileManagerState = window.fileManagerState || {
         tabs: savedTabs.tabs || [{
@@ -31,9 +36,11 @@ document.addEventListener('DOMContentLoaded', function () {
         currentSort: { column: 'name', direction: 'asc' }
     };
     
+    // Try to load tabs from localStorage
     if (window.loadTabsFromLocalStorage && window.loadTabsFromLocalStorage()) {
         console.log('Tabs loaded from localStorage');
         
+        // Update current directory based on active tab
         const activeTab = fileManagerState.tabs.find(tab => tab.active);
         if (activeTab && activeTab.path) {
             currentDir = activeTab.path;
@@ -41,30 +48,38 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
+    // Expose utility functions to global scope for keyboard shortcuts
     exposeUtilityFunctions();
     
+    // Initialize global keyboard shortcuts
     initGlobalKeyboardShortcuts();
 
+    // Helper function to clear file selection
     window.clearFileSelection = function() {
+        // Clear selected files array
         if (window.fileManagerState) {
             window.fileManagerState.selectedFiles = [];
         }
         
+        // Uncheck all checkboxes
         document.querySelectorAll('.file-checkbox:checked').forEach(checkbox => {
             checkbox.checked = false;
         });
         
+        // Uncheck "Select All" checkbox if it exists
         let selectAllCheckbox = document.getElementById('selectAll');
         if (selectAllCheckbox) {
             selectAllCheckbox.checked = false;
             selectAllCheckbox.indeterminate = false;
         }
         
+        // Remove highlight from all rows
         document.querySelectorAll('#fileList tr.bg-blue-50, #fileList tr.dark\\:bg-blue-900\\/20').forEach(row => {
             row.classList.remove('bg-blue-50', 'dark:bg-blue-900/20');
         });
     };
 
+    // Terminal functionality
     var path = phpVars.terPWD;
     var command = '';
     var command_history = [];
@@ -76,36 +91,53 @@ document.addEventListener('DOMContentLoaded', function () {
     var autocomplete_temp_results = [];
     var autocomplete_current_result = '';
     let commands_list = phpVars.cmList;
+    // Initialize Monaco Editor
     let editor;
+    // Store theme preference globally
     window.editorThemePreference = localStorage.getItem('editor-theme');
     if (window.editorThemePreference === 'system') {
+        // Use system preference
         window.editorThemePreference = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs';
     }
 
+    // console.log('CSRF Token:', csrf);
+    // console.log('Current Directory:', currentDir);
+    // console.log('Is Encrypted:', isEnc);
+
+    // Initialize variables
     let currentPage = 1;
     let totalPages = 1;
-    let files = []; 
+    let files = []; // Define files as a global variable
 
+    // Clipboard state
     let clipboard = { action: "", path: [] };
 
+    // Wait for Flowbite to load since it's included with defer
     function checkFlowbiteLoaded() {
         if (typeof window.flowbite !== 'undefined') {
             console.log('Flowbite detected, initializing components');
             
+            // Initialize Flowbite tabs
             if (window.flowbite.initTabs) {
                 window.flowbite.initTabs();
             }
             
+            // Initialize our enhanced tabs
             setTimeout(() => {
                 initEnhancedTabs();
             }, 100);
         } else {
+            // If Flowbite is not loaded yet, check again after a short delay
             setTimeout(checkFlowbiteLoaded, 50);
         }
     }
     
+    // Start checking if Flowbite is loaded
+    // checkFlowbiteLoaded();
 
+    // Utility functions
     function showDialog(title, message, confirmButtonText, defaultValue = '', callback) {
+        // Check if dark mode is enabled
         const isDarkMode = document.documentElement.classList.contains('dark');
         
         Swal.fire({
@@ -143,6 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showRenameDialog(title, message, confirmButtonText, defaultValue = '', callback) {
+        // Check if dark mode is enabled
         const isDarkMode = document.documentElement.classList.contains('dark');
         
         Swal.fire({
@@ -179,6 +212,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Enhanced dialog for creating zip files with compression options
     function showZipCreationDialog(title, message, confirmButtonText, defaultValue = '', callback) {
         const isDarkMode = document.documentElement.classList.contains('dark');
         const darkModeClasses = isDarkMode ? 
@@ -255,13 +289,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showConfirmation(title, message, confirmButtonText, callback) {
+        // Check if dark mode is enabled
         const isDarkMode = document.documentElement.classList.contains('dark');
         
         Swal.fire({
             title: title,
             text: message,
             icon: 'warning',
-            iconColor: isDarkMode ? '#FBBF24' : '#F59E0B', 
+            iconColor: isDarkMode ? '#FBBF24' : '#F59E0B', // Amber color for warning icon
             showCancelButton: true,
             confirmButtonText: confirmButtonText,
             cancelButtonText: 'Cancel',
@@ -279,6 +314,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Initialize items per page from localStorage
     const defaultItemsPerPage = localStorage.getItem('default-items-per-page');
     if (defaultItemsPerPage) {
         const itemLimitElement = document.getElementById('itemLimit');
@@ -287,8 +323,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Try to load saved tabs from localStorage
     const tabsLoaded = loadTabsFromLocalStorage();
     
+    // If tabs were loaded successfully, update currentDir to match the active tab
     if (tabsLoaded) {
         const activeTab = fileManagerState.tabs.find(tab => tab.active);
         if (activeTab) {
@@ -296,27 +334,35 @@ document.addEventListener('DOMContentLoaded', function () {
          }
     }
 
+    // Initialize the file manager
     initializeFileManager(csrf, currentDir, isEnc, key);
     
+    // Initialize tabs
     renderTabs();
     initTabEvents();
     
+    // Initialize theme toggle
     initThemeToggle();
 
+    // Initialize settings
     initSettings();
 
+    // Event listener for "Select All" checkbox
     const selectAllCheckbox = document.getElementById('selectAll');
     if (selectAllCheckbox) {
+        // Remove existing event listeners and add a fresh one
         selectAllCheckbox.removeEventListener('change', selectAllChangeHandler);
         selectAllCheckbox.addEventListener('change', selectAllChangeHandler);
     }
     
+    // Separate handler function for the Select All checkbox
     function selectAllChangeHandler(event) {
         console.log('Select All checkbox changed:', event.target.checked);
         const isChecked = event.target.checked;
         const fileCheckboxes = document.querySelectorAll('.file-checkbox');
         console.log('Found file checkboxes:', fileCheckboxes.length);
         
+        // Ensure fileManagerState exists
         if (!window.fileManagerState) {
             window.fileManagerState = { 
                 selectedFiles: [],
@@ -324,18 +370,22 @@ document.addEventListener('DOMContentLoaded', function () {
             };
         }
         
+        // Clear the selected files array first
         window.fileManagerState.selectedFiles = [];
         
         fileCheckboxes.forEach(checkbox => {
             checkbox.checked = isChecked;
             
             if (isChecked) {
+                // Add to selected files array
                 const fullPath = checkbox.dataset.fullPath || checkbox.dataset.file;
                 updateSelectedFiles(fullPath, true, true);
                 
+                // Update row styling
                 const row = checkbox.closest('tr');
                 row.classList.add('bg-blue-50', 'dark:bg-blue-900/20');
             } else {
+                // Update row styling
                 const row = checkbox.closest('tr');
                 row.classList.remove('bg-blue-50', 'dark:bg-blue-900/20');
             }
@@ -345,6 +395,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('Selected file count:', window.fileManagerState.selectedFiles.length);
     }
 
+    // Event listener for individual file checkboxes
     const fileList = document.getElementById('fileList');
     if (fileList) {
         fileList.addEventListener('change', function (event) {
@@ -352,6 +403,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const isChecked = event.target.checked;
                 updateSelectedFiles(event.target.dataset.file, isChecked);
 
+                // Update the state of the "Select All" checkbox
                 const fileCheckboxes = document.querySelectorAll('.file-checkbox');
                 const allChecked = Array.from(fileCheckboxes).every(checkbox => checkbox.checked);
                 const anyChecked = Array.from(fileCheckboxes).some(checkbox => checkbox.checked);
@@ -364,6 +416,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Event delegation for delete button
     document.addEventListener('click', function (event) {
         if (event.target.classList.contains('fa-trash-alt')) {
             const fileName = event.target.dataset.file;
@@ -371,16 +424,20 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // Function to save currently checked checkboxes to localStorage
     function saveSelectedCheckboxes() {
         const selectedFiles = Array.from(document.querySelectorAll('.file-checkbox:checked'))
             .map(checkbox => checkbox.dataset.file)
-            .filter(file => file !== '.' && file !== '..'); 
+            .filter(file => file !== '.' && file !== '..'); // Exclude . and ..
 
+        // Save the selected files to localStorage
         localStorage.setItem('selectedFiles', JSON.stringify(selectedFiles));
 
+        // Return the array of selected files
         return selectedFiles;
     }
 
+    // Add click event for "Create Folder" icon
     $('.fa-folder-plus').click(function () {
         showDialog(
             'Create Folder',
@@ -401,6 +458,7 @@ document.addEventListener('DOMContentLoaded', function () {
         );
     });
 
+    // Add click event for "Create File" icon
     $('.fa-file-circle-plus').click(function () {
         showDialog(
             'Create File',
@@ -421,6 +479,7 @@ document.addEventListener('DOMContentLoaded', function () {
         );
     });
 
+    // Add click event for "Execute PHP" icon
     $('.codeme').click(function () {
         showDialog(
             'Execute PHP Code',
@@ -438,6 +497,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     .then(result => {
                         if (result.output) {
                             triggerAlert('success', 'Code executed successfully');
+                            // Show the output in a modal or alert
                             Swal.fire({
                                 title: 'Execution Result',
                                 html: `<pre class="text-left">${result.output}</pre>`,
@@ -457,16 +517,19 @@ document.addEventListener('DOMContentLoaded', function () {
         );
     });
 
+    // Add search functionality
     $('#searchBar').on('keyup', function() {
         const searchQuery = $(this).val().toLowerCase();
         console.log('Search query:', searchQuery);
         
+        // Show/hide clear button based on search content
         if (searchQuery.length > 0) {
             $('#clearSearch').show();
         } else {
             $('#clearSearch').hide();
         }
         
+        // Ensure fileManagerState exists
         if (!window.fileManagerState) {
             window.fileManagerState = { 
                 selectedFiles: [],
@@ -477,6 +540,7 @@ document.addEventListener('DOMContentLoaded', function () {
             window.fileManagerState.currentSort = { column: 'name', direction: 'asc' };
         }
         
+        // Check if renderFiles function is available
         if (typeof window.renderFiles === 'function') {
             window.renderFiles(window.fileManagerState.files, currentDir, csrf, key, isEnc);
         } else {
@@ -484,10 +548,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     
+    // Add clear search functionality
     $('#clearSearch').on('click', function() {
         $('#searchBar').val('').focus();
         $(this).hide();
         
+        // Re-render files without search filter
         if (typeof window.renderFiles === 'function' && window.fileManagerState) {
             window.renderFiles(window.fileManagerState.files, currentDir, csrf, key, isEnc);
         }
@@ -500,20 +566,24 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // Infinite scroll
     $(window).on('scroll', function () {
         if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
             let itemLimitElement = document.getElementById('itemLimit').value;
             if (fileManagerState.currentPage < fileManagerState.totalPages && !fileManagerState.isLoading) {
+                // alert(fileManagerState.currentPage);
                 fileManagerState.currentPage++;
                 loadDirectory(currentDir, fileManagerState.currentPage, csrf, key, isEnc,itemLimitElement);
             }
         }
     });
 
+    // Add sorting functionality
     $('th[data-sort]').click(function () {
-        const column = $(this).data('sort'); 
+        const column = $(this).data('sort'); // Get the column to sort by
         console.log('Sorting by column:', column);
 
+        // Ensure fileManagerState exists
         if (!window.fileManagerState) {
             window.fileManagerState = { 
                 selectedFiles: [],
@@ -523,16 +593,20 @@ document.addEventListener('DOMContentLoaded', function () {
             window.fileManagerState.currentSort = { column: 'name', direction: 'asc' };
         }
 
+        // Update sorting state
         if (window.fileManagerState.currentSort.column === column) {
+            // Toggle direction if the same column is clicked
             window.fileManagerState.currentSort.direction = 
                 window.fileManagerState.currentSort.direction === 'asc' ? 'desc' : 'asc';
         } else {
+            // Set new column and default to ascending order
             window.fileManagerState.currentSort.column = column;
             window.fileManagerState.currentSort.direction = 'asc';
         }
         
         console.log('Sort state:', window.fileManagerState.currentSort);
 
+        // Sort and re-render files
         if (typeof window.sortFiles === 'function') {
             window.sortFiles();
         } else {
@@ -545,6 +619,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('renderFiles function not found');
         }
         
+        // Add visual feedback for the sort direction
         $('th[data-sort]').find('i.fas').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
         const icon = $(this).find('i.fas');
         icon.removeClass('fa-sort');
@@ -555,6 +630,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // Event listener for directory links
     $(document).on('click', '.directory-link', function (e) {
         e.preventDefault();
         let itemLimitElement = document.getElementById('itemLimit').value;
@@ -567,19 +643,23 @@ document.addEventListener('DOMContentLoaded', function () {
             updateCurrentPath(); 
             loadDirectory(currentDir, 1, csrf, key, isEnc,itemLimitElement);  
             
+            // Update the active tab's path
             updateActiveTabPath(currentDir);
         }
     });
 
+    // Function to update the current path in the UI - make globally available
     window.updateCurrentPath = function() {
-        updateBreadcrumbs(currentDir); 
+        updateBreadcrumbs(currentDir); // Update breadcrumbs
     }
 
+    // Function to generate simple breadcrumbs
     function updateBreadcrumbs(path) {
         const breadcrumbsContainer = $('#breadcrumbs ol');
-        const parts = path.split('/').filter(part => part !== ''); 
+        const parts = path.split('/').filter(part => part !== ''); // Split path into parts
         let breadcrumbsHtml = '';
 
+        // Add Home link
         breadcrumbsHtml += `
             <li class="inline-flex items-center">
                 <a href="#" class="breadcrumb-link" data-path="/">
@@ -588,8 +668,9 @@ document.addEventListener('DOMContentLoaded', function () {
             </li>
         `;
 
+        // Add other parts of the path
         parts.forEach((part, index) => {
-            const partialPath = '/' + parts.slice(0, index + 1).join('/'); 
+            const partialPath = '/' + parts.slice(0, index + 1).join('/'); // Build partial path
             breadcrumbsHtml += `
                 <li class="inline-flex items-center">
                     <i class="fas fa-chevron-right mx-2 text-gray-500"></i>
@@ -601,12 +682,13 @@ document.addEventListener('DOMContentLoaded', function () {
         breadcrumbsContainer.html(breadcrumbsHtml);
     }
 
+    // Add double-click event listener to the #breadcrumbs element
     $('#breadcrumbs').on('dblclick', function (e) {
         console.log('Double-click detected');
-        e.preventDefault(); 
+        e.preventDefault(); // Prevent default behavior
 
         const $container = $('#breadcrumbs ol');
-        const originalPath = currentDir; 
+        const originalPath = currentDir; // Get the current path (or use a custom variable)
         const $input = $('<input>', {
             type: 'text',
             value: originalPath,
@@ -614,21 +696,27 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         console.log('originalPath' + originalPath);
 
+        // Replace the entire breadcrumb with the input field
         $container.html(`<li class="inline-flex items-center">${$input.prop('outerHTML')}</li>`);
 
+        // Focus the input field
         $container.find('input').focus();
 
+        // Handle input field blur (when focus is lost)
         $container.find('input').on('blur', function () {
             const newPath = $(this).val().trim();
             
+            // Restore the breadcrumbs
                 updateBreadcrumbs(originalPath);
         });
 
+        // Handle Enter key press
         $container.find('input').on('keydown', function (e) {
-            if (e.keyCode === 13) { 
+            if (e.keyCode === 13) { // Enter key
                 e.preventDefault();
                 const newPath = $(this).val().trim();
                 
+                // Navigate to the new path
                 if (newPath) {
                     currentDir = newPath;
                     updateCurrentPath();
@@ -639,35 +727,42 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Event listener for breadcrumb links
     $(document).on('click', '.breadcrumb-link', function (e) {
         e.preventDefault();
         const newDir = $(this).data('path');
         if (newDir) {
-            currentDir = newDir; 
-            updateCurrentPath(); 
+            currentDir = newDir; // Update current directory
+            updateCurrentPath(); // Update the UI
             updir = currentDir;
             console.log(updir);
-            loadDirectory(currentDir, 1, csrf, key, isEnc); 
+            loadDirectory(currentDir, 1, csrf, key, isEnc); // Load the new directory
             
+            // Update the active tab's path
             updateActiveTabPath(currentDir);
         }
     });
     
+    // Event listener for home button
     $(document).on('click', '#goHome', function(e) {
         e.preventDefault();
+        // Navigate to home directory
         currentDir = homeDir;
         updateCurrentPath();
         updir = currentDir;
         loadDirectory(currentDir, 1, csrf, key, isEnc);
         
+        // Update the active tab's path
         updateActiveTabPath(currentDir);
         
+        // Add visual feedback for the action
         $(this).addClass('animate-pulse');
         setTimeout(() => {
             $(this).removeClass('animate-pulse');
         }, 300);
     });
     
+    // Tabs functionality
     function renderTabs() {
         const tabsContainer = document.getElementById('location-tabs');
         if (!tabsContainer) return;
@@ -679,13 +774,16 @@ document.addEventListener('DOMContentLoaded', function () {
             tabElement.className = 'mr-1 flex-shrink-0';
             tabElement.setAttribute('role', 'presentation');
             
+            // Get the last part of the path for the tab name if not custom named
             const displayName = tab.name || getLastPathSegment(tab.path);
             
+            // Determine icon based on the path
             let tabIcon = 'fa-folder';
             if (displayName === 'Root' || displayName === 'Home') {
                 tabIcon = 'fa-home';
             }
             
+            // Define the active and inactive classes for better styling
             const activeClasses = 'inline-flex items-center p-3 border-b-2 rounded-t-lg text-blue-600 border-blue-600 active dark:text-blue-500 dark:border-blue-500 bg-white dark:bg-gray-800 shadow-sm';
             const inactiveClasses = 'inline-flex items-center p-3 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 dark:hover:border-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600';
             
@@ -705,6 +803,7 @@ document.addEventListener('DOMContentLoaded', function () {
             tabsContainer.appendChild(tabElement);
         });
         
+        // Add a subtle animation to the active tab
         const activeTab = tabsContainer.querySelector('button[data-tab-id="' + fileManagerState.activeTabId + '"]');
         if (activeTab) {
             activeTab.classList.add('animate-pulse');
@@ -712,6 +811,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 activeTab.classList.remove('animate-pulse');
             }, 500);
             
+            // Ensure active tab is visible (scroll into view if needed)
             requestAnimationFrame(() => {
                 const tabRect = activeTab.getBoundingClientRect();
                 const containerRect = tabsContainer.getBoundingClientRect();
@@ -724,6 +824,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
         
+        // Add scroll indicators if tabs overflowing
         checkTabOverflow();
     }
     
@@ -731,11 +832,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const tabsContainer = document.getElementById('location-tabs');
         if (!tabsContainer) return;
         
+        // Calculate if tabs are overflowing
         const isOverflowing = tabsContainer.scrollWidth > tabsContainer.clientWidth;
         
+        // Toggle overflow indicator class
         if (isOverflowing) {
             tabsContainer.classList.add('tabs-overflow');
             
+            // Add scroll buttons if not already present
             if (!document.getElementById('tab-scroll-left')) {
                 const scrollLeftBtn = document.createElement('button');
                 scrollLeftBtn.id = 'tab-scroll-left';
@@ -758,24 +862,29 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } else {
             tabsContainer.classList.remove('tabs-overflow');
+            // Remove scroll buttons if present
             document.getElementById('tab-scroll-left')?.remove();
             document.getElementById('tab-scroll-right')?.remove();
         }
     }
     
     function initTabEvents() {
+        // Tab click event
         $(document).on('click', '#location-tabs button', function(e) {
-            if (e.target.classList.contains('fa-times')) return; 
+            if (e.target.classList.contains('fa-times')) return; // Don't switch tabs when clicking the close button
             
             const tabId = $(this).data('tab-id');
             
+            // Find the tab to determine its type
             const tab = fileManagerState.tabs.find(t => t.id === tabId);
             if (!tab) return;
             
+            // Hide all system tab contents first
             document.querySelectorAll('[role="tabpanel"]').forEach(panel => {
                 panel.classList.add('hidden');
             });
             
+            // Hide any system tabs that might be visible
             document.querySelectorAll('[data-tabs-target]').forEach(tab => {
                 const target = tab.getAttribute('data-tabs-target');
                 if (target && document.querySelector(target)) {
@@ -783,37 +892,45 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
             
+            // Switch to the selected tab
             switchToTab(tabId);
             
+            // Add click ripple effect
             const ripple = document.createElement('span');
             ripple.className = 'absolute inset-0 bg-blue-500 opacity-30 rounded-t-lg animate-ripple';
             this.appendChild(ripple);
             setTimeout(() => ripple.remove(), 600);
         });
         
+        // Close tab event with animation
         $(document).on('click', '[data-close-tab]', function(e) {
             e.stopPropagation();
             const tabId = $(this).data('close-tab');
             const tabElement = $(this).closest('li');
             
+            // Add closing animation
             tabElement.addClass('animate-tab-closing');
             setTimeout(() => {
                 closeTab(tabId);
             }, 150);
         });
         
+        // Add new tab button
         $('#add-tab-btn').click(function() {
             addNewTab();
             
+            // Add pulse animation to the button
             $(this).addClass('animate-pulse');
             setTimeout(() => {
                 $(this).removeClass('animate-pulse');
             }, 500);
         });
         
+        // Check tab overflow on window resize
         window.addEventListener('resize', debounce(checkTabOverflow, 100));
     }
     
+    // Utility function for debouncing
     function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -827,22 +944,29 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function switchToTab(tabId) {
+        // Find the tab
         const tab = fileManagerState.tabs.find(t => t.id === tabId);
         if (!tab) return;
         
+        // Set all tabs to inactive
         fileManagerState.tabs.forEach(t => t.active = false);
         
+        // Set the selected tab to active
         tab.active = true;
         fileManagerState.activeTabId = tabId;
         
+        // Update the UI
         renderTabs();
          
+        // Save tabs state to localStorage
         saveTabsToLocalStorage();
         
+        // Hide all system tab contents first
         document.querySelectorAll('[role="tabpanel"]').forEach(panel => {
             panel.classList.add('hidden');
         });
         
+        // Get tab content element or create it if it doesn't exist
         let tabContentEl = document.getElementById(`${tabId}-content`);
         if (!tabContentEl) {
             console.log('Creating tab content element for tab:', tabId);
@@ -858,14 +982,18 @@ document.addEventListener('DOMContentLoaded', function () {
             tabsContent.appendChild(tabContentEl);
         }
         
+        // Hide all tab contents
         document.querySelectorAll('.tabs-panel').forEach(panel => {
             panel.classList.add('hidden');
         });
         
+        // Show this tab's content
         tabContentEl.classList.remove('hidden');
         
+        // Load content based on tab type
         if (tab.type === 'editor' || tab.type === 'search') {
             console.log('Handling editor/search tab');
+            // Editor or search tab - hide fileManagerUI
             const fileManagerUI = document.getElementById('fileManagerUI');
             if (fileManagerUI) {
                 console.log('Hiding fileManagerUI');
@@ -874,16 +1002,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.warn('fileManagerUI element not found');
             }
             
+            // Make sure the editor container has full height
             const editorContainer = tabContentEl.querySelector('.editor-container');
             if (editorContainer) {
                 editorContainer.style.height = '90vh';
                 editorContainer.style.width = '100%';
                 
+                // Refresh the editor if it exists
                 if (window.editor) {
                     setTimeout(() => window.editor.refresh(), 10);
                 }
             }
         } else {
+             // File manager tab - show fileManagerUI and the file tab content
             const fileManagerUI = document.getElementById('fileManagerUI');
             const fileTabContent = document.getElementById('file');
             
@@ -891,10 +1022,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log('Showing fileManagerUI');
                 fileManagerUI.style.display = 'block';
                 
+                // Make sure the file tab is visible
                 if (fileTabContent) {
                     fileTabContent.classList.remove('hidden');
                 }
                 
+                // Always reload the directory when switching to a file manager tab
                 currentDir = tab.path;
                 updateCurrentPath();
                 loadDirectory(currentDir, 1, csrf, key, isEnc);
@@ -904,21 +1037,28 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
+    // Make switchToTab available globally
     window.switchToTab = function(tabId) {
+        // Find the tab
         const tab = fileManagerState.tabs.find(t => t.id === tabId);
         if (!tab) return;
         
+        // Set all tabs to inactive
         fileManagerState.tabs.forEach(t => t.active = false);
         
+        // Set the selected tab to active
         tab.active = true;
         fileManagerState.activeTabId = tabId;
         
+        // Update the UI
         renderTabs();
          
+        // Hide all system tab contents first
         document.querySelectorAll('[role="tabpanel"]').forEach(panel => {
             panel.classList.add('hidden');
         });
         
+        // Get tab content element or create it if it doesn't exist
         let tabContentEl = document.getElementById(`${tabId}-content`);
         if (!tabContentEl) {
             console.log('Creating tab content element for tab:', tabId);
@@ -934,14 +1074,18 @@ document.addEventListener('DOMContentLoaded', function () {
             tabsContent.appendChild(tabContentEl);
         }
         
+        // Hide all tab contents
         document.querySelectorAll('.tabs-panel').forEach(panel => {
             panel.classList.add('hidden');
         });
         
+        // Show this tab's content
         tabContentEl.classList.remove('hidden');
         
+        // Load content based on tab type
         if (tab.type === 'editor' || tab.type === 'search') {
             console.log('Handling editor/search tab');
+            // Editor or search tab - hide fileManagerUI
             const fileManagerUI = document.getElementById('fileManagerUI');
             if (fileManagerUI) {
                 console.log('Hiding fileManagerUI');
@@ -950,16 +1094,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.warn('fileManagerUI element not found');
             }
             
+            // Make sure the editor container has full height
             const editorContainer = tabContentEl.querySelector('.editor-container');
             if (editorContainer) {
                 editorContainer.style.height = '90vh';
                 editorContainer.style.width = '100%';
                 
+                // Refresh the editor if it exists
                 if (window.editor) {
                     setTimeout(() => window.editor.refresh(), 10);
                 }
             }
         } else {
+             // File manager tab - show fileManagerUI and the file tab content
             const fileManagerUI = document.getElementById('fileManagerUI');
             const fileTabContent = document.getElementById('file');
             
@@ -967,10 +1114,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log('Showing fileManagerUI');
                 fileManagerUI.style.display = 'block';
                 
+                // Make sure the file tab is visible
                 if (fileTabContent) {
                     fileTabContent.classList.remove('hidden');
                 }
                 
+                // Always reload the directory when switching to a file manager tab
                 currentDir = tab.path;
                 updateCurrentPath();
                 loadDirectory(currentDir, 1, csrf, key, isEnc);
@@ -981,90 +1130,117 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function closeTab(tabId) {
+        // Don't close the last tab
         if (fileManagerState.tabs.length <= 1) return;
         
+        // Find the tab index
         const tabIndex = fileManagerState.tabs.findIndex(t => t.id === tabId);
         if (tabIndex === -1) return;
         
+        // Check if this is the active tab
         const isActiveTab = fileManagerState.tabs[tabIndex].active;
         
+        // Remove the tab
         fileManagerState.tabs.splice(tabIndex, 1);
         
+        // If we closed the active tab, switch to another tab
         if (isActiveTab) {
+            // Switch to the previous tab, or the first tab if there is no previous
             const newActiveIndex = Math.max(0, tabIndex - 1);
             fileManagerState.tabs[newActiveIndex].active = true;
             fileManagerState.activeTabId = fileManagerState.tabs[newActiveIndex].id;
             
+            // Update current directory
             currentDir = fileManagerState.tabs[newActiveIndex].path;
             updateCurrentPath();
             loadDirectory(currentDir, 1, csrf, key, isEnc);
         }
         
+        // Update the UI
         renderTabs();
         
+        // Save tabs state to localStorage
         saveTabsToLocalStorage();
     }
     
+    // Make the function available globally for utils.js
     window.addNewTab = function(tabName = null, type = 'filemanager') {
+        // Generate a unique ID for the new tab
         const newTabId = `tab-${Date.now()}`;
         
+        // Set all tabs to inactive
         fileManagerState.tabs.forEach(t => t.active = false);
         
+        // Add the new tab
         fileManagerState.tabs.push({
             id: newTabId,
-            path: currentDir, 
+            path: currentDir, // Use the current directory as the starting point
             active: true,
             name: tabName || getLastPathSegment(currentDir),
-            type: type 
+            type: type // Add type: 'filemanager' or 'editor'
         });
         
         fileManagerState.activeTabId = newTabId;
         
+        // Update the UI
         renderTabs();
         
+        // Save tabs state to localStorage
         saveTabsToLocalStorage();
         
+        // Return the ID of the new tab
         return newTabId;
     }
     
+    // Keeping local function for backwards compatibility
     function addNewTab(tabName, type = 'filemanager') {
         return window.addNewTab(tabName, type);
     }
     
+    // Make the function available globally for utils.js
     window.updateActiveTabPath = function(newPath) {
+        // Find the active tab
         const activeTab = fileManagerState.tabs.find(t => t.id === fileManagerState.activeTabId);
         if (activeTab) {
             activeTab.path = newPath;
             activeTab.name = getLastPathSegment(newPath);
             renderTabs();
             
+            // Save tabs state to localStorage
             saveTabsToLocalStorage();
         }
     }
     
     function getLastPathSegment(path) {
+        // Remove trailing slash if present
         const cleanPath = path.endsWith('/') ? path.slice(0, -1) : path;
         
+        // If it's the root directory
         if (cleanPath === '' || cleanPath === '/') {
             return 'Root';
         }
         
+        // Get the last segment
         const segments = cleanPath.split('/');
         return segments[segments.length - 1] || 'Root';
     }
 
+    // New Bulk Actions Implementation
     $('#bulkActions').change(function () {
-        const action = $(this).val(); 
+        const action = $(this).val(); // Get selected action
         
+        // Reset dropdown immediately to prevent accidental resubmission
         setTimeout(() => {
             $(this).val('');
         }, 100);
         
+        // Get the current selected files directly from checkboxes
         const getSelectedFiles = () => {
         const checkedBoxes = document.querySelectorAll('.file-checkbox:checked');
             const selectedFiles = [];
             
                 checkedBoxes.forEach(checkbox => {
+                // Prefer full path if available
                 const filePath = checkbox.dataset.fullPath || checkbox.dataset.file;
                 if (filePath) {
                     selectedFiles.push(filePath);
@@ -1074,33 +1250,41 @@ document.addEventListener('DOMContentLoaded', function () {
             return selectedFiles;
         };
         
+        // Get selected files
         const selectedFiles = getSelectedFiles();
         
+        // Log selection information
         console.log('Bulk action triggered:', action);
         console.log('Selected files:', selectedFiles);
         console.log('Selected files count:', selectedFiles.length);
 
+        // Check if we have files selected (except for paste action)
         if (selectedFiles.length === 0 && action !== 'paste') {
             triggerAlert('info', 'No files selected! Please select files to perform bulk actions.');
             return;
         }
 
+        // Handle different actions
         switch (action) {
             case 'delete':
+                // Show confirmation dialog for bulk delete
                 showConfirmation(
                     'Delete Files',
                     `Are you sure you want to delete ${selectedFiles.length} file(s)?`,
                     'Delete',
                     () => {
+                        // Get fresh selection in case it changed
                         const filesToDelete = getSelectedFiles();
                         
                         if (filesToDelete.length > 0) {
                             console.log('Sending files for deletion:', filesToDelete);
                             
+                            // Send the delete request
                             sendBulkActionRequest({
                                 action: 'delete',
                                 files: filesToDelete,
                                 onSuccess: () => {
+                                    // Clear selection after successful operation
                                     clearFileSelection();
                                     triggerAlert('success', 'Files deleted successfully');
                                     loadDirectory(currentDir, 1, csrf, key, isEnc);
@@ -1114,6 +1298,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 break;
 
             case 'zip':
+                // Show enhanced dialog for zip file creation with compression options
                 showZipCreationDialog(
                     'Create Zip Archive',
                     'Enter the name for the zip file:',
@@ -1121,6 +1306,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     'archive.zip',
                     (zipOptions) => {
                         if (zipOptions) {
+                            // Get fresh selection
                             const filesToZip = getSelectedFiles();
                             
                             if (filesToZip.length === 0) {
@@ -1128,23 +1314,29 @@ document.addEventListener('DOMContentLoaded', function () {
                                 return;
                             }
                             
+                            // Format the filename with correct extension
                             const format = zipOptions.archiveFormat;
                             let filename = zipOptions.zipFileName;
                             
+                            // Ensure filename has correct extension
                             if (!filename.toLowerCase().endsWith('.' + format)) {
+                                // Remove any existing extension
                                 if (filename.includes('.')) {
                                     filename = filename.substring(0, filename.lastIndexOf('.'));
                                 }
+                                // Add the correct extension
                                 filename += '.' + format;
                             }
                             
                             zipOptions.zipFileName = filename;
                             
+                            // Send the zip request
                             sendBulkActionRequest({
                                 action: 'zip',
                                 files: filesToZip,
                                 options: zipOptions,
                                 onSuccess: () => {
+                                    // Clear selection after successful operation
                                     clearFileSelection();
                                     triggerAlert('success', 'Archive created successfully');
                                     loadDirectory(currentDir, 1, csrf, key, isEnc);
@@ -1156,9 +1348,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 break;
 
             case 'unzip':
+                // Check if multiple files are selected and they have different extensions
                 if (selectedFiles.length > 1) {
                     const extensions = selectedFiles.map(file => {
                         const ext = file.split('.').pop().toLowerCase();
+                        // Handle compound extensions
                         if (['gz', 'bz2', 'xz'].includes(ext)) {
                             const baseName = file.substring(0, file.lastIndexOf('.'));
                             if (baseName.toLowerCase().endsWith('.tar')) {
@@ -1168,21 +1362,26 @@ document.addEventListener('DOMContentLoaded', function () {
                         return ext;
                     });
                     
+                    // Check if all extensions are the same
                     const allSameType = extensions.every(ext => ext === extensions[0]);
                     
                     if (!allSameType) {
+                        // Show warning for mixed archive types
                 showConfirmation(
                             'Warning: Different Archive Types',
                             'You\'ve selected different types of archives. This may cause extraction issues. Continue anyway?',
                             'Continue',
                             () => {
+                                // Get fresh selection
                                 const filesToExtract = getSelectedFiles();
                                 
                                 if (filesToExtract.length > 0) {
+                                    // Send the unzip request
                                     sendBulkActionRequest({
                                         action: 'unzip',
                                         files: filesToExtract,
                                         onSuccess: () => {
+                                            // Clear selection after successful operation
                                             clearFileSelection();
                                             triggerAlert('success', 'Archives extracted successfully');
                                             loadDirectory(currentDir, 1, csrf, key, isEnc);
@@ -1195,6 +1394,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
                 
+                // Show extract confirmation
                 showConfirmation(
                     'Extract Archive',
                     selectedFiles.length > 1 
@@ -1202,13 +1402,16 @@ document.addEventListener('DOMContentLoaded', function () {
                         : `Extract "${selectedFiles[0]}" to the current directory?`,
                     'Extract',
                     () => {
+                        // Get fresh selection
                         const filesToExtract = getSelectedFiles();
                         
                         if (filesToExtract.length > 0) {
+                                                    // Send the unzip request
                         sendBulkActionRequest({
                             action: 'unzip',
                             files: filesToExtract,
                             onSuccess: () => {
+                                // Clear selection after successful operation
                                 clearFileSelection();
                                 triggerAlert('success', 'Archives extracted successfully');
                                 loadDirectory(currentDir, 1, csrf, key, isEnc);
@@ -1220,7 +1423,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 break;
 
             case 'copy':
+                // Save selected files to clipboard
                 if (selectedFiles.length > 0) {
+                    // Ensure all paths are absolute
                     const filesWithPaths = selectedFiles.map(file => {
                     if (!file.includes('/')) {
                         return `${currentDir}/${file}`;
@@ -1228,23 +1433,28 @@ document.addEventListener('DOMContentLoaded', function () {
                     return file;
                 });
                     
+                    // Save to localStorage
                     localStorage.setItem('copiedFiles', JSON.stringify(filesWithPaths));
                     triggerAlert('success', `${selectedFiles.length} file(s) copied to clipboard`);
                 }
                 break;
 
             case 'paste':
+                // Get files from clipboard
                 try {
                     const clipboardFiles = JSON.parse(localStorage.getItem('copiedFiles') || '[]');
                     
                     if (clipboardFiles.length > 0) {
+                        // Send the paste request
                         sendBulkActionRequest({
                             action: 'paste',
                             files: clipboardFiles,
                             onSuccess: () => {
+                                // Clear selection after successful operation
                                 clearFileSelection();
                                 triggerAlert('success', 'Files pasted successfully');
                                 loadDirectory(currentDir, 1, csrf, key, isEnc);
+                                // Clear clipboard after successful paste
                                 localStorage.removeItem('copiedFiles');
                             }
                         });
@@ -1263,11 +1473,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     
+    // Helper function to send bulk action requests
     function sendBulkActionRequest({ action, files, options = null, onSuccess = null, onError = null }) {
+        // Show progress indicator
         progr();
         
         console.log(`Sending ${action} request for ${files.length} file(s)`);
         
+        // Prepare data
         const data = {
             csrf: csrf,
             action: action,
@@ -1275,17 +1488,21 @@ document.addEventListener('DOMContentLoaded', function () {
             dir: currentDir
         };
         
+        // Add options for specific actions
         if (action === 'zip' && options) {
             data.zipExt = options.zipFileName;
             data.compressionLevel = options.compressionLevel || '5';
             data.archiveFormat = options.archiveFormat || 'zip';
         }
         
+        // Convert to JSON and encrypt if needed
         const jsonData = JSON.stringify(data);
         const requestData = (isEnc === '1') ? encrypt(jsonData, key) : jsonData;
         
+        // Send the request
         $.post('', requestData, function(response) {
             try {
+                // Decrypt response if needed
                 const decryptedResponse = (isEnc === '1') ? decrypt(response, key) : response;
                 const result = JSON.parse(decryptedResponse);
                 
@@ -1307,6 +1524,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (onError) onError(error);
             }
             
+            // Hide progress indicator
             dprogr();
         }).fail(function(xhr, status, error) {
             console.error('Request failed:', status, error);
@@ -1316,6 +1534,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Upload functionality
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
     const uploadForm = document.getElementById('uploadForm');
@@ -1324,6 +1543,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const progressText = document.getElementById('progressText');
 
     if (dropZone && fileInput && uploadForm && uploadProgress && progressBar && progressText) {
+        // Prevent default drag behaviors
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropZone.addEventListener(eventName, preventDefaults, false);
         });
@@ -1333,6 +1553,7 @@ document.addEventListener('DOMContentLoaded', function () {
             e.stopPropagation();
         }
 
+        // Highlight drop zone when dragging files over it
         ['dragenter', 'dragover'].forEach(eventName => {
             dropZone.addEventListener(eventName, () => dropZone.classList.add('bg-blue-50', 'dark:bg-gray-600'), false);
         });
@@ -1341,21 +1562,25 @@ document.addEventListener('DOMContentLoaded', function () {
             dropZone.addEventListener(eventName, () => dropZone.classList.remove('bg-blue-50', 'dark:bg-gray-600'), false);
         });
 
+        // Handle dropped files
         dropZone.addEventListener('drop', handleDrop, false);
 
         function handleDrop(e) {
             const files = e.dataTransfer.files;
             if (files.length > 0) {
-                fileInput.files = files; 
+                fileInput.files = files; // Assign dropped files to the file input
                 updir = currentDir;
                 handleFiles(updir);
             }
         }
 
+        // Handle file input change
         fileInput.addEventListener('change', handleFiles);
 
+        // Click on drop zone to trigger file input
         dropZone.addEventListener('click', () => fileInput.click());
 
+        // Function to handle files
         function handleFiles(updir) {
             uploadProgress.classList.remove('hidden');
             progressBar.style.width = '0%';
@@ -1363,7 +1588,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const formData = new FormData(uploadForm);
             formData.append('updir', currentDir);
-            formData.append('csrf', csrf); 
+            formData.append('csrf', csrf); // Append CSRF token
 
             fetch('', {
                 method: 'POST',
@@ -1374,7 +1599,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (data.success) {
                         progressText.textContent = 'Upload complete!';
                         setTimeout(() => uploadProgress.classList.add('hidden'), 3000);
-                        loadDirectory(currentDir, 1, csrf, key, isEnc); 
+                        loadDirectory(currentDir, 1, csrf, key, isEnc); // Refresh file list
                     } else {
                         progressText.textContent = data.error || 'Upload failed. Please try again.';
                     }
@@ -1386,12 +1611,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+
     document.addEventListener('click', function (event) {
      
         if (event.target.classList.contains('file-link')) {
-            event.preventDefault(); 
-            const filePath = event.target.dataset.file; 
-            viewEditFile(filePath, csrf, key, isEnc); 
+            event.preventDefault(); // Prevent the default link behavior
+            const filePath = event.target.dataset.file; // Get the file path
+            viewEditFile(filePath, csrf, key, isEnc); // Call the viewEditFile function
         }
      
         
@@ -1400,6 +1626,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     
 
+    // Function to initialize editor-related event listeners
     function initEditorEventListeners() {
         const cancelEdit = document.getElementById('cancelEdit');
         const cancelEditBtn = document.getElementById('cancelEditBtn');
@@ -1412,6 +1639,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (editorModal) {
                     editorModal.classList.add('hidden');
                 }
+        // No need to dispose CodeMirror, it can be reused
     });
         }
 
@@ -1421,6 +1649,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (editorModal) {
                     editorModal.classList.add('hidden');
                 }
+        // No need to dispose CodeMirror, it can be reused
     });
         }
 
@@ -1428,6 +1657,7 @@ document.addEventListener('DOMContentLoaded', function () {
             editorLanguage.addEventListener('change', function () {
         if (window.editor) {
             const newLanguage = this.value;
+            // Map to CodeMirror mode
             const modeMap = {
                 'javascript': 'javascript',
                 'php': 'php',
@@ -1438,6 +1668,7 @@ document.addEventListener('DOMContentLoaded', function () {
             };
             const mode = modeMap[newLanguage] || 'null';
             
+            // Update the editor mode
             window.editor.setOption('mode', mode);
                     
                     const editorStatus = document.getElementById('editorStatus');
@@ -1450,6 +1681,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (saveFile) {
             saveFile.addEventListener('click', function () {
+        // Get content from CodeMirror editor
         const newContent = window.editor ? window.editor.getValue() : '';
                 const editorModal = document.getElementById('editorModal');
                 const filePath = editorModal && editorModal.dataset.filePath ? editorModal.dataset.filePath : '';
@@ -1464,6 +1696,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
+    // Call the function after DOM has loaded
     initEditorEventListeners();
 
     function saveFileContent(filePath, content, csrf, key, isEnc) {
@@ -1482,9 +1715,11 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         
+        // Find the tab content that contains the editor
         const tabContent = document.querySelector(`[data-file-path="${filePath}"]`);
         let fileType = '';
         
+        // If we found the tab, try to get the selected file type
         if (tabContent) {
             const tabId = tabContent.id.replace('-content', '');
             const typeSelect = document.getElementById(`file-type-select-${tabId}`);
@@ -1498,7 +1733,7 @@ document.addEventListener('DOMContentLoaded', function () {
             action: 'save_content', 
             file: filePath, 
             content: content,
-            file_type: fileType 
+            file_type: fileType // Include the file type when saving
         }, key, isEnc)
             .then(response => {
                 console.log('File saved successfully:', response);
@@ -1540,16 +1775,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function viewEditFile(filePath, csrf, key, isEnc) {
+        // Show progress indicator
         progr();
         console.log('ViewEditFile called for:', filePath);
         
         try {
+            // Get file name from the path
             const fileName = filePath.split('/').pop();
             
+            // Create a new tab specifically for editing with type 'editor'
             const newTabId = addNewTab(fileName, 'editor');
             console.log('Created new tab with ID:', newTabId);
             
+            // Wait for the tabs to render
             setTimeout(() => {
+                // Create the editor container first
                 const tabContent = document.querySelector(`#${newTabId}-content`);
                 if (!tabContent) {
                     console.error('Tab content not found for ID:', `${newTabId}-content`);
@@ -1573,15 +1813,19 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 100);
             
             function continueWithTabContent(tabContent) {
+                // Store file path for saving later
                 tabContent.dataset.filePath = filePath;
                 
+                // Hide file manager elements
                 const fileManagerUI = document.getElementById('fileManagerUI');
                 if (fileManagerUI) {
                     fileManagerUI.classList.add('hidden');
                 }
                 
+                // Make sure the tab content is visible
                 tabContent.classList.remove('hidden');
                 
+                // Create editor container
                 const editorContainer = document.createElement('div');
                 editorContainer.className = 'editor-container';
                 editorContainer.style.width = '100%';
@@ -1590,6 +1834,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 editorContainer.style.position = 'relative';
                 tabContent.appendChild(editorContainer);
                 
+                // Add file type selector
                 const typeSelector = document.createElement('div');
                 typeSelector.className = 'file-type-selector fixed top-4 right-4 z-50';
                 typeSelector.innerHTML = `
@@ -1614,6 +1859,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 `;
                 tabContent.appendChild(typeSelector);
                 
+        // Fetch file content from the server
         sendRequest({ csrf, action: 'view_content', file: filePath }, key, isEnc)
             .then(response => {
                         console.log('File content fetched successfully, length:', response.content?.length);
@@ -1626,8 +1872,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             return;
                         }
                         
+                        // Get language based on file extension
                         const language = response.file_type || getLanguageFromFileName(filePath);
                         
+                        // Create editor directly
                         const editor = CodeMirror(editorContainer, {
                             value: response.content || '',
                             mode: language,
@@ -1639,31 +1887,39 @@ document.addEventListener('DOMContentLoaded', function () {
                             styleActiveLine: true
                         });
                         
+                        // Store editor instance
                         window.editor = editor;
                         
+                        // Make editor fill the container
                         editor.setSize('100%', '100%');
                         
+                        // Set the file type selector to the current language
                         const typeSelect = document.getElementById(`file-type-select-${newTabId}`);
                         if (typeSelect) {
+                            // Try to find the option that matches the current language
                             const options = Array.from(typeSelect.options);
                             const matchingOption = options.find(option => option.value === language);
                             if (matchingOption) {
                                 typeSelect.value = language;
                             }
                             
+                            // Add event listener to change the editor mode when the type is changed
                             typeSelect.addEventListener('change', () => {
                                 const newMode = typeSelect.value || getLanguageFromFileName(filePath);
                                 editor.setOption('mode', newMode);
+                                // Reload the content with the new file type
                                 sendRequest({ 
                                     csrf, 
                                     action: 'view_content', 
                                     file: filePath,
                                     file_type: newMode 
                                 }, key, isEnc);
+                                // Refresh editor to apply the new mode
                                 setTimeout(() => editor.refresh(), 50);
                             });
                         }
                         
+                        // Add a save button for this tab
                         let saveBtn = tabContent.querySelector('.save-file-btn');
                         if (!saveBtn) {
                             saveBtn = document.createElement('button');
@@ -1676,6 +1932,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             tabContent.appendChild(saveBtn);
                         }
                         
+                        // Focus the editor
                         setTimeout(() => {
                             if (editor) {
                                 editor.refresh();
@@ -1699,9 +1956,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let editorInitialized = false;
 
+
+    // Make the function available to the global scope for utils.js to access
     window.initializeEditor = function(content, language = 'plaintext', containerId = 'editorContainer') {
         progr();
         
+        // Get container element
         const container = document.getElementById(containerId);
         if (!container) {
             console.error('Editor container not found:', containerId);
@@ -1709,13 +1969,18 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         
+        // Get the theme based on current preference
         const theme = document.documentElement.classList.contains('dark') 
             ? 'dracula' 
             : 'eclipse';
         
         try {
+            // Create new editor instance for this container
+                // Define keyboard shortcuts for the editor
                 const extraKeys = {
+                    // Basic editing shortcuts
                     "Ctrl-S": function(cm) {
+                    // Find the closest save button in the tab content
                     const tabContent = container.closest('[id$="-content"]');
                     if (tabContent) {
                         const saveBtn = tabContent.querySelector('.save-file-btn');
@@ -1728,6 +1993,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     },
                     "Ctrl-F": "findPersistent",
                     "Ctrl-H": "replace",
+                    // Indentation and comments
                     "Ctrl-/": "toggleComment",
                     "Tab": function(cm) {
                         if (cm.somethingSelected()) {
@@ -1741,18 +2007,22 @@ document.addEventListener('DOMContentLoaded', function () {
                         cm.indentSelection("subtract");
                         return true;
                     },
+                    // Code folding
                     "Ctrl-Q": function(cm) {
                         cm.foldCode(cm.getCursor());
                         return false;
                     },
+                    // Misc
                     "Esc": function(cm) {
                         if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
                         return false;
                     }
                 };
             
+            // Clear container first
             container.innerHTML = '';
                 
+                // Create new editor with enhanced configuration
             const editor = CodeMirror(container, {
                     value: content || '',
                     mode: language,
@@ -1774,14 +2044,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     historyEventDelay: 200
                 });
             
+            // Store the editor instance
             window.editor = editor;
                 
+                // Make editor fill the container
             editor.setSize('100%', '100%');
                 
+                // Focus the editor after creation
                 setTimeout(() => {
                 if (editor) editor.focus();
                 }, 100);
             
+            // Refresh the editor to prevent layout issues
             setTimeout(() => {
                 if (editor) editor.refresh();
             }, 50);
@@ -1795,21 +2069,25 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
+    // Compatibility function for older code that might still use this
     window.createEditor = function(content, language) {
         console.log("createEditor called - redirecting to initializeEditor");
         
+        // Check if initializeEditor exists first
         if (typeof window.initializeEditor !== 'function') {
             console.error("initializeEditor function not found");
             triggerAlert('warning', 'Editor initialization failed. Please refresh the page.');
             return;
         }
         
+        // Ensure editor container exists
         if (!document.getElementById('editorContainer')) {
             console.error("Editor container not found");
             triggerAlert('warning', 'Editor container not found in DOM. Please refresh the page.');
             return;
         }
         
+        // Call the new function with proper error handling
         try {
             window.initializeEditor(content, language);
         } catch (error) {
@@ -1817,6 +2095,8 @@ document.addEventListener('DOMContentLoaded', function () {
             triggerAlert('warning', 'Failed to initialize editor. Please try again.');
         }
     }
+
+
 
    function showEdit(txt){
 
@@ -1826,6 +2106,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
  
     $(document).ready(function () {
+        // Initialize fileManagerState as a global variable
         if (!window.fileManagerState) {
             window.fileManagerState = {
                 files: [],
@@ -1842,8 +2123,10 @@ document.addEventListener('DOMContentLoaded', function () {
             window.fileManagerState.currentSort = { column: 'name', direction: 'asc' };
         }
          
+        // Load the initial directory
         loadDirectory(currentDir, 1, csrf, key, isEnc);
         
+        // Initialize sort icons
         function updateSortIcons() {
             const { column, direction } = window.fileManagerState.currentSort;
             $('th[data-sort]').find('i.fas').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
@@ -1855,11 +2138,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
         
-        setTimeout(updateSortIcons, 500); 
+        // Call the function to initialize sort icons
+        setTimeout(updateSortIcons, 500); // Small delay to ensure DOM is ready
         
+        // Function to handle keydown events
         function handleKeydown(e) {
             var keyCode = typeof e.which === "number" ? e.which : e.keyCode;
 
+            /* Tab, Backspace and Delete key */
             if (keyCode === 8 || keyCode === 9 || keyCode === 46) {
                 e.preventDefault();
                 if (command !== '') {
@@ -1872,6 +2158,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
+            /* Ctrl + C */
             else if (e.ctrlKey && keyCode === 67) {
                 autocomplete_position = 0;
                 endLine();
@@ -1879,6 +2166,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 reset();
             }
 
+            /* Enter */
             else if (keyCode === 13) {
                 if (autocomplete_position !== 0) {
                     autocomplete_position = 0;
@@ -1907,6 +2195,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 $('terminal content').scrollTop($('terminal content').prop("scrollHeight"));
             }
 
+            /* Home, End, Left and Right (change blink position) */
             else if ((keyCode === 35 || keyCode === 36 || keyCode === 37 || keyCode === 39) && command !== '') {
                 e.preventDefault();
                 $('line.current bl').remove();
@@ -1932,6 +2221,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 normalizeHtml();
             }
 
+            /* Up and Down (suggest command from history)*/
             else if ((keyCode === 38 || keyCode === 40) && (command === '' || suggest)) {
                 e.preventDefault();
                 if (keyCode === 38
@@ -1957,6 +2247,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
+            /* type characters */
             else if (keyCode === 32
                 || keyCode === 222
                 || keyCode === 220
@@ -1976,19 +2267,28 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        // Function to attach/detach keydown event listener based on terminal visibility
         function localUpdateKeydownListener() {
             if ($('#terminal').is(':visible')) {
+                // If terminal is visible, attach keydown event listener
                 $(document).on('keydown', handleKeydown);
+                // console.log('Keydown listener attached');
             } else {
+                // If terminal is hidden, remove keydown event listener
                 $(document).off('keydown', handleKeydown);
+                // console.log('Keydown listener removed');
             }
         }
 
+        // Initial check for visibility
         localUpdateKeydownListener();
         
+        // Expose the function to the global scope for tabs to use
         window.updateKeydownListener = localUpdateKeydownListener;
 
+        // Handle tab changes
         $('[data-tabs-target]').on('click', function () {
+            // Wait for the tab content to be visible
             setTimeout(() => {
                 if (window.updateKeydownListener) {
                     window.updateKeydownListener();
@@ -1997,6 +2297,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Function to toggle visibility of location tabs and breadcrumbs
     function toggleNavigationElements() {
         const activeTabId = document.querySelector('[role="tab"][aria-selected="true"]')?.getAttribute('data-tabs-target');
         const locationTabsContainer = document.querySelector('.mb-4.border-b.border-gray-200.dark\\:border-gray-700');
@@ -2004,6 +2305,7 @@ document.addEventListener('DOMContentLoaded', function () {
         
          
         if (activeTabId && locationTabsContainer && breadcrumbs) {
+            // Hide for terminal, config, and setting tabs
             if (activeTabId === '#terminal' || activeTabId === '#config' || activeTabId === '#setting') {
                  locationTabsContainer.classList.add('hidden');
                 breadcrumbs.classList.add('hidden');
@@ -2016,15 +2318,20 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Add event listener for tab changes to toggle navigation elements
     document.addEventListener('DOMContentLoaded', function() {
+        // Initial check on page load
         toggleNavigationElements();
         
+        // Listen for tab changes
         document.querySelectorAll('[data-tabs-target]').forEach(tab => {
             tab.addEventListener('click', function() {
+                // Small delay to ensure the aria-selected attribute has been updated
                 setTimeout(toggleNavigationElements, 50);
             });
         });
         
+        // Use MutationObserver to detect tab changes
         const tabObserver = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
                 if (mutation.attributeName === 'aria-selected') {
@@ -2033,14 +2340,17 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
         
+        // Observe all tab buttons for aria-selected changes
         document.querySelectorAll('[role="tab"]').forEach(tab => {
             tabObserver.observe(tab, { attributes: true, attributeFilter: ['aria-selected'] });
         });
     });
 
+    // Call toggleNavigationElements directly to ensure it runs
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', toggleNavigationElements);
     } else {
+        // DOM already loaded, call immediately
         toggleNavigationElements();
     }
 
@@ -2199,20 +2509,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
     updateCurrentPath();
 
+
+
+
+
     document.getElementById("itemLimit").addEventListener("change", (e) => {
         const limit = e.target.value;
         console.log('Items per page changed to:', limit);
 
+        // Save the setting to localStorage for persistence
         localStorage.setItem('default-items-per-page', limit);
 
+        // Reset to page 1 when changing items per page
         window.fileManagerState.currentPage = 1;
         
+        // Call loadDirectory with the correct itemsPerPage parameter
         loadDirectory(currentDir, 1, csrf, key, isEnc, limit);
     });
 
+
     function excute(code, csrf, currentDir, key, isEnc) {
+        // Check if dark mode is enabled
         const isDarkMode = document.documentElement.classList.contains('dark');
         
+        // Call the SweetAlert2 dialog with enhanced dark mode support
         Swal.fire({
             title: 'Execute PHP Code',
             html: `
@@ -2243,6 +2563,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }).then((result) => {
             if (result.isConfirmed && result.value) {
                 const phpCode = result.value;
+                // Send the PHP code to the backend for execution
                 sendRequest({ 
                     csrf, 
                     action: 'execute', 
@@ -2250,6 +2571,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     dir: currentDir 
                 }, key, isEnc)
                     .then(response => {
+                        // Display the result of the PHP execution in a new dialog with improved dark mode
                         Swal.fire({
                             title: 'PHP Execution Result',
                             html: `<div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
@@ -2268,23 +2590,27 @@ document.addEventListener('DOMContentLoaded', function () {
                         });
                     })
                     .catch(error => {
-                        triggerAlert('warning', error); 
-                        console.error('Error executing PHP code:', error); 
+                        triggerAlert('warning', error); // Show error message
+                        console.error('Error executing PHP code:', error); // Log error for debugging
                     });
             }
         });
     }
+      // Event delegation for rename button
   document.addEventListener('click', function (event) {
     if (event.target.classList.contains('codeme')) {
+        // const oldName = event.target.dataset.file;
         excute("oldName", csrf, currentDir, key, isEnc);
     }
 });
  
 });
 
+// Function to initialize theme toggle
 function initThemeToggle() {
     const themeToggleBtn = document.getElementById('theme-toggle');
     
+    // Check for saved theme preference or use system preference
     if (localStorage.getItem('color-theme') === 'dark' || 
         (!localStorage.getItem('color-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark');
@@ -2292,15 +2618,19 @@ function initThemeToggle() {
         document.documentElement.classList.remove('dark');
     }
     
+    // Add click event to toggle button
     themeToggleBtn.addEventListener('click', function() {
+        // Toggle dark class on html element
         document.documentElement.classList.toggle('dark');
         
+        // Update localStorage
         if (document.documentElement.classList.contains('dark')) {
             localStorage.setItem('color-theme', 'dark');
         } else {
             localStorage.setItem('color-theme', 'light');
         }
         
+        // If editor is initialized, update its theme
         if (window.editor) {
             window.editor.updateOptions({
                 theme: document.documentElement.classList.contains('dark') ? 'vs-dark' : 'vs'
@@ -2309,10 +2639,12 @@ function initThemeToggle() {
     });
 }
 
+// Function to initialize enhanced tabs with animation using Flowbite
 function initEnhancedTabs() {
     const tabButtons = document.querySelectorAll('[role="tab"]');
     const tabContents = document.querySelectorAll('[role="tabpanel"]');
     
+    // Initialize the first tab as active
     if (tabButtons.length > 0 && tabContents.length > 0) {
         const firstButton = tabButtons[0];
         const firstTabId = firstButton.getAttribute('data-tabs-target');
@@ -2326,29 +2658,35 @@ function initEnhancedTabs() {
         }
     }
     
+    // Add click event listeners to all tabs
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             const targetId = button.getAttribute('data-tabs-target');
             const targetContent = document.querySelector(targetId);
             
+            // Hide all tab contents
             tabContents.forEach(content => {
                 content.classList.add('hidden');
             });
             
+            // Deactivate all tabs
             tabButtons.forEach(btn => {
                 btn.classList.remove('text-blue-600', 'border-blue-600');
                 btn.classList.add('text-gray-500', 'border-transparent');
                 btn.setAttribute('aria-selected', 'false');
             });
             
+            // Activate the clicked tab
             button.classList.add('text-blue-600', 'border-blue-600');
             button.classList.remove('text-gray-500', 'border-transparent');
             button.setAttribute('aria-selected', 'true');
             
+            // Show the target content
             if (targetContent) {
                 targetContent.classList.remove('hidden');
             }
             
+            // Call handleTabSwitch if available
             if (typeof handleTabSwitch === 'function') {
                 handleTabSwitch(targetId);
             }
@@ -2356,9 +2694,12 @@ function initEnhancedTabs() {
     });
 }
 
+// Settings functionality
 function initSettings() {
+    // Load settings from localStorage
     loadSettings();
     
+    // Theme buttons
     document.getElementById('light-theme-btn')?.addEventListener('click', () => {
         document.documentElement.classList.remove('dark');
         localStorage.setItem('color-theme', 'light');
@@ -2373,6 +2714,7 @@ function initSettings() {
     
     document.getElementById('system-theme-btn')?.addEventListener('click', () => {
         localStorage.removeItem('color-theme');
+        // Use system preference
         if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.classList.add('dark');
             updateEditorTheme('vs-dark');
@@ -2382,6 +2724,7 @@ function initSettings() {
         }
     });
     
+    // Font size slider
     const fontSizeSlider = document.getElementById('font-size');
     if (fontSizeSlider) {
         fontSizeSlider.addEventListener('input', (e) => {
@@ -2391,6 +2734,7 @@ function initSettings() {
         });
     }
     
+    // Terminal font size slider
     const terminalFontSizeSlider = document.getElementById('terminal-font-size');
     if (terminalFontSizeSlider) {
         terminalFontSizeSlider.addEventListener('input', (e) => {
@@ -2403,6 +2747,7 @@ function initSettings() {
         });
     }
     
+    // UI Animation toggle
     const enableAnimations = document.getElementById('enable-animations');
     if (enableAnimations) {
         enableAnimations.addEventListener('change', (e) => {
@@ -2411,10 +2756,12 @@ function initSettings() {
         });
     }
 
+    // File Manager Settings
     const showHiddenFiles = document.getElementById('show-hidden');
     if (showHiddenFiles) {
         showHiddenFiles.addEventListener('change', (e) => {
             localStorage.setItem('show-hidden-files', e.target.checked);
+            // Reload current directory to apply changes
             loadDirectory(currentDir, 1, csrf, key, isEnc);
         });
     }
@@ -2423,6 +2770,7 @@ function initSettings() {
     if (showFileSize) {
         showFileSize.addEventListener('change', (e) => {
             localStorage.setItem('show-file-size', e.target.checked);
+            // Reload current directory to apply changes
             loadDirectory(currentDir, 1, csrf, key, isEnc);
         });
     }
@@ -2431,6 +2779,7 @@ function initSettings() {
     if (showFileDate) {
         showFileDate.addEventListener('change', (e) => {
             localStorage.setItem('show-file-date', e.target.checked);
+            // Reload current directory to apply changes
             loadDirectory(currentDir, 1, csrf, key, isEnc);
         });
     }
@@ -2439,14 +2788,17 @@ function initSettings() {
     if (defaultSort) {
         defaultSort.addEventListener('change', (e) => {
             localStorage.setItem('default-sort', e.target.value);
+            // Reload current directory to apply changes
             loadDirectory(currentDir, 1, csrf, key, isEnc);
         });
     }
 
+    // Terminal Settings
     const terminalWrap = document.getElementById('terminal-wrap');
     if (terminalWrap) {
         terminalWrap.addEventListener('change', (e) => {
             localStorage.setItem('terminal-wrap', e.target.checked);
+            // Apply terminal wrap setting
             if (window.terminal) {
                 window.terminal.setOption('wrap', e.target.checked);
             }
@@ -2457,6 +2809,7 @@ function initSettings() {
     if (terminalBell) {
         terminalBell.addEventListener('change', (e) => {
             localStorage.setItem('terminal-bell', e.target.checked);
+            // Apply terminal bell setting
             if (window.terminal) {
                 window.terminal.setOption('bellStyle', e.target.checked ? 'sound' : 'none');
             }
@@ -2467,17 +2820,20 @@ function initSettings() {
     if (terminalTheme) {
         terminalTheme.addEventListener('change', (e) => {
             localStorage.setItem('terminal-theme', e.target.value);
+            // Apply terminal theme
             if (window.terminal) {
                 window.terminal.setOption('theme', e.target.value);
             }
         });
     }
 
+    // Editor Settings
     const editorThemeSelect = document.getElementById('editor-theme');
     if (editorThemeSelect) {
         editorThemeSelect.addEventListener('change', (e) => {
             const theme = e.target.value;
             if (theme === 'system') {
+                // Use system preference
                 updateEditorTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs');
                 localStorage.setItem('editor-theme', 'system');
             } else {
@@ -2487,6 +2843,7 @@ function initSettings() {
         });
     }
     
+    // Tab size select
     const tabSizeSelect = document.getElementById('tab-size');
     if (tabSizeSelect) {
         tabSizeSelect.addEventListener('change', (e) => {
@@ -2498,6 +2855,7 @@ function initSettings() {
         });
     }
     
+    // Editor options
     const wordWrapCheckbox = document.getElementById('word-wrap');
     if (wordWrapCheckbox) {
         wordWrapCheckbox.addEventListener('change', (e) => {
@@ -2528,44 +2886,53 @@ function initSettings() {
         });
     }
     
+    // Default items per page select
     const defaultItemsSelect = document.getElementById('default-items');
     if (defaultItemsSelect) {
         defaultItemsSelect.addEventListener('change', (e) => {
             const itemsPerPage = e.target.value;
             localStorage.setItem('default-items-per-page', itemsPerPage);
             
+            // Update the current itemLimit dropdown
             const itemLimitElement = document.getElementById('itemLimit');
             if (itemLimitElement) {
                 itemLimitElement.value = itemsPerPage;
+                // Trigger change to refresh the view
                 const event = new Event('change');
                 itemLimitElement.dispatchEvent(event);
             }
         });
     }
     
+    // Save settings button
     document.getElementById('save-settings')?.addEventListener('click', () => {
         saveSettings();
         triggerAlert('success', 'Settings saved successfully!');
     });
 }
 
+// Load settings from localStorage
 function loadSettings() {
+    // Font size
     const fontSize = localStorage.getItem('font-size') || '14';
     document.documentElement.style.fontSize = fontSize + 'px';
     const fontSizeSlider = document.getElementById('font-size');
     if (fontSizeSlider) fontSizeSlider.value = fontSize;
     
+    // Terminal font size
     const terminalFontSize = localStorage.getItem('terminal-font-size') || '14';
     const terminalContent = document.querySelector('terminal content');
     if (terminalContent) terminalContent.style.fontSize = terminalFontSize + 'px';
     const terminalFontSizeSlider = document.getElementById('terminal-font-size');
     if (terminalFontSizeSlider) terminalFontSizeSlider.value = terminalFontSize;
 
+    // UI Animations
     const enableAnimations = localStorage.getItem('enable-animations') !== 'false';
     document.body.classList.toggle('disable-animations', !enableAnimations);
     const animationsCheckbox = document.getElementById('enable-animations');
     if (animationsCheckbox) animationsCheckbox.checked = enableAnimations;
 
+    // File Manager Settings
     const showHidden = localStorage.getItem('show-hidden-files') === 'true';
     const showHiddenCheckbox = document.getElementById('show-hidden');
     if (showHiddenCheckbox) showHiddenCheckbox.checked = showHidden;
@@ -2582,6 +2949,7 @@ function loadSettings() {
     const defaultSortSelect = document.getElementById('default-sort');
     if (defaultSortSelect) defaultSortSelect.value = defaultSort;
 
+    // Terminal Settings
     const terminalWrap = localStorage.getItem('terminal-wrap') !== 'false';
     const terminalWrapCheckbox = document.getElementById('terminal-wrap');
     if (terminalWrapCheckbox) terminalWrapCheckbox.checked = terminalWrap;
@@ -2594,14 +2962,17 @@ function loadSettings() {
     const terminalThemeSelect = document.getElementById('terminal-theme');
     if (terminalThemeSelect) terminalThemeSelect.value = terminalTheme;
     
+    // Editor theme
     const editorTheme = localStorage.getItem('editor-theme') || 'system';
     const editorThemeSelect = document.getElementById('editor-theme');
     if (editorThemeSelect) editorThemeSelect.value = editorTheme;
     
+    // Tab size
     const tabSize = localStorage.getItem('tab-size') || '4';
     const tabSizeSelect = document.getElementById('tab-size');
     if (tabSizeSelect) tabSizeSelect.value = tabSize;
     
+    // Editor options
     const wordWrap = localStorage.getItem('word-wrap') !== 'false';
     const wordWrapCheckbox = document.getElementById('word-wrap');
     if (wordWrapCheckbox) wordWrapCheckbox.checked = wordWrap;
@@ -2614,26 +2985,33 @@ function loadSettings() {
     const highlightActiveLineCheckbox = document.getElementById('highlight-active-line');
     if (highlightActiveLineCheckbox) highlightActiveLineCheckbox.checked = highlightActiveLine;
     
+    // Default items per page
     const defaultItems = localStorage.getItem('default-items-per-page') || '50';
     const defaultItemsSelect = document.getElementById('default-items');
     if (defaultItemsSelect) defaultItemsSelect.value = defaultItems;
     
+    // Apply items per page to current view
     const itemLimitElement = document.getElementById('itemLimit');
     if (itemLimitElement && defaultItems) {
         itemLimitElement.value = defaultItems;
     }
 }
 
+// Save all settings to localStorage
 function saveSettings() {
+    // Font size
     const fontSizeSlider = document.getElementById('font-size');
     if (fontSizeSlider) localStorage.setItem('font-size', fontSizeSlider.value);
     
+    // Terminal font size
     const terminalFontSizeSlider = document.getElementById('terminal-font-size');
     if (terminalFontSizeSlider) localStorage.setItem('terminal-font-size', terminalFontSizeSlider.value);
 
+    // UI Animations
     const enableAnimations = document.getElementById('enable-animations');
     if (enableAnimations) localStorage.setItem('enable-animations', enableAnimations.checked);
 
+    // File Manager Settings
     const showHidden = document.getElementById('show-hidden');
     if (showHidden) localStorage.setItem('show-hidden-files', showHidden.checked);
 
@@ -2646,6 +3024,7 @@ function saveSettings() {
     const defaultSort = document.getElementById('default-sort');
     if (defaultSort) localStorage.setItem('default-sort', defaultSort.value);
 
+    // Terminal Settings
     const terminalWrap = document.getElementById('terminal-wrap');
     if (terminalWrap) localStorage.setItem('terminal-wrap', terminalWrap.checked);
 
@@ -2655,12 +3034,15 @@ function saveSettings() {
     const terminalTheme = document.getElementById('terminal-theme');
     if (terminalTheme) localStorage.setItem('terminal-theme', terminalTheme.value);
     
+    // Editor theme
     const editorThemeSelect = document.getElementById('editor-theme');
     if (editorThemeSelect) localStorage.setItem('editor-theme', editorThemeSelect.value);
     
+    // Tab size
     const tabSizeSelect = document.getElementById('tab-size');
     if (tabSizeSelect) localStorage.setItem('tab-size', tabSizeSelect.value);
     
+    // Editor options
     const wordWrapCheckbox = document.getElementById('word-wrap');
     if (wordWrapCheckbox) localStorage.setItem('word-wrap', wordWrapCheckbox.checked);
 
@@ -2670,24 +3052,31 @@ function saveSettings() {
     const highlightActiveLine = document.getElementById('highlight-active-line');
     if (highlightActiveLine) localStorage.setItem('highlight-active-line', highlightActiveLine.checked);
     
+    // Default items per page
     const defaultItemsSelect = document.getElementById('default-items');
     if (defaultItemsSelect) localStorage.setItem('default-items-per-page', defaultItemsSelect.value);
 }
 
+// Update editor theme
 function updateEditorTheme(theme) {
+    // Store theme preference globally
     window.editorThemePreference = theme;
     
-    let codeMirrorTheme = 'eclipse'; 
+    // Map Monaco themes to CodeMirror themes
+    // Monaco: 'vs' (light), 'vs-dark' (dark), or 'system'
+    let codeMirrorTheme = 'eclipse'; // default light theme
     
     if (theme === 'vs-dark' || 
         (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        codeMirrorTheme = 'dracula'; 
+        codeMirrorTheme = 'dracula'; // dark theme
     }
     
+    // Apply theme to CodeMirror editor if it's available
     if (window.editor && typeof window.editor.setOption === 'function') {
         try {
             window.editor.setOption('theme', codeMirrorTheme);
             
+            // Update theme-related UI elements
             const editorContainer = document.getElementById('editorContainer');
             if (editorContainer) {
                 if (codeMirrorTheme === 'dracula') {
@@ -2699,6 +3088,7 @@ function updateEditorTheme(theme) {
                 }
             }
             
+            // Update bottom status bar if it exists
             const editorStatus = document.getElementById('editorStatus');
             if (editorStatus) {
                 if (codeMirrorTheme === 'dracula') {
@@ -2719,10 +3109,12 @@ function updateEditorTheme(theme) {
     }
 }
 
+// Initialize the editor language selector dropdown
 window.initEditorLanguageSelector = function() {
     const languageSelector = document.getElementById('editorLanguage');
     if (!languageSelector || languageSelector.dataset.initialized) return;
     
+    // Add event listener to update editor mode on language change
     languageSelector.addEventListener('change', function() {
         const selectedMode = this.value;
         if (window.editor && selectedMode) {
@@ -2730,9 +3122,11 @@ window.initEditorLanguageSelector = function() {
                 window.editor.setOption('mode', selectedMode);
                 console.log('Editor mode changed to:', selectedMode);
                 
+                // Update status bar
                 const statusEl = document.getElementById('editorStatus');
                 if (statusEl) {
                     const currentText = statusEl.textContent || '';
+                    // Replace just the language part
                     const updatedText = currentText.replace(/\|.*\|/, `| ${selectedMode} |`);
                     statusEl.textContent = updatedText;
                 }
@@ -2746,7 +3140,9 @@ window.initEditorLanguageSelector = function() {
     console.log('Editor language selector initialized');
 };
 
+// Function to initialize global keyboard shortcuts
 function initGlobalKeyboardShortcuts() {
+    // Store shortcut help text for the help dialog
     const shortcutHelp = [
         { key: 'Delete', action: 'Delete selected files' },
         { key: 'Ctrl+A', action: 'Select all files' },
@@ -2761,7 +3157,9 @@ function initGlobalKeyboardShortcuts() {
         { key: '?', action: 'Show this help dialog' }
     ];
     
+    // Function to show the keyboard shortcuts help dialog
     function showKeyboardShortcutsHelp() {
+        // Build the HTML for the shortcuts table
         let shortcutsHtml = '<div class="overflow-x-auto"><table class="w-full text-sm text-left">';
         shortcutsHtml += '<thead class="text-xs uppercase bg-gray-100 dark:bg-gray-700"><tr><th class="px-6 py-3">Key</th><th class="px-6 py-3">Action</th></tr></thead><tbody>';
         
@@ -2771,6 +3169,7 @@ function initGlobalKeyboardShortcuts() {
         
         shortcutsHtml += '</tbody></table></div>';
         
+        // Show the shortcuts help dialog
         Swal.fire({
             title: 'Keyboard Shortcuts',
             html: shortcutsHtml,
@@ -2780,11 +3179,14 @@ function initGlobalKeyboardShortcuts() {
         });
     }
     
+    // Add click event listener to the keyboard shortcuts button
     if (keyboardShortcutsBtn) {
         keyboardShortcutsBtn.addEventListener('click', showKeyboardShortcutsHelp);
     }
     
+    // Create a global keyboard event listener
     document.addEventListener('keydown', function(e) {
+        // Skip if we're in an input field, textarea, or editor is active
         if (e.target.tagName === 'INPUT' || 
             e.target.tagName === 'TEXTAREA' || 
             e.target.classList.contains('CodeMirror') ||
@@ -2792,34 +3194,43 @@ function initGlobalKeyboardShortcuts() {
             return;
         }
         
+        // Ensure fileManagerState exists and is initialized
         if (!window.fileManagerState) {
             console.error('fileManagerState is not initialized');
             return;
         }
         
+        // Get current state
         const currentDir = window.fileManagerState?.currentDir || phpVars?.currentDir;
         
+        // Ensure selectedFiles exists
         if (!window.fileManagerState.selectedFiles) {
             window.fileManagerState.selectedFiles = [];
         }
         
+        // Get selected files
         const selectedFiles = window.fileManagerState.selectedFiles || [];
         
+        // Debug info
         console.log('Keyboard shortcut detected:', e.key, 'Ctrl:', e.ctrlKey, 'Alt:', e.altKey);
         console.log('Selected files:', selectedFiles);
         
+        // Handle various keyboard shortcuts
         switch (true) {
+            // Delete - Delete selected files
             case e.key === 'Delete':
                 console.log('Delete key pressed, selected files:', selectedFiles.length);
                 if (selectedFiles.length > 0) {
                     e.preventDefault();
                     
+                    // Make sure we're not in a text input field
                     if (document.activeElement.tagName === 'INPUT' || 
                         document.activeElement.tagName === 'TEXTAREA' || 
                         document.activeElement.isContentEditable) {
-                        return; 
+                        return; // Let the browser handle the delete in text fields
                     }
                     
+                    // Create a copy of the array to prevent any issues
                     const filesToDelete = [...selectedFiles];
                     
                     window.showConfirmation(
@@ -2829,11 +3240,13 @@ function initGlobalKeyboardShortcuts() {
                         () => {
                             console.log('Files to delete:', filesToDelete);
                             
+                            // Use sendBulkActionRequest instead of performBulkAction for better reliability
                             if (typeof window.sendBulkActionRequest === 'function') {
                                 window.sendBulkActionRequest({
                                     action: 'delete',
                                     files: filesToDelete,
                                     onSuccess: () => {
+                                        // Clear selection after successful operation
                                         if (typeof window.clearFileSelection === 'function') {
                                             window.clearFileSelection();
                                         }
@@ -2843,6 +3256,7 @@ function initGlobalKeyboardShortcuts() {
                                     }
                                 });
                             } else {
+                                // Fallback to old method
                                 window.performBulkAction('delete', filesToDelete, currentDir, csrf, key, isEnc);
                             }
                         }
@@ -2850,35 +3264,42 @@ function initGlobalKeyboardShortcuts() {
                 }
                 break;
             
+            // Ctrl+A - Select all files
             case e.ctrlKey && e.key === 'a':
                 console.log('Ctrl+A pressed');
                 e.preventDefault();
                 const checkboxes = document.querySelectorAll('.file-checkbox');
                 const selectAllCheckbox = document.getElementById('selectAll');
                 
+                // Check all checkboxes
                 checkboxes.forEach(checkbox => {
                     checkbox.checked = true;
                     window.updateSelectedFiles(checkbox.dataset.file, true);
                 });
                 
+                // Update "Select All" checkbox if it exists
                 if (selectAllCheckbox) {
                     selectAllCheckbox.checked = true;
                 }
                 
+                // Show success message
                 window.triggerAlert('info', `Selected ${checkboxes.length} file(s)`);
                 break;
             
+            // Ctrl+C - Copy selected files
             case e.ctrlKey && e.key === 'c':
                 console.log('Ctrl+C pressed, selected files:', selectedFiles.length);
                 if (selectedFiles.length > 0) {
                     e.preventDefault();
                     
+                    // Make sure we're not in a text input field
                     if (document.activeElement.tagName === 'INPUT' || 
                         document.activeElement.tagName === 'TEXTAREA' || 
                         document.activeElement.isContentEditable) {
-                        return; 
+                        return; // Let the browser handle the copy in text fields
                     }
                     
+                    // Convert filenames to full paths
                     const filesWithPaths = selectedFiles.map(file => {
                         if (!file.includes('/')) {
                             return `${currentDir}/${file}`;
@@ -2886,11 +3307,14 @@ function initGlobalKeyboardShortcuts() {
                         return file;
                     });
                     
+                    // Save to localStorage using our function
                     if (typeof window.saveToLocalStorage === 'function') {
                     window.saveToLocalStorage(filesWithPaths);
                     
+                    // Remove any previous cut operation
                     localStorage.removeItem('clipboard-action');
                     
+                    // Show success message
                     window.triggerAlert('success', `Copied ${selectedFiles.length} file(s) to clipboard`);
                     } else {
                         console.error('saveToLocalStorage function not found');
@@ -2899,17 +3323,20 @@ function initGlobalKeyboardShortcuts() {
                 }
                 break;
             
+            // Ctrl+X - Cut selected files
             case e.ctrlKey && e.key === 'x':
                 console.log('Ctrl+X pressed, selected files:', selectedFiles.length);
                 if (selectedFiles.length > 0) {
                     e.preventDefault();
                     
+                    // Make sure we're not in a text input field
                     if (document.activeElement.tagName === 'INPUT' || 
                         document.activeElement.tagName === 'TEXTAREA' || 
                         document.activeElement.isContentEditable) {
-                        return; 
+                        return; // Let the browser handle the cut in text fields
                     }
                     
+                    // Convert filenames to full paths
                     const filesWithPaths = selectedFiles.map(file => {
                         if (!file.includes('/')) {
                             return `${currentDir}/${file}`;
@@ -2917,11 +3344,14 @@ function initGlobalKeyboardShortcuts() {
                         return file;
                     });
                     
+                    // Save to localStorage using our function
                     if (typeof window.saveToLocalStorage === 'function') {
                     window.saveToLocalStorage(filesWithPaths);
                     
+                    // Mark as cut operation
                     localStorage.setItem('clipboard-action', 'cut');
                     
+                    // Show success message
                     window.triggerAlert('info', `Cut ${selectedFiles.length} file(s) to clipboard`);
                     } else {
                         console.error('saveToLocalStorage function not found');
@@ -2930,17 +3360,20 @@ function initGlobalKeyboardShortcuts() {
                 }
                 break;
             
+            // Ctrl+V - Paste files
             case e.ctrlKey && e.key === 'v':
                 console.log('Ctrl+V pressed');
                 
+                // Make sure we're not in a text input field
                 if (document.activeElement.tagName === 'INPUT' || 
                     document.activeElement.tagName === 'TEXTAREA' || 
                     document.activeElement.isContentEditable) {
-                    return; 
+                    return; // Let the browser handle the paste in text fields
                 }
                 
                 e.preventDefault();
                 
+                // Get files from clipboard using our function
                 if (typeof window.getFromLocalStorage === 'function') {
                 const files = window.getFromLocalStorage();
                     
@@ -2948,13 +3381,16 @@ function initGlobalKeyboardShortcuts() {
                     console.log('Pasting files:', files);
                     console.log('Current directory:', currentDir);
                     
+                    // Show a loading indicator
                     window.triggerAlert('info', `Pasting ${files.length} item(s)...`);
                     
+                        // Use sendBulkActionRequest instead of performBulkAction for better reliability
                         if (typeof window.sendBulkActionRequest === 'function') {
                             window.sendBulkActionRequest({
                                 action: 'paste',
                                 files: files,
                                 onSuccess: () => {
+                                    // Clear selection after successful operation
                                     if (typeof window.clearFileSelection === 'function') {
                                         window.clearFileSelection();
                                     }
@@ -2962,6 +3398,7 @@ function initGlobalKeyboardShortcuts() {
                                     window.triggerAlert('success', 'Files pasted successfully');
                                     window.loadDirectory(currentDir, 1, csrf, key, isEnc);
                                     
+                                    // Clear clipboard after paste if it was a cut operation
                                     if (localStorage.getItem('clipboard-action') === 'cut') {
                                         if (typeof window.freeclipbroad === 'function') {
                                             window.freeclipbroad();
@@ -2971,8 +3408,10 @@ function initGlobalKeyboardShortcuts() {
                                 }
                             });
                         } else {
+                            // Fallback to old method
                     window.performBulkAction('paste', files, currentDir, csrf, key, isEnc);
                     
+                            // Clear clipboard after paste if it was a cut operation
                             if (localStorage.getItem('clipboard-action') === 'cut') {
                                 if (typeof window.freeclipbroad === 'function') {
                     window.freeclipbroad();
@@ -2989,6 +3428,7 @@ function initGlobalKeyboardShortcuts() {
                 }
                 break;
             
+            // F2 - Rename selected file (if only one is selected)
             case e.key === 'F2':
                 console.log('F2 pressed, selected files:', selectedFiles.length);
                 if (selectedFiles.length === 1) {
@@ -2999,6 +3439,7 @@ function initGlobalKeyboardShortcuts() {
                 }
                 break;
             
+            // F5 - Refresh directory
             case e.key === 'F5':
                 console.log('F5 pressed');
                 e.preventDefault();
@@ -3006,6 +3447,7 @@ function initGlobalKeyboardShortcuts() {
                 window.triggerAlert('info', 'Refreshing directory...');
                 break;
             
+            // Alt+Up - Navigate to parent directory
             case e.altKey && e.key === 'ArrowUp':
                 console.log('Alt+Up pressed');
                 e.preventDefault();
@@ -3015,30 +3457,38 @@ function initGlobalKeyboardShortcuts() {
                 }
                 break;
             
+            // Escape - Deselect all files
             case e.key === 'Escape':
                 console.log('Escape pressed');
+                // First check if any modal or dialog is open
                 const visibleModal = document.querySelector('.modal:not(.hidden)');
                 const visibleContextMenu = document.querySelector('#context-menu:not(.hidden)');
                 
                 if (visibleModal || visibleContextMenu) {
+                    // Let the modal/context menu handle the escape key
                     return;
                 }
                 
                 e.preventDefault();
+                // Uncheck all checkboxes
                 document.querySelectorAll('.file-checkbox').forEach(checkbox => {
                     checkbox.checked = false;
                 });
                 
+                // Update "Select All" checkbox if it exists
                 const selectAllCheckboxEsc = document.getElementById('selectAll');
                 if (selectAllCheckboxEsc) {
                     selectAllCheckboxEsc.checked = false;
                 }
                 
+                // Clear selected files array
                 window.fileManagerState.selectedFiles = [];
                 
+                // Show message
                 window.triggerAlert('info', 'Deselected all files');
                 break;
             
+            // ? - Show keyboard shortcut help
             case e.key === '?':
                 console.log('? key pressed');
                 e.preventDefault();
@@ -3049,30 +3499,39 @@ function initGlobalKeyboardShortcuts() {
     
  }
 
+// Function to expose utility functions to global scope
 function exposeUtilityFunctions() {
+    // Expose necessary functions to the global scope for keyboard shortcuts
     window.updateSelectedFiles = typeof updateSelectedFiles === 'function' ? 
         updateSelectedFiles : function() { console.error('updateSelectedFiles not found'); };
         
+    // Add advanced search function to global scope
     window.showAdvancedSearch = function() {
+        // Check if phpVars is available
         if (!window.phpVars) {
             console.error('phpVars not found');
             triggerAlert('danger', 'Required configuration is missing. Please refresh the page and try again.');
             return;
         }
         
+        // Create a new tab for advanced search if it doesn't exist
         const tabName = 'Advanced Search';
         const tabId = addNewTab(tabName, 'search');
         
+        // Switch to the tab
         switchToTab(tabId);
         
+        // Get the tab content element
         const tabContent = document.getElementById(`${tabId}-content`);
         if (!tabContent) {
             console.error('Search tab content not found');
             return;
         }
         
+        // Clear existing content
         tabContent.innerHTML = '';
         
+        // Create search form
         const searchForm = document.createElement('div');
         searchForm.className = 'search-form bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-4';
         searchForm.innerHTML = `
@@ -3187,6 +3646,7 @@ function exposeUtilityFunctions() {
             </form>
         `;
         
+        // Create results container
         const resultsContainer = document.createElement('div');
         resultsContainer.id = 'search-results-container';
         resultsContainer.className = 'search-results bg-white dark:bg-gray-800 p-4 rounded-lg shadow';
@@ -3200,9 +3660,11 @@ function exposeUtilityFunctions() {
             </div>
         `;
         
+        // Append form and results to tab content
         tabContent.appendChild(searchForm);
         tabContent.appendChild(resultsContainer);
         
+        // Add event listener to form submission
         const form = document.getElementById('advanced-search-form');
         if (form) {
             form.addEventListener('submit', function(e) {
@@ -3213,11 +3675,15 @@ function exposeUtilityFunctions() {
         }
     };
     
+    // Function to validate search path before sending request
     function validateSearchPath(path) {
+        // Check if path is empty
         if (!path || path.trim() === '') {
             return { valid: false, message: 'Search path cannot be empty' };
         }
         
+        // We'll let the server handle path validation for security
+        // Just provide a warning for absolute paths but still allow them
         if (path.startsWith('/')) {
             console.warn("Using absolute path for search: " + path);
         }
@@ -3225,6 +3691,7 @@ function exposeUtilityFunctions() {
         return { valid: true };
     }
     
+    // Function to toggle between search modes
     window.toggleSearchMode = function(mode) {
         const textSection = document.getElementById('text-search-section');
         const permissionSection = document.getElementById('permission-search-section');
@@ -3241,6 +3708,7 @@ function exposeUtilityFunctions() {
         }
     };
     
+    // Function to perform the advanced search
     window.performAdvancedSearch = function(searchToken = null) {
         const searchMode = document.querySelector('input[name="search-mode"]:checked').value;
         const searchPath = document.getElementById('search-path')?.value || '.';
@@ -3249,16 +3717,19 @@ function exposeUtilityFunctions() {
         const recursive = document.getElementById('recursive-search')?.checked || true;
         const batchSize = parseInt(document.getElementById('batch-size')?.value || '200', 10);
 
+        // Text search specific parameters
         const searchQuery = document.getElementById('search-query')?.value || '';
         const caseSensitive = document.getElementById('case-sensitive')?.checked || false;
         const useRegex = document.getElementById('use-regex')?.checked || false;
 
+        // Permission search specific parameters
         const writableOnly = document.getElementById('writable-only')?.checked || false;
         const writableFolders = document.getElementById('writable-folders')?.checked || false;
         const executableOnly = document.getElementById('executable-only')?.checked || false;
         const suidBinaries = document.getElementById('suid-binaries')?.checked || false;
         const includeHidden = document.getElementById('include-hidden')?.checked || false;
 
+        // Validate based on search mode
         if (searchMode === 'text' && !searchQuery && !searchToken) {
             triggerAlert('warning', 'Please enter a search query for text search');
             return;
@@ -3267,6 +3738,7 @@ function exposeUtilityFunctions() {
             return;
         }
         
+        // Validate search path if this is a new search
         if (!searchToken) {
             const pathValidation = validateSearchPath(searchPath);
             if (!pathValidation.valid) {
@@ -3275,13 +3747,16 @@ function exposeUtilityFunctions() {
             }
         }
         
+        // Get CSRF token and encryption settings from phpVars
         
+        // Check if CSRF token is available
         if (!csrf) {
             console.error('CSRF token not found in phpVars');
             triggerAlert('danger', 'Security token missing. Please refresh the page and try again.');
             return;
         }
         
+        // Show loading indicator if this is the first search request
         const resultsContainer = document.getElementById('search-results');
         if (resultsContainer && !searchToken) {
             resultsContainer.innerHTML = `
@@ -3291,6 +3766,7 @@ function exposeUtilityFunctions() {
                 </div>
             `;
             
+            // Store the search parameters in the window object for continuation
             window.currentSearch = {
                 query: searchQuery,
                 path: searchPath,
@@ -3308,6 +3784,8 @@ function exposeUtilityFunctions() {
                 totalMatches: 0
             };
         } else if (!searchToken) {
+            // If no search token but we're calling this function again, it might be a new search
+            // Clear previous search results
             window.currentSearch = {
                 query: searchQuery,
                 path: searchPath,
@@ -3326,6 +3804,7 @@ function exposeUtilityFunctions() {
             };
         }
         
+        // Update progress indicator if this is a continuation
         if (searchToken) {
             const progressElement = document.getElementById('search-progress');
             if (progressElement) {
@@ -3355,6 +3834,8 @@ function exposeUtilityFunctions() {
             batchSize
         });
         
+        // Send search request
+        // Format the encryption key properly for CryptoJS
         let encryptionKey = key;
         if (isEnc === '1' && typeof key === 'string') {
             encryptionKey = CryptoJS.enc.Utf8.parse(key);
@@ -3365,7 +3846,7 @@ function exposeUtilityFunctions() {
             csrf,
             action: 'advanced_search',
             search_mode: searchMode,
-            search_query: searchMode === 'text' ? searchQuery : '',  
+            search_query: searchMode === 'text' ? searchQuery : '',  // Only send query for text mode
             search_path: searchPath,
             file_extensions: fileExtensions,
             max_results: maxResults,
@@ -3409,6 +3890,7 @@ function exposeUtilityFunctions() {
         });
     };
     
+    // Function to display search results
     window.displaySearchResults = function(response, isIncremental = false) {
         const resultsContainer = document.getElementById('search-results');
         const searchStats = document.getElementById('search-stats');
@@ -3427,10 +3909,13 @@ function exposeUtilityFunctions() {
             return;
         }
         
+        // If this is an incremental update, merge the results with the existing ones
         if (isIncremental && window.currentSearch) {
+            // Merge new results with existing ones
             Object.assign(window.currentSearch.results, response.results);
             window.currentSearch.totalMatches = response.total_matches;
         } else {
+            // Initialize or reset current search data
             if (!window.currentSearch) {
                 window.currentSearch = {};
             }
@@ -3438,9 +3923,11 @@ function exposeUtilityFunctions() {
             window.currentSearch.totalMatches = response.total_matches;
         }
         
+        // Update stats
         if (searchStats) {
             searchStats.textContent = `Found ${window.currentSearch.totalMatches} matches in ${Object.keys(window.currentSearch.results).length} files`;
             
+            // Add warning if results were truncated due to memory limits
             if (response.memory_limit_reached) {
                 searchStats.innerHTML += `
                     <div class="mt-2 text-amber-600 dark:text-amber-400">
@@ -3452,6 +3939,7 @@ function exposeUtilityFunctions() {
                 `;
             }
             
+            // Add progress information if search is not complete
             if (!response.search_complete) {
                 const filesRemaining = response.files_remaining || 0;
                 const filesProcessed = response.files_processed || 0;
@@ -3491,8 +3979,10 @@ function exposeUtilityFunctions() {
             return;
         }
         
+        // Generate results HTML
         let resultsHTML = '';
         
+        // Sort files by number of matches (most matches first)
         const sortedFiles = Object.keys(window.currentSearch.results).sort((a, b) => {
             return window.currentSearch.results[b].length - window.currentSearch.results[a].length;
         });
@@ -3501,6 +3991,7 @@ function exposeUtilityFunctions() {
             const matches = window.currentSearch.results[filePath];
             const fileName = filePath.split('/').pop();
             
+            // Check if file is writable
             const isWritable = response.writable_files && response.writable_files.includes(filePath);
             const writableBadge = isWritable ? 
                 `<span class="ml-2 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 rounded">Writable</span>` : 
@@ -3531,15 +4022,18 @@ function exposeUtilityFunctions() {
             `;
             
             matches.forEach(match => {
+                // Escape HTML in line content
                 const escapedContent = match.line_content
                     .replace(/&/g, '&amp;')
                     .replace(/</g, '&lt;')
                     .replace(/>/g, '&gt;');
                 
+                // Highlight the match if not using regex
                 let highlightedContent = escapedContent;
                 if (!document.getElementById('use-regex')?.checked) {
                     const searchQuery = document.getElementById('search-query')?.value || '';
                     if (searchQuery) {
+                        // Create a regex to highlight all occurrences, respecting case sensitivity
                         const flags = document.getElementById('case-sensitive')?.checked ? 'g' : 'gi';
                         const regex = new RegExp(searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
                         highlightedContent = escapedContent.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-700">$&</mark>');
@@ -3563,8 +4057,10 @@ function exposeUtilityFunctions() {
             `;
         });
         
+        // Update results container
         resultsContainer.innerHTML = resultsHTML;
         
+        // Add event listeners to toggle buttons
         document.querySelectorAll('.toggle-matches').forEach(button => {
             button.addEventListener('click', function() {
                 const filePath = this.getAttribute('data-file');
@@ -3580,43 +4076,52 @@ function exposeUtilityFunctions() {
             });
         });
         
+        // Add event listener to continue search button if search is not complete
         if (!response.search_complete) {
             const continueButton = document.getElementById('continue-search');
             const autoContinueCheckbox = document.getElementById('auto-continue-search');
             
             if (continueButton) {
                 continueButton.addEventListener('click', function() {
+                    // Continue the search with the token
                     performAdvancedSearch(response.search_token);
                 });
             }
             
+            // Auto-continue if checkbox is checked
             if (autoContinueCheckbox) {
+                // Restore auto-continue preference from localStorage
                 const savedAutoContinue = localStorage.getItem('search-auto-continue');
                 if (savedAutoContinue === 'true') {
                     autoContinueCheckbox.checked = true;
                 }
                 
+                // Save preference when changed
                 autoContinueCheckbox.addEventListener('change', function() {
                     localStorage.setItem('search-auto-continue', this.checked);
                 });
                 
+                // Auto-continue if checked
                 if (autoContinueCheckbox.checked) {
                     setTimeout(() => {
                         performAdvancedSearch(response.search_token);
-                    }, 1000); 
+                    }, 1000); // Small delay to allow UI to update
                 }
             }
         }
     };
     
+    // Function to open a file at a specific line
     window.viewEditFileAtLine = function(filePath, lineNumber, csrf, key, isEnc) {
         console.log(`Attempting to open ${filePath} at line ${lineNumber}`);
         
+        // First open the file
         viewEditFile(filePath, csrf, key, isEnc);
         
+        // Wait for the editor to initialize with a longer timeout and check for editor existence
         let attempts = 0;
-        const maxAttempts = 20; 
-        const checkInterval = 300; 
+        const maxAttempts = 20; // Increase max attempts
+        const checkInterval = 300; // 300ms between checks
         
         const checkEditor = function() {
             console.log(`Checking for editor (attempt ${attempts + 1}/${maxAttempts})`);
@@ -3624,10 +4129,13 @@ function exposeUtilityFunctions() {
             if (window.editor) {
                 console.log(`Editor found, navigating to line ${lineNumber}`);
                 try {
+                    // Go to the specified line
                     window.editor.setCursor(lineNumber - 1, 0);
                     
+                    // Highlight the line
                     window.editor.addLineClass(lineNumber - 1, 'background', 'bg-yellow-100');
                     
+                    // Ensure the line is visible
                     window.editor.scrollIntoView({line: lineNumber - 1, ch: 0}, 100);
                     
                     console.log('Successfully positioned editor at line', lineNumber);
@@ -3647,9 +4155,11 @@ function exposeUtilityFunctions() {
             }
         };
         
-        setTimeout(checkEditor, 800); 
+        // Start checking for editor after initial delay
+        setTimeout(checkEditor, 800); // Increase initial delay
     };
     
+    // Expose clipboard functions
     window.saveToLocalStorage = saveToLocalStorage;
     window.getFromLocalStorage = getFromLocalStorage;
         
@@ -3659,13 +4169,17 @@ function exposeUtilityFunctions() {
     window.performBulkAction = typeof performBulkAction === 'function' ? 
         performBulkAction : function() { console.error('performBulkAction not found'); };
         
+    // Create a global wrapper for sendBulkActionRequest
     window.sendBulkActionRequest = function({ action, files, options = null, onSuccess = null, onError = null }) {
+        // Get current state values
         const currentDir = window.fileManagerState?.currentDir || phpVars?.currentDir;
         
+        // Show progress indicator
         if (typeof progr === 'function') progr();
         
         console.log(`Sending ${action} request for ${files.length} file(s)`);
         
+        // Prepare data
         const data = {
             csrf: csrf,
             action: action,
@@ -3673,17 +4187,21 @@ function exposeUtilityFunctions() {
             dir: currentDir
         };
         
+        // Add options for specific actions
         if (action === 'zip' && options) {
             data.zipExt = options.zipFileName;
             data.compressionLevel = options.compressionLevel || '5';
             data.archiveFormat = options.archiveFormat || 'zip';
         }
         
+        // Convert to JSON and encrypt if needed
         const jsonData = JSON.stringify(data);
         const requestData = (isEnc === '1') ? encrypt(jsonData, key) : jsonData;
         
+        // Send the request
         $.post('', requestData, function(response) {
             try {
+                // Decrypt response if needed
                 const decryptedResponse = (isEnc === '1') ? decrypt(response, key) : response;
                 const result = JSON.parse(decryptedResponse);
                 
@@ -3705,6 +4223,7 @@ function exposeUtilityFunctions() {
                 if (onError) onError(error);
             }
             
+            // Hide progress indicator
             if (typeof dprogr === 'function') dprogr();
         }).fail(function(xhr, status, error) {
             console.error('Request failed:', status, error);
@@ -3726,12 +4245,14 @@ function exposeUtilityFunctions() {
     window.showConfirmation = typeof showConfirmation === 'function' ? 
         showConfirmation : function() { console.error('showConfirmation not found'); };
         
+    // Expose encrypt and decrypt functions
     window.encrypt = typeof encrypt === 'function' ? 
         encrypt : function() { console.error('encrypt not found'); };
         
     window.decrypt = typeof decrypt === 'function' ? 
         decrypt : function() { console.error('decrypt not found'); };
         
+    // Expose progress indicator functions
     window.progr = typeof progr === 'function' ? 
         progr : function() { console.error('progr not found'); };
         
@@ -3739,8 +4260,10 @@ function exposeUtilityFunctions() {
         dprogr : function() { console.error('dprogr not found'); };
 }
 
+// Function to handle tab switching and ensure navigation elements visibility is updated
 function handleTabSwitch(tabId) {
      
+    // Get the tab container and content elements
     const tabButton = document.querySelector(`[data-tabs-target="${tabId}"]`);
     const tabContent = document.querySelector(tabId);
     
@@ -3749,37 +4272,45 @@ function handleTabSwitch(tabId) {
         return;
     }
     
+    // Deactivate all tabs
     document.querySelectorAll('[role="tab"]').forEach(tab => {
         tab.setAttribute('aria-selected', 'false');
         tab.classList.remove('text-blue-600', 'border-blue-600');
         tab.classList.add('border-transparent');
     });
     
+    // Hide all system tab contents
     document.querySelectorAll('[role="tabpanel"]').forEach(panel => {
         panel.classList.add('hidden');
     });
     
+    // Activate the selected tab
     tabButton.setAttribute('aria-selected', 'true');
     tabButton.classList.add('text-blue-600', 'border-blue-600');
     tabButton.classList.remove('border-transparent');
     
+    // Show the selected tab content
     tabContent.classList.remove('hidden');
     tabContent.classList.add('animate-fadeIn');
     
+    // Update navigation elements visibility
     const locationTabsContainer = document.querySelector('.mb-4.border-b.border-gray-200.dark\\:border-gray-700');
     const breadcrumbs = document.getElementById('breadcrumbs');
     
     if (locationTabsContainer && breadcrumbs) {
+        // Hide for terminal, config, setting, sql, and network tabs
         if (tabId === '#terminal' || tabId === '#config' || tabId === '#setting' || tabId === '#sql' || tabId === '#network') {
             console.log('Hiding navigation elements for tab:', tabId);
             locationTabsContainer.classList.add('hidden');
             breadcrumbs.classList.add('hidden');
             
+            // Hide fileManagerUI when switching to system tabs
             const fileManagerUI = document.getElementById('fileManagerUI');
             if (fileManagerUI) {
                 fileManagerUI.style.display = 'none';
             }
             
+            // Also hide custom tab content panels
             document.querySelectorAll('.tabs-panel').forEach(panel => {
                 panel.classList.add('hidden');
             });
@@ -3787,6 +4318,7 @@ function handleTabSwitch(tabId) {
              locationTabsContainer.classList.remove('hidden');
             breadcrumbs.classList.remove('hidden');
             
+            // If it's the file tab, make sure fileManagerUI is visible
             if (tabId === '#file') {
                 const fileManagerUI = document.getElementById('fileManagerUI');
                 if (fileManagerUI) {
@@ -3796,12 +4328,15 @@ function handleTabSwitch(tabId) {
         }
     }
     
+    // Update terminal keyboard listener if needed
     if (typeof window.updateKeydownListener === 'function') {
         setTimeout(window.updateKeydownListener, 100);
     }
 }
 
+// Add event listeners to tabs once DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    // Add click event listeners to all tabs
     document.querySelectorAll('[data-tabs-target]').forEach(tab => {
         tab.addEventListener('click', function() {
             const target = this.getAttribute('data-tabs-target');
@@ -3809,6 +4344,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Initial tab setup - find active tab or default to file tab
     const activeTab = document.querySelector('[role="tab"][aria-selected="true"]');
     const tabId = activeTab ? activeTab.getAttribute('data-tabs-target') : '#file';
     handleTabSwitch(tabId);
@@ -3817,6 +4353,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.showConfirmation = typeof showConfirmation === 'function' ? 
         showConfirmation : function() { console.error('showConfirmation not found'); };
         
+    // Add diagnostic function
     window.diagnoseFunctions = function() {
         console.log('--- Function Diagnostic Report ---');
         console.log('updateSelectedFiles:', typeof window.updateSelectedFiles === 'function' ? 'Available ✓' : 'Missing ✗');
@@ -3847,20 +4384,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
+    // // Run diagnostic on initialization
+    // setTimeout(() => {
+    //     if (window.diagnoseFunctions) {
+    //         window.diagnoseFunctions();
+    //     }
+    // }, 1000);
     
  
+    // Initialize when DOM is fully loaded
     document.addEventListener('DOMContentLoaded', function() {
          
+        // Initialize theme toggle
         initThemeToggle();
         
+        // Initialize enhanced tabs
         initEnhancedTabs();
         
+        // Initialize settings panel
         initSettings();
         
+        // Initialize global keyboard shortcuts
         initGlobalKeyboardShortcuts();
         
+        // Expose utility functions to global scope
         exposeUtilityFunctions();
         
+        // Ensure phpVars is available globally
         if (typeof phpVars !== 'undefined' && !window.phpVars) {
             window.phpVars = phpVars;
             console.log('phpVars initialized globally');
@@ -3868,6 +4418,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.warn('phpVars not found in global scope');
         }
         
+        // Add event listener for advanced search button
         document.querySelector('.advanced-search')?.addEventListener('click', function() {
             if (typeof window.showAdvancedSearch === 'function') {
                 window.showAdvancedSearch();
@@ -3878,8 +4429,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+         // Function to save tabs state to localStorage
     window.saveTabsToLocalStorage = function() {
         try {
+            // Don't save tab content, just the metadata
             const tabsToSave = fileManagerState.tabs.map(tab => ({
                 id: tab.id,
                 path: tab.path,
@@ -3888,8 +4441,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 type: tab.type || 'filemanager'
             }));
             
+            // Save active tab ID separately
             localStorage.setItem('fileManager_activeTabId', fileManagerState.activeTabId);
             
+            // Save tabs array
             localStorage.setItem('fileManager_tabs', JSON.stringify(tabsToSave));
             
          } catch (error) {
@@ -3897,31 +4452,39 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Function to load tabs from localStorage
     window.loadTabsFromLocalStorage = function() {
         try {
+            // Get saved tabs
             const savedTabsJson = localStorage.getItem('fileManager_tabs');
             if (!savedTabsJson) {
                 console.log('No saved tabs found in localStorage');
                 return false;
             }
             
+            // Parse saved tabs
             const savedTabs = JSON.parse(savedTabsJson);
             if (!Array.isArray(savedTabs) || savedTabs.length === 0) {
                 console.log('Invalid or empty tabs data in localStorage');
                 return false;
             }
             
+            // Get active tab ID
             const savedActiveTabId = localStorage.getItem('fileManager_activeTabId');
             
+            // Restore tabs
             fileManagerState.tabs = savedTabs;
             
+            // Restore active tab
             if (savedActiveTabId && fileManagerState.tabs.find(tab => tab.id === savedActiveTabId)) {
                 fileManagerState.activeTabId = savedActiveTabId;
                 
+                // Ensure only one tab is active
                 fileManagerState.tabs.forEach(tab => {
                     tab.active = (tab.id === savedActiveTabId);
                 });
             } else {
+                // If active tab not found, set the first tab as active
                 fileManagerState.tabs[0].active = true;
                 fileManagerState.activeTabId = fileManagerState.tabs[0].id;
             }
@@ -3933,15 +4496,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Function to save file paths to localStorage
     function saveToLocalStorage(fileNames) {
         try {
+            // Ensure all paths are properly formatted
             const normalizedPaths = fileNames.map(file => {
+                // If it's already a full path, use it
                 if (file.startsWith('/') || file.includes(':/')) {
                     return file;
                 }
                 
+                // Get current directory from global state
                 const currentDir = window.fileManagerState?.currentDir || phpVars?.currentDir;
                 
+                // Join the paths properly
                 if (currentDir.endsWith('/')) {
                     return currentDir + file;
                 } else {
@@ -3958,6 +4526,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Function to retrieve file paths from localStorage
     function getFromLocalStorage() {
         try {
             const storedFiles = localStorage.getItem('copiedFiles');
@@ -3975,7 +4544,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Network Tools Functions
+    // Initialize the Network Tools tab when clicked
     document.addEventListener('DOMContentLoaded', function() {
+        // Check if Network tab exists
         const networkTab = document.getElementById('network-tab');
         if (networkTab) {
             networkTab.addEventListener('click', function() {
@@ -3984,7 +4556,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Initialize all network tools
     function initNetworkTools() {
+        // Initialize Port Scanner
         const portScannerForm = document.getElementById('portScannerForm');
         if (portScannerForm) {
             portScannerForm.addEventListener('submit', function(e) {
@@ -3993,6 +4567,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
+        // Initialize Network Info button
         const getNetworkInfoBtn = document.getElementById('getNetworkInfo');
         if (getNetworkInfoBtn) {
             getNetworkInfoBtn.addEventListener('click', function() {
@@ -4000,6 +4575,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
+        // Initialize ARP Table button
         const getArpTableBtn = document.getElementById('getArpTable');
         if (getArpTableBtn) {
             getArpTableBtn.addEventListener('click', function() {
@@ -4007,6 +4583,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
+        // Initialize Ping Tool
         const pingForm = document.getElementById('pingForm');
         if (pingForm) {
             pingForm.addEventListener('submit', function(e) {
@@ -4015,6 +4592,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
+        // Initialize DNS Lookup Tool
         const dnsLookupForm = document.getElementById('dnsLookupForm');
         if (dnsLookupForm) {
             dnsLookupForm.addEventListener('submit', function(e) {
@@ -4023,6 +4601,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
+        // Initialize Traceroute Tool
         const tracerouteForm = document.getElementById('tracerouteForm');
         if (tracerouteForm) {
             tracerouteForm.addEventListener('submit', function(e) {
@@ -4031,6 +4610,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
+        // Initialize Whois Lookup Tool
         const whoisForm = document.getElementById('whoisForm');
         if (whoisForm) {
             whoisForm.addEventListener('submit', function(e) {
@@ -4040,6 +4620,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Port Scanner
     function performPortScan() {
         const host = document.getElementById('hostInput').value;
         const startPort = parseInt(document.getElementById('startPortInput').value);
@@ -4052,6 +4633,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // Show results container and set status
         const resultsContainer = document.getElementById('portScanResults');
         const scanStatus = document.getElementById('scanStatus');
         const resultsBody = document.getElementById('portScanResultsBody');
@@ -4060,6 +4642,7 @@ document.addEventListener('DOMContentLoaded', function() {
         scanStatus.textContent = `Scanning ${host}...`;
         resultsBody.innerHTML = '<tr><td colspan="3" class="text-center py-2">Scanning...</td></tr>';
         
+        // Send request to server
         const params = {
             host: host,
             start_port: startPort,
@@ -4077,13 +4660,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
+                // Update status
                 scanStatus.textContent = `Scan completed for ${response.host}`;
                 
+                // Clear results table
                 resultsBody.innerHTML = '';
                 
+                // Filter to show only open ports first
                 const openPorts = response.results.filter(result => result.status === 'open');
                 const closedPorts = response.results.filter(result => result.status === 'closed');
                 
+                // Add open ports to table
                 if (openPorts.length === 0) {
                     resultsBody.innerHTML = '<tr><td colspan="3" class="text-center py-2">No open ports found</td></tr>';
                 } else {
@@ -4097,6 +4684,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         resultsBody.appendChild(row);
                     });
                     
+                    // Add summary row for closed ports
                     if (closedPorts.length > 0) {
                         const row = document.createElement('tr');
                         row.innerHTML = `
@@ -4113,6 +4701,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
+    // Network Information
     function getNetworkInfo() {
         const resultsContainer = document.getElementById('networkInfoResults');
         resultsContainer.classList.remove('hidden');
@@ -4126,6 +4715,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
+                // Display network interfaces
                 let html = '<div class="space-y-4">';
                 
                 if (response.interfaces.length === 0) {
@@ -4168,6 +4758,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
+    // ARP Table
     function getArpTable() {
         const resultsContainer = document.getElementById('arpTableResults');
         resultsContainer.classList.remove('hidden');
@@ -4181,6 +4772,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
+                // Display ARP table
                 if (response.arp_table.length === 0) {
                     resultsContainer.innerHTML = '<div class="text-center py-2">No ARP entries found</div>';
                     return;
@@ -4217,6 +4809,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
+    // Ping Tool
     function performPing() {
         const host = document.getElementById('pingHost').value;
         const count = parseInt(document.getElementById('pingCount').value);
@@ -4227,12 +4820,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // Show results container
         const resultsContainer = document.getElementById('pingResults');
         const resultsDiv = resultsContainer.querySelector('div');
         
         resultsContainer.classList.remove('hidden');
         resultsDiv.innerHTML = '<div class="text-center py-2">Pinging ' + host + '...</div>';
         
+        // Send request to server
         const params = {
             host: host,
             count: count,
@@ -4247,6 +4842,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
+                // Display ping results
                 let html = '';
                 response.results.forEach(line => {
                     html += line + '<br>';
@@ -4260,6 +4856,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
+    // DNS Lookup
     function performDnsLookup() {
         const host = document.getElementById('dnsHost').value;
         const type = document.getElementById('dnsType').value;
@@ -4269,12 +4866,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // Show results container
         const resultsContainer = document.getElementById('dnsResults');
         const resultsDiv = resultsContainer.querySelector('div');
         
         resultsContainer.classList.remove('hidden');
         resultsDiv.innerHTML = '<div class="text-center py-2">Looking up ' + host + '...</div>';
         
+        // Send request to server
         const params = {
             host: host,
             type: type
@@ -4288,6 +4887,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
+                // Display DNS results
                 if (response.results.length === 0) {
                     resultsDiv.innerHTML = `<div class="text-center py-2">No ${type} records found for ${host}</div>`;
                     return;
@@ -4302,6 +4902,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="mt-2 space-y-1">
                     `;
                     
+                    // Format record data based on type
                     const data = record.data;
                     for (const [key, value] of Object.entries(data)) {
                         if (key !== 'type' && key !== 'class') {
@@ -4326,6 +4927,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
+    // Traceroute Tool
     function performTraceroute() {
         const host = document.getElementById('tracerouteHost').value;
         const maxHops = parseInt(document.getElementById('tracerouteMaxHops').value);
@@ -4336,12 +4938,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // Show results container
         const resultsContainer = document.getElementById('tracerouteResults');
         const resultsDiv = resultsContainer.querySelector('div');
         
         resultsContainer.classList.remove('hidden');
         resultsDiv.innerHTML = '<div class="text-center py-2">Tracing route to ' + host + '...</div>';
         
+        // Send request to server
         const params = {
             host: host,
             max_hops: maxHops,
@@ -4356,6 +4960,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
+                // Display traceroute results
                 let html = '<div class="font-mono">';
                 html += `<div class="mb-2">Traceroute to ${response.host}, ${maxHops} hops max:</div>`;
                 
@@ -4372,6 +4977,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
     
+    // Whois Lookup Tool
     function performWhoisLookup() {
         const domain = document.getElementById('whoisDomain').value;
         
@@ -4380,12 +4986,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // Show results container
         const resultsContainer = document.getElementById('whoisResults');
         const resultsDiv = resultsContainer.querySelector('div');
         
         resultsContainer.classList.remove('hidden');
         resultsDiv.innerHTML = '<div class="text-center py-2">Looking up WHOIS information for ' + domain + '...</div>';
         
+        // Send request to server
         const params = {
             domain: domain
         };
@@ -4398,6 +5006,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
+                // Display whois results
                 if (!response.results) {
                     resultsDiv.innerHTML = `<div class="text-center py-2">No WHOIS information found for ${domain}</div>`;
                     return;
@@ -4411,8 +5020,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
+    // Helper function for network requests
     function sendNetworkRequest(tool, params) {
         return new Promise((resolve, reject) => {
+            // Show progress indicator
             progr();
             
             const data = {
@@ -4423,6 +5034,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             const jsonData = JSON.stringify(data);
+            // Use the correct encryption key format from phpVars
             const encryptedData = isEnc ? encrypt(jsonData, key) : jsonData;
             
             fetch('', {
@@ -4432,10 +5044,12 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.text())
             .then(data => {
                 try {
+                    // Hide progress indicator
                     dprogr();
                     
                     let responseJson;
                     if (isEnc) {
+                        // When encryption is enabled, decrypt the response first
                         try {
                             console.log("Attempting to decrypt response");
                             const decryptedData = decrypt(data, key);
@@ -4444,9 +5058,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         } catch (decryptError) {
                             console.error("Decryption error:", decryptError);
                             console.log("Attempting direct JSON parse as fallback");
+                            // Try direct JSON parse as fallback
                             responseJson = JSON.parse(data);
                         }
                     } else {
+                        // When encryption is disabled, parse the response directly
                         responseJson = JSON.parse(data);
                     }
                     
@@ -4489,4 +5105,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error saving tabs to localStorage:', e);
         }
     }
+
+
 
