@@ -1,1 +1,2217 @@
-function initThemeToggle(){const e=document.getElementById("theme-toggle");"dark"===localStorage.getItem("color-theme")||!localStorage.getItem("color-theme")&&window.matchMedia("(prefers-color-scheme: dark)").matches?document.documentElement.classList.add("dark"):document.documentElement.classList.remove("dark"),e.addEventListener("click",(function(){document.documentElement.classList.toggle("dark"),document.documentElement.classList.contains("dark")?localStorage.setItem("color-theme","dark"):localStorage.setItem("color-theme","light"),window.editor&&window.editor.updateOptions({theme:document.documentElement.classList.contains("dark")?"vs-dark":"vs"})}))}function initEnhancedTabs(){console.log("Initializing vanilla JS tabs");const e=document.querySelectorAll('#default-tab button[role="tab"]'),t=document.querySelectorAll('#default-tab-content > div[role="tabpanel"]');if(0!==e.length&&0!==t.length)try{!function(){let t="file-tab";const r=localStorage.getItem("activeTab");r&&document.getElementById(r)&&(t=r),e.forEach((e=>{e.addEventListener("click",(()=>{n(e.id)}))})),n(t)}()}catch(n){console.error("Error initializing tabs:",n);const r=e[0];if(r){const e=r.getAttribute("data-tabs-target"),n=document.querySelector(e);n&&(t.forEach((e=>{e.classList.add("hidden")})),n.classList.remove("hidden"),r.setAttribute("aria-selected","true"),r.classList.add("text-blue-600","border-blue-600"),r.classList.remove("border-transparent"))}}else console.error("No tab elements found");function n(n){const r=document.getElementById(n);if(!r)return void console.warn(`Tab button ${n} not found`);const o=r.getAttribute("data-tabs-target")?.substring(1);if(!o)return void console.warn(`Tab target for ${n} not found`);localStorage.setItem("activeTab",n),t.forEach((e=>{e.classList.add("hidden"),e.classList.remove("animate-fadeIn")})),e.forEach((e=>{e.setAttribute("aria-selected","false"),e.classList.remove("text-blue-600","border-blue-600"),e.classList.add("border-transparent")})),r.setAttribute("aria-selected","true"),r.classList.add("text-blue-600","border-blue-600"),r.classList.remove("border-transparent");const a=document.getElementById(o);a&&(a.classList.remove("hidden"),a.classList.add("animate-fadeIn")),function(e){const t=document.querySelector(".mb-4.border-b.border-gray-200.dark\\:border-gray-700"),n=document.getElementById("breadcrumbs");t&&n&&("terminal"===e||"config"===e||"setting"===e?(t.classList.add("hidden"),n.classList.add("hidden")):(t.classList.remove("hidden"),n.classList.remove("hidden")))}(o),"function"==typeof handleTabSwitch&&handleTabSwitch("#"+o),console.log(`Tab activated: ${n} -> #${o}`)}}function initSettings(){loadSettings(),document.getElementById("light-theme-btn")?.addEventListener("click",(()=>{document.documentElement.classList.remove("dark"),localStorage.setItem("color-theme","light"),updateEditorTheme("vs")})),document.getElementById("dark-theme-btn")?.addEventListener("click",(()=>{document.documentElement.classList.add("dark"),localStorage.setItem("color-theme","dark"),updateEditorTheme("vs-dark")})),document.getElementById("system-theme-btn")?.addEventListener("click",(()=>{localStorage.removeItem("color-theme"),window.matchMedia("(prefers-color-scheme: dark)").matches?(document.documentElement.classList.add("dark"),updateEditorTheme("vs-dark")):(document.documentElement.classList.remove("dark"),updateEditorTheme("vs"))}));const e=document.getElementById("font-size");e&&e.addEventListener("input",(e=>{const t=e.target.value;document.documentElement.style.fontSize=t+"px",localStorage.setItem("font-size",t)}));const t=document.getElementById("terminal-font-size");t&&t.addEventListener("input",(e=>{const t=e.target.value,n=document.querySelector("terminal content");n&&(n.style.fontSize=t+"px"),localStorage.setItem("terminal-font-size",t)}));const n=document.getElementById("enable-animations");n&&n.addEventListener("change",(e=>{document.body.classList.toggle("disable-animations",!e.target.checked),localStorage.setItem("enable-animations",e.target.checked)}));const r=document.getElementById("show-hidden");r&&r.addEventListener("change",(e=>{localStorage.setItem("show-hidden-files",e.target.checked),loadDirectory(currentDir,1,csrf,key,isEnc)}));const o=document.getElementById("show-file-size");o&&o.addEventListener("change",(e=>{localStorage.setItem("show-file-size",e.target.checked),loadDirectory(currentDir,1,csrf,key,isEnc)}));const a=document.getElementById("show-file-date");a&&a.addEventListener("change",(e=>{localStorage.setItem("show-file-date",e.target.checked),loadDirectory(currentDir,1,csrf,key,isEnc)}));const i=document.getElementById("default-sort");i&&i.addEventListener("change",(e=>{localStorage.setItem("default-sort",e.target.value),loadDirectory(currentDir,1,csrf,key,isEnc)}));const s=document.getElementById("terminal-wrap");s&&s.addEventListener("change",(e=>{localStorage.setItem("terminal-wrap",e.target.checked),window.terminal&&window.terminal.setOption("wrap",e.target.checked)}));const l=document.getElementById("terminal-bell");l&&l.addEventListener("change",(e=>{localStorage.setItem("terminal-bell",e.target.checked),window.terminal&&window.terminal.setOption("bellStyle",e.target.checked?"sound":"none")}));const c=document.getElementById("terminal-theme");c&&c.addEventListener("change",(e=>{localStorage.setItem("terminal-theme",e.target.value),window.terminal&&window.terminal.setOption("theme",e.target.value)}));const d=document.getElementById("editor-theme");d&&d.addEventListener("change",(e=>{const t=e.target.value;"system"===t?(updateEditorTheme(window.matchMedia("(prefers-color-scheme: dark)").matches?"vs-dark":"vs"),localStorage.setItem("editor-theme","system")):(updateEditorTheme(t),localStorage.setItem("editor-theme",t))}));const u=document.getElementById("tab-size");u&&u.addEventListener("change",(e=>{const t=e.target.value;window.editor&&window.editor.setOption("tabSize",parseInt(t)),localStorage.setItem("tab-size",t)}));const g=document.getElementById("word-wrap");g&&g.addEventListener("change",(e=>{window.editor&&window.editor.setOption("lineWrapping",e.target.checked),localStorage.setItem("word-wrap",e.target.checked)}));const m=document.getElementById("auto-close-brackets");m&&m.addEventListener("change",(e=>{window.editor&&window.editor.setOption("autoCloseBrackets",e.target.checked),localStorage.setItem("auto-close-brackets",e.target.checked)}));const f=document.getElementById("highlight-active-line");f&&f.addEventListener("change",(e=>{window.editor&&window.editor.setOption("styleActiveLine",e.target.checked),localStorage.setItem("highlight-active-line",e.target.checked)}));const p=document.getElementById("default-items");p&&p.addEventListener("change",(e=>{const t=e.target.value;localStorage.setItem("default-items-per-page",t);const n=document.getElementById("itemLimit");if(n){n.value=t;const e=new Event("change");n.dispatchEvent(e)}})),document.getElementById("save-settings")?.addEventListener("click",(()=>{saveSettings(),triggerAlert("success","Settings saved successfully!")}))}function loadSettings(){const e=localStorage.getItem("font-size")||"14";document.documentElement.style.fontSize=e+"px";const t=document.getElementById("font-size");t&&(t.value=e);const n=localStorage.getItem("terminal-font-size")||"14",r=document.querySelector("terminal content");r&&(r.style.fontSize=n+"px");const o=document.getElementById("terminal-font-size");o&&(o.value=n);const a="false"!==localStorage.getItem("enable-animations");document.body.classList.toggle("disable-animations",!a);const i=document.getElementById("enable-animations");i&&(i.checked=a);const s="true"===localStorage.getItem("show-hidden-files"),l=document.getElementById("show-hidden");l&&(l.checked=s);const c="false"!==localStorage.getItem("show-file-size"),d=document.getElementById("show-file-size");d&&(d.checked=c);const u="false"!==localStorage.getItem("show-file-date"),g=document.getElementById("show-file-date");g&&(g.checked=u);const m=localStorage.getItem("default-sort")||"date-desc",f=document.getElementById("default-sort");f&&(f.value=m);const p="false"!==localStorage.getItem("terminal-wrap"),h=document.getElementById("terminal-wrap");h&&(h.checked=p);const y="true"===localStorage.getItem("terminal-bell"),b=document.getElementById("terminal-bell");b&&(b.checked=y);const w=localStorage.getItem("terminal-theme")||"default",v=document.getElementById("terminal-theme");v&&(v.value=w);const x=localStorage.getItem("editor-theme")||"system",k=document.getElementById("editor-theme");k&&(k.value=x);const S=localStorage.getItem("tab-size")||"4",E=document.getElementById("tab-size");E&&(E.value=S);const I="false"!==localStorage.getItem("word-wrap"),L=document.getElementById("word-wrap");L&&(L.checked=I);const A="false"!==localStorage.getItem("auto-close-brackets"),B=document.getElementById("auto-close-brackets");B&&(B.checked=A);const T="false"!==localStorage.getItem("highlight-active-line"),M=document.getElementById("highlight-active-line");M&&(M.checked=T);const F=localStorage.getItem("default-items-per-page")||"50",$=document.getElementById("default-items");$&&($.value=F);const C=document.getElementById("itemLimit");C&&F&&(C.value=F)}function saveSettings(){const e=document.getElementById("font-size");e&&localStorage.setItem("font-size",e.value);const t=document.getElementById("terminal-font-size");t&&localStorage.setItem("terminal-font-size",t.value);const n=document.getElementById("enable-animations");n&&localStorage.setItem("enable-animations",n.checked);const r=document.getElementById("show-hidden");r&&localStorage.setItem("show-hidden-files",r.checked);const o=document.getElementById("show-file-size");o&&localStorage.setItem("show-file-size",o.checked);const a=document.getElementById("show-file-date");a&&localStorage.setItem("show-file-date",a.checked);const i=document.getElementById("default-sort");i&&localStorage.setItem("default-sort",i.value);const s=document.getElementById("terminal-wrap");s&&localStorage.setItem("terminal-wrap",s.checked);const l=document.getElementById("terminal-bell");l&&localStorage.setItem("terminal-bell",l.checked);const c=document.getElementById("terminal-theme");c&&localStorage.setItem("terminal-theme",c.value);const d=document.getElementById("editor-theme");d&&localStorage.setItem("editor-theme",d.value);const u=document.getElementById("tab-size");u&&localStorage.setItem("tab-size",u.value);const g=document.getElementById("word-wrap");g&&localStorage.setItem("word-wrap",g.checked);const m=document.getElementById("auto-close-brackets");m&&localStorage.setItem("auto-close-brackets",m.checked);const f=document.getElementById("highlight-active-line");f&&localStorage.setItem("highlight-active-line",f.checked);const p=document.getElementById("default-items");p&&localStorage.setItem("default-items-per-page",p.value)}function updateEditorTheme(e){window.editorThemePreference=e;let t="eclipse";if(("vs-dark"===e||"system"===e&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&(t="dracula"),window.editor&&"function"==typeof window.editor.setOption)try{window.editor.setOption("theme",t);const e=document.getElementById("editorContainer");e&&("dracula"===t?(e.classList.add("dark-editor"),e.classList.remove("light-editor")):(e.classList.add("light-editor"),e.classList.remove("dark-editor")));const n=document.getElementById("editorStatus");n&&("dracula"===t?(n.classList.add("dark-status"),n.classList.remove("light-status")):(n.classList.add("light-status"),n.classList.remove("dark-status"))),console.log("Editor theme updated to:",t)}catch(e){console.error("Error updating editor theme:",e)}else console.log("CodeMirror editor not available, theme will be applied when editor loads")}function initGlobalKeyboardShortcuts(){const e=[{key:"Delete",action:"Delete selected files"},{key:"Ctrl+A",action:"Select all files"},{key:"Ctrl+C",action:"Copy selected files"},{key:"Ctrl+X",action:"Cut selected files"},{key:"Ctrl+V",action:"Paste files"},{key:"Alt+F",action:"Search files"},{key:"F2",action:"Rename selected file"},{key:"F5",action:"Refresh directory"},{key:"Alt+Up",action:"Navigate to parent directory"},{key:"Escape",action:"Deselect all files / Close dialogs"},{key:"?",action:"Show this help dialog"}];function t(){let t='<div class="overflow-x-auto"><table class="w-full text-sm text-left">';t+='<thead class="text-xs uppercase bg-gray-100 dark:bg-gray-700"><tr><th class="px-6 py-3">Key</th><th class="px-6 py-3">Action</th></tr></thead><tbody>',e.forEach((e=>{t+=`<tr class="border-b dark:border-gray-700"><td class="px-6 py-4 font-medium">${e.key}</td><td class="px-6 py-4">${e.action}</td></tr>`})),t+="</tbody></table></div>",Swal.fire({title:"Keyboard Shortcuts",html:t,customClass:{popup:"dark:bg-gray-800 dark:text-white"}})}const n=document.getElementById("keyboardShortcutsBtn");n&&n.addEventListener("click",t),document.addEventListener("keydown",(function(e){if("INPUT"===e.target.tagName||"TEXTAREA"===e.target.tagName||e.target.classList.contains("CodeMirror")||document.querySelector("#terminal:not(.hidden)"))return;if(!window.fileManagerState)return void console.error("fileManagerState is not initialized");const n=window.fileManagerState?.currentDir||phpVars?.currentDir,r=phpVars?.csrf,o=phpVars?.encryptionKey?CryptoJS.enc.Utf8.parse(phpVars.encryptionKey):null,a=phpVars?.isEnc;window.fileManagerState.selectedFiles||(window.fileManagerState.selectedFiles=[]);const i=window.fileManagerState.selectedFiles||[];switch(!0){case"Delete"===e.key:if(console.log("Delete key pressed, selected files:",i.length),i.length>0){if(e.preventDefault(),"INPUT"===document.activeElement.tagName||"TEXTAREA"===document.activeElement.tagName||document.activeElement.isContentEditable)return;const t=[...i];window.showConfirmation("Delete Files",`Are you sure you want to delete ${t.length} file(s)?`,"Delete",(()=>{console.log("Files to delete:",t),"function"==typeof window.sendBulkActionRequest?window.sendBulkActionRequest({action:"delete",files:t,onSuccess:()=>{"function"==typeof window.clearFileSelection&&window.clearFileSelection(),window.triggerAlert("success","Files deleted successfully"),window.loadDirectory(n,1,r,o,a)}}):window.performBulkAction("delete",t,n,r,o,a)}))}break;case e.ctrlKey&&"a"===e.key:console.log("Alt+A pressed"),e.preventDefault();const s=document.querySelectorAll(".file-checkbox"),l=document.getElementById("selectAll");s.forEach((e=>{e.checked=!0,window.updateSelectedFiles(e.dataset.file,!0)})),l&&(l.checked=!0),window.triggerAlert("info",`Selected ${s.length} file(s)`);break;case e.ctrlKey&&"c"===e.key:if(console.log("Alt+C pressed, selected files:",i.length),i.length>0){e.preventDefault();const t=i.map((e=>e.includes("/")?e:`${n}/${e}`));"function"==typeof window.saveToLocalStorage?(window.saveToLocalStorage(t),localStorage.removeItem("clipboard-action"),window.triggerAlert("success",`Copied ${i.length} file(s) to clipboard`)):(console.error("saveToLocalStorage function not found"),window.triggerAlert("warning","Copy operation failed"))}break;case e.Ctrl&&"x"===e.key:if(console.log("Alt+X pressed, selected files:",i.length),i.length>0){e.preventDefault();const t=i.map((e=>e.includes("/")?e:`${n}/${e}`));"function"==typeof window.saveToLocalStorage?(window.saveToLocalStorage(t),localStorage.setItem("clipboard-action","cut"),window.triggerAlert("info",`Cut ${i.length} file(s) to clipboard`)):(console.error("saveToLocalStorage function not found"),window.triggerAlert("warning","Cut operation failed"))}break;case e.Ctrl&&"v"===e.key:if(console.log("Alt+V pressed"),e.preventDefault(),"function"==typeof window.getFromLocalStorage){const e=window.getFromLocalStorage();e&&e.length>0?(console.log("Pasting files:",e),console.log("Current directory:",n),window.triggerAlert("info",`Pasting ${e.length} item(s)...`),"function"==typeof window.sendBulkActionRequest?window.sendBulkActionRequest({action:"paste",files:e,onSuccess:()=>{"function"==typeof window.clearFileSelection&&window.clearFileSelection(),window.triggerAlert("success","Files pasted successfully"),window.loadDirectory(n,1,r,o,a),"cut"===localStorage.getItem("clipboard-action")&&("function"==typeof window.freeclipbroad&&window.freeclipbroad(),localStorage.removeItem("clipboard-action"))}}):(window.performBulkAction("paste",e,n,r,o,a),"cut"===localStorage.getItem("clipboard-action")&&("function"==typeof window.freeclipbroad&&window.freeclipbroad(),localStorage.removeItem("clipboard-action")))):window.triggerAlert("warning","No items in clipboard")}else console.error("getFromLocalStorage function not found"),window.triggerAlert("warning","Paste operation failed");break;case e.altKey&&"f"===e.key:if(console.log("Alt+F pressed"),e.preventDefault(),"function"==typeof window.showAdvancedSearch)window.showAdvancedSearch();else{const e=document.getElementById("searchInput");e?e.focus():window.triggerAlert("info","Search function not available")}break;case"F2"===e.key:console.log("F2 pressed, selected files:",i.length),1===i.length?(e.preventDefault(),window.renameFile(i[0],r,n,o,a)):i.length>1&&window.triggerAlert("warning","Please select only one file to rename");break;case"F5"===e.key:console.log("F5 pressed"),e.preventDefault();let c=document.getElementById("itemLimit"),d=c?c.value:"50";window.loadDirectory(n,1,r,o,a,d),window.triggerAlert("info","Refreshing Files...");break;case e.altKey&&"ArrowUp"===e.key:console.log("Alt+Up pressed"),e.preventDefault();const u=(window.fileManagerState?.currentDir||phpVars?.currentDir||"/").split("/").filter((e=>""!==e));u.pop();const g=u.length>0?"/"+u.join("/"):"/",m=document.getElementById("itemLimit"),f=m?m.value:"50";window.loadDirectory(g,1,phpVars.csrf,phpVars.encryptionKey?CryptoJS.enc.Utf8.parse(phpVars.encryptionKey):null,phpVars.isEnc,f),"function"==typeof window.updateActiveTabPath&&window.updateActiveTabPath(g),window.fileManagerState&&(window.fileManagerState.currentDir=g),window.triggerAlert("info","Navigated to parent directory");break;case"Escape"===e.key:console.log("Escape pressed");const p=document.querySelector(".modal:not(.hidden)"),h=document.querySelector("#context-menu:not(.hidden)");if(p||h)return;e.preventDefault(),document.querySelectorAll(".file-checkbox").forEach((e=>{e.checked=!1}));const y=document.getElementById("selectAll");y&&(y.checked=!1),window.fileManagerState.selectedFiles=[],window.triggerAlert("info","Deselected all files");break;case"?"===e.key:console.log("? key pressed"),e.preventDefault(),t();break}}))}function exposeUtilityFunctions(){window.updateSelectedFiles="function"==typeof updateSelectedFiles?updateSelectedFiles:function(){console.error("updateSelectedFiles not found")},window.updateBreadcrumbs="function"==typeof updateBreadcrumbs?updateBreadcrumbs:function(e){},window.showAdvancedSearch=function(){if(!window.phpVars)return console.error("phpVars not found"),void triggerAlert("danger","Required configuration is missing. Please refresh the page and try again.");const e=addNewTab("Advanced Search","search");switchToTab(e);const t=document.getElementById(`${e}-content`);if(!t)return void console.error("Search tab content not found");t.innerHTML="";const n=document.createElement("div");n.className="search-form bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-4",n.innerHTML=`\n            <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Advanced Search</h2>\n            <form id="advanced-search-form" class="space-y-4" onsubmit="event.preventDefault(); performAdvancedSearch(); return false;">\n                \x3c!-- Search Mode Selector --\x3e\n                <div class="mb-6">\n                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search Mode</label>\n                    <div class="flex space-x-4">\n                        <label class="inline-flex items-center">\n                            <input type="radio" name="search-mode" value="text" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" checked onchange="toggleSearchMode('text')">\n                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Text Search</span>\n                        </label>\n                        <label class="inline-flex items-center">\n                            <input type="radio" name="search-mode" value="permission" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" onchange="toggleSearchMode('permission')">\n                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Permission Search</span>\n                        </label>\n                    </div>\n                </div>\n\n                \x3c!-- Common Settings --\x3e\n                <div class="mb-4">\n                    <div>\n                        <label for="search-path" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search Path</label>\n                        <input type="text" id="search-path" name="search-path" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Directory path" value="${window.fileManagerState?.currentDir||"."}">\n                    </div>\n                </div>\n\n                \x3c!-- Text Search Section --\x3e\n                <div id="text-search-section" class="space-y-4">\n                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">\n                        <div>\n                            <label for="search-query" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search Query</label>\n                            <input type="text" id="search-query" name="search-query" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Enter search text or pattern">\n                        </div>\n                    <div>\n                        <label for="file-extensions" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">File Extensions</label>\n                        <input type="text" id="file-extensions" name="file-extensions" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="e.g. php,js,html,css">\n                    </div>\n                    </div>\n\n                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">\n                        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Text Search Options</h3>\n                        <div class="space-y-2">\n                        <div class="flex items-center">\n                            <input type="checkbox" id="case-sensitive" name="case-sensitive" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">\n                            <label for="case-sensitive" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Case Sensitive</label>\n                        </div>\n                        <div class="flex items-center">\n                            <input type="checkbox" id="use-regex" name="use-regex" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">\n                            <label for="use-regex" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Use Regex</label>\n                        </div>\n                        </div>\n                    </div>\n                </div>\n\n                \x3c!-- Permission Search Section --\x3e\n                <div id="permission-search-section" class="space-y-4 hidden">\n                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">\n                        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Permission Filters</h3>\n                        <div class="space-y-2">\n                        <div class="flex items-center">\n                            <input type="checkbox" id="writable-only" name="writable-only" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">\n                            <label for="writable-only" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Writable Files Only</label>\n                        </div>\n                            <div class="flex items-center">\n                                <input type="checkbox" id="writable-folders" name="writable-folders" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">\n                                <label for="writable-folders" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Writable Folders Only</label>\n                            </div>\n                            <div class="flex items-center">\n                                <input type="checkbox" id="executable-only" name="executable-only" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">\n                                <label for="executable-only" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Executable Files</label>\n                            </div>\n                            <div class="flex items-center">\n                                <input type="checkbox" id="suid-binaries" name="suid-binaries" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">\n                                <label for="suid-binaries" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">SUID Binaries</label>\n                            </div>\n                            <div class="flex items-center">\n                                <input type="checkbox" id="include-hidden" name="include-hidden" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">\n                                <label for="include-hidden" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Include Hidden Files/Folders</label>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n\n                \x3c!-- Common Options --\x3e\n                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">\n                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Search Settings</h3>\n                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">\n                        <div>\n                            <label for="max-results" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max Results</label>\n                            <input type="number" id="max-results" name="max-results" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="1000" min="10" max="10000">\n                        </div>\n                        <div>\n                            <label for="batch-size" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Batch Size</label>\n                            <input type="number" id="batch-size" name="batch-size" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="200" min="50" max="1000" title="Number of files to process per batch">\n                        </div>\n                        <div class="flex items-center pt-6">\n                            <input type="checkbox" id="recursive-search" name="recursive-search" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>\n                            <label for="recursive-search" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Recursive Search</label>\n                        </div>\n                    </div>\n                </div>\n                <div class="flex justify-end">\n                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">\n                        <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">\n                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />\n                        </svg>\n                        Search\n                    </button>\n                </div>\n            </form>\n        `;const r=document.createElement("div");r.id="search-results-container",r.className="search-results bg-white dark:bg-gray-800 p-4 rounded-lg shadow",r.innerHTML='\n            <div class="flex justify-between items-center mb-4">\n                <h2 class="text-xl font-semibold text-gray-800 dark:text-white">Search Results</h2>\n                <div id="search-stats" class="text-sm text-gray-500 dark:text-gray-400"></div>\n            </div>\n            <div id="search-results" class="space-y-4">\n                <div class="text-gray-500 dark:text-gray-400 text-center py-8">Enter a search query and click Search</div>\n            </div>\n        ',t.appendChild(n),t.appendChild(r);const o=document.getElementById("advanced-search-form");o&&o.addEventListener("submit",(function(e){return e.preventDefault(),performAdvancedSearch(),!1}))},window.toggleSearchMode=function(e){const t=document.getElementById("text-search-section"),n=document.getElementById("permission-search-section"),r=document.getElementById("search-query");"text"===e?(t.classList.remove("hidden"),n.classList.add("hidden"),r.setAttribute("required","")):(t.classList.add("hidden"),n.classList.remove("hidden"),r.removeAttribute("required"))},window.performAdvancedSearch=function(e=null){const t=document.querySelector('input[name="search-mode"]:checked').value,n=document.getElementById("search-path")?.value||".",r=document.getElementById("file-extensions")?.value||"",o=document.getElementById("max-results")?.value||1e3,a=document.getElementById("recursive-search")?.checked||!0,i=parseInt(document.getElementById("batch-size")?.value||"200",10),s=document.getElementById("search-query")?.value||"",l=document.getElementById("case-sensitive")?.checked||!1,c=document.getElementById("use-regex")?.checked||!1,d=document.getElementById("writable-only")?.checked||!1,u=document.getElementById("writable-folders")?.checked||!1,g=document.getElementById("executable-only")?.checked||!1,m=document.getElementById("suid-binaries")?.checked||!1,f=document.getElementById("include-hidden")?.checked||!1;if("text"===t&&!s&&!e)return void triggerAlert("warning","Please enter a search query for text search");if(!("permission"!==t||d||u||g||m))return void triggerAlert("warning","Please select at least one permission filter");if(!e){const e=(p=n)&&""!==p.trim()?(p.startsWith("/")&&console.warn("Using absolute path for search: "+p),{valid:!0}):{valid:!1,message:"Search path cannot be empty"};if(!e.valid)return void triggerAlert("warning",e.message)}var p;const h=window.phpVars?.csrf||"",y=window.phpVars?.encryptionKey||"",b=window.phpVars?.isEnc||!1;if(!h)return console.error("CSRF token not found in phpVars"),void triggerAlert("danger","Security token missing. Please refresh the page and try again.");const w=document.getElementById("search-results");if(w&&!e?(w.innerHTML='\n                <div class="flex justify-center items-center py-8">\n                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>\n                    <span class="ml-2 text-gray-600 dark:text-gray-300">Searching...</span>\n                </div>\n            ',window.currentSearch={query:s,path:n,extensions:r,maxResults:o,caseSensitive:l,useRegex:c,recursive:a,writableOnly:d,writableFolders:u,executableOnly:g,suidBinaries:m,includeHidden:f,results:{},totalMatches:0}):e||(window.currentSearch={query:s,path:n,extensions:r,maxResults:o,caseSensitive:l,useRegex:c,recursive:a,writableOnly:d,writableFolders:u,executableOnly:g,suidBinaries:m,includeHidden:f,results:{},totalMatches:0}),e){const e=document.getElementById("search-progress");e&&(e.innerHTML='\n                    <div class="flex items-center">\n                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2"></div>\n                        <span>Continuing search...</span>\n                    </div>\n                ')}console.log("Sending advanced search request:",{searchQuery:s,searchPath:n,fileExtensions:r,maxResults:o,caseSensitive:l,useRegex:c,recursive:a,writableOnly:d,writableFolders:u,executableOnly:g,suidBinaries:m,includeHidden:f,searchToken:e,batchSize:i});let v=y;"1"===b&&"string"==typeof y&&(v=CryptoJS.enc.Utf8.parse(y),console.log("Using formatted encryption key for advanced search")),sendRequest({csrf:h,action:"advanced_search",search_mode:t,search_query:"text"===t?s:"",search_path:n,file_extensions:r,max_results:o,case_sensitive:l,use_regex:c,recursive:a,writable_only:d,writable_folders:u,executable_only:g,suid_binaries:m,include_hidden:f,search_token:e,batch_size:i},v,b).then((t=>{console.log("Search response received:",t),displaySearchResults(t,null!==e)})).catch((e=>{console.error("Search error:",e),w&&(w.innerHTML=`\n                    <div class="text-red-500 dark:text-red-400 text-center py-4">\n                        Error: ${e.message||"Failed to perform search"}\n                    </div>\n                    <div class="mt-4 p-4 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-800 rounded-md">\n                        <h3 class="font-medium text-red-800 dark:text-red-300 mb-2">Troubleshooting tips:</h3>\n                        <ul class="list-disc pl-5 text-sm text-red-700 dark:text-red-400 space-y-1">\n                            <li>Check if the search path exists and is accessible</li>\n                            <li>Try using a relative path like "./subdirectory" instead of an absolute path</li>\n                            <li>If using regex, verify your pattern is valid</li>\n                            <li>Try reducing the batch size if searching many files</li>\n                            <li>Check browser console for more detailed error information</li>\n                        </ul>\n                    </div>\n                `),triggerAlert("danger","Search failed: "+(e.message||"Unknown error"))}))},window.displaySearchResults=function(e,t=!1){const n=document.getElementById("search-results"),r=document.getElementById("search-stats");if(!n)return void console.error("Results container not found");if(e.error)return void(n.innerHTML=`\n                <div class="text-red-500 dark:text-red-400 text-center py-4">\n                    Error: ${e.error}\n                </div>\n            `);if(t&&window.currentSearch?(Object.assign(window.currentSearch.results,e.results),window.currentSearch.totalMatches=e.total_matches):(window.currentSearch||(window.currentSearch={}),window.currentSearch.results=e.results,window.currentSearch.totalMatches=e.total_matches),r&&(r.textContent=`Found ${window.currentSearch.totalMatches} matches in ${Object.keys(window.currentSearch.results).length} files`,e.memory_limit_reached&&(r.innerHTML+='\n                    <div class="mt-2 text-amber-600 dark:text-amber-400">\n                        <svg class="inline-block w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">\n                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>\n                        </svg>\n                        Search was truncated due to memory limits. Try narrowing your search or searching in smaller directories.\n                    </div>\n                '),!e.search_complete)){const t=e.files_remaining||0,n=e.files_processed||0,o=n+t,a=o>0?Math.round(n/o*100):0;r.innerHTML+=`\n                    <div id="search-progress" class="mt-2">\n                        <div class="flex items-center justify-between mb-1">\n                            <span class="text-sm text-gray-700 dark:text-gray-300">\n                                Processed ${n} of ${o} files (${a}%)\n                            </span>\n                        </div>\n                        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">\n                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${a}%"></div>\n                        </div>\n                        <div class="flex justify-between mt-2">\n                            <div class="flex items-center">\n                                <input type="checkbox" id="auto-continue-search" class="mr-2">\n                                <label for="auto-continue-search" class="text-sm text-gray-700 dark:text-gray-300">Auto-continue</label>\n                            </div>\n                            <button id="continue-search" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700">\n                                Continue Search\n                            </button>\n                        </div>\n                    </div>\n                `}if(0===window.currentSearch.totalMatches&&e.search_complete)return void(n.innerHTML=`\n                <div class="text-gray-500 dark:text-gray-400 text-center py-8">\n                    No results found for "${e.search_query}"\n                </div>\n            `);let o="";if(Object.keys(window.currentSearch.results).sort(((e,t)=>window.currentSearch.results[t].length-window.currentSearch.results[e].length)).forEach((t=>{const n=window.currentSearch.results[t],r=t.split("/").pop(),a=e.writable_files&&e.writable_files.includes(t)?'<span class="ml-2 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 rounded">Writable</span>':'<span class="ml-2 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300 rounded">No Writable</span>';o+=`\n                <div class="file-result border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden mb-4">\n                    <div class="file-header bg-gray-100 dark:bg-gray-700 px-4 py-2 flex justify-between items-center">\n                        <div class="flex items-center">\n                            <span class="font-medium text-gray-800 dark:text-white">${r}</span>\n                            <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">${n.length} matches</span>\n                            ${a}\n                        </div>\n                        <div class="flex space-x-2">\n                            <button class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm" \n                                    onclick="viewEditFile('${t}', '${window.phpVars?.csrf||""}', '${window.phpVars?.encryptionKey||""}', ${window.phpVars?.isEnc||!1})">\n                                Edit\n                            </button>\n                            <button class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 text-sm toggle-matches" \n                                    data-file="${t}">\n                                Hide Matches\n                            </button>\n                        </div>\n                    </div>\n                    <div class="file-matches bg-white dark:bg-gray-800 p-2">\n                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">${t}</div>\n                        <div class="matches-list space-y-1">\n            `,n.forEach((e=>{const n=e.line_content.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");let r=n;if(!document.getElementById("use-regex")?.checked){const e=document.getElementById("search-query")?.value||"";if(e){const t=document.getElementById("case-sensitive")?.checked?"g":"gi",o=new RegExp(e.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),t);r=n.replace(o,'<mark class="bg-yellow-200 dark:bg-yellow-700">$&</mark>')}}o+=`\n                    <div class="match-line hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded">\n                        <a href="#" class="flex" onclick="viewEditFileAtLine('${t}', ${e.line_number}, '${window.phpVars?.csrf||""}', '${window.phpVars?.encryptionKey||""}', ${window.phpVars?.isEnc||!1}); return false;">\n                            <span class="line-number w-12 inline-block text-right pr-2 text-gray-500 dark:text-gray-400 select-none">${e.line_number}</span>\n                            <span class="line-content font-mono text-gray-800 dark:text-gray-200 overflow-x-auto">${r}</span>\n                        </a>\n                    </div>\n                `})),o+="\n                        </div>\n                    </div>\n                </div>\n            "})),n.innerHTML=o,document.querySelectorAll(".toggle-matches").forEach((e=>{e.addEventListener("click",(function(){this.getAttribute("data-file");const e=this.closest(".file-result").querySelector(".matches-list");"none"===e.style.display?(e.style.display="block",this.textContent="Hide Matches"):(e.style.display="none",this.textContent="Show Matches")}))})),!e.search_complete){const t=document.getElementById("continue-search"),n=document.getElementById("auto-continue-search");if(t&&t.addEventListener("click",(function(){performAdvancedSearch(e.search_token)})),n){"true"===localStorage.getItem("search-auto-continue")&&(n.checked=!0),n.addEventListener("change",(function(){localStorage.setItem("search-auto-continue",this.checked)})),n.checked&&setTimeout((()=>{performAdvancedSearch(e.search_token)}),1e3)}}},window.viewEditFileAtLine=function(e,t,n,r,o){console.log(`Attempting to open ${e} at line ${t}`),viewEditFile(e,n,r,o);let a=0;const i=function(){if(console.log(`Checking for editor (attempt ${a+1}/20)`),window.editor){console.log(`Editor found, navigating to line ${t}`);try{window.editor.setCursor(t-1,0),window.editor.addLineClass(t-1,"background","bg-yellow-100"),window.editor.scrollIntoView({line:t-1,ch:0},100),console.log("Successfully positioned editor at line",t)}catch(e){console.error("Error positioning editor:",e),triggerAlert("warning","Could not position to the selected line. Please try manually navigating to line "+t)}}else a++,a<20?(console.log(`Editor not ready yet, attempt ${a}/20`),setTimeout(i,300)):(console.error("Editor failed to initialize after multiple attempts"),triggerAlert("warning","Could not position to the selected line. Please try manually navigating to line "+t))};setTimeout(i,800)},window.saveToLocalStorage=saveToLocalStorage,window.getFromLocalStorage=getFromLocalStorage,window.freeclipbroad="function"==typeof freeclipbroad?freeclipbroad:function(){console.error("freeclipbroad not found")},window.performBulkAction="function"==typeof performBulkAction?performBulkAction:function(){console.error("performBulkAction not found")},window.sendBulkActionRequest=function({action:e,files:t,options:n=null,onSuccess:r=null,onError:o=null}){const a=window.fileManagerState?.currentDir||phpVars?.currentDir,i=phpVars?.csrf,s=phpVars?.encryptionKey?CryptoJS.enc.Utf8.parse(phpVars.encryptionKey):null,l=phpVars?.isEnc;"function"==typeof progr&&progr(),console.log(`Sending ${e} request for ${t.length} file(s)`);const c={csrf:i,action:e,file:t,dir:a};"zip"===e&&n&&(c.zipExt=n.zipFileName,c.compressionLevel=n.compressionLevel||"5",c.archiveFormat=n.archiveFormat||"zip");const d=JSON.stringify(c),u="1"===l?encrypt(d,s):d;$.post("",u,(function(e){try{const t="1"===l?decrypt(e,s):e,n=JSON.parse(t);console.log("Response:",n),n.error?(triggerAlert("warning",n.error),o&&o(n.error)):n.success?r?r(n):triggerAlert("success",n.success):r?r(n):triggerAlert("success","Operation completed successfully")}catch(e){console.error("Error processing response:",e),triggerAlert("error","Failed to process server response"),o&&o(e)}"function"==typeof dprogr&&dprogr()})).fail((function(e,t,n){console.error("Request failed:",t,n),triggerAlert("error","Request failed: "+(n||"Unknown error")),o&&o(n),"function"==typeof dprogr&&dprogr()}))},window.renameFile="function"==typeof renameFile?renameFile:function(){console.error("renameFile not found")},window.loadDirectory="function"==typeof loadDirectory?loadDirectory:function(){console.error("loadDirectory not found")},window.triggerAlert="function"==typeof triggerAlert?triggerAlert:function(){console.error("triggerAlert not found")},window.showConfirmation="function"==typeof showConfirmation?showConfirmation:function(){console.error("showConfirmation not found")},window.encrypt="function"==typeof encrypt?encrypt:function(){console.error("encrypt not found")},window.decrypt="function"==typeof decrypt?decrypt:function(){console.error("decrypt not found")},window.progr="function"==typeof progr?progr:function(){console.error("progr not found")},window.dprogr="function"==typeof dprogr?dprogr:function(){console.error("dprogr not found")}}function handleTabSwitch(e){const t=document.querySelector(`[data-tabs-target="${e}"]`),n=document.querySelector(e);if(!t||!n)return void console.error("Tab elements not found:",e);document.querySelectorAll('[role="tab"]').forEach((e=>{e.setAttribute("aria-selected","false"),e.classList.remove("text-blue-600","border-blue-600"),e.classList.add("border-transparent")})),document.querySelectorAll('[role="tabpanel"]').forEach((e=>{e.classList.add("hidden")})),t.setAttribute("aria-selected","true"),t.classList.add("text-blue-600","border-blue-600"),t.classList.remove("border-transparent"),n.classList.remove("hidden"),n.classList.add("animate-fadeIn");const r=document.querySelector(".mb-4.border-b.border-gray-200.dark\\:border-gray-700"),o=document.getElementById("breadcrumbs");if(r&&o)if("#terminal"===e||"#config"===e||"#setting"===e||"#sql"===e||"#network"===e){console.log("Hiding navigation elements for tab:",e),r.classList.add("hidden"),o.classList.add("hidden");const t=document.getElementById("fileManagerUI");t&&(t.style.display="none",t.classList.add("hidden")),document.querySelectorAll(".tabs-panel").forEach((e=>{e.classList.add("hidden")}))}else if(r.classList.remove("hidden"),o.classList.remove("hidden"),"#file"===e){const e=document.getElementById("fileManagerUI");e&&(e.style.display="block",e.classList.remove("hidden"),document.querySelectorAll(".tabs-panel").forEach((e=>{e.classList.add("hidden")})))}"function"==typeof window.updateKeydownListener&&setTimeout(window.updateKeydownListener,100)}function saveToLocalStorage(e){try{const t=e.map((e=>{if(e.startsWith("/")||e.includes(":/"))return e;const t=window.fileManagerState?.currentDir||phpVars?.currentDir;return t.endsWith("/")?t+e:t+"/"+e}));return localStorage.setItem("copiedFiles",JSON.stringify(t)),console.log("Saved to clipboard:",t),t}catch(e){return console.error("Error saving to localStorage:",e),[]}}function getFromLocalStorage(){try{const e=localStorage.getItem("copiedFiles");if(!e)return console.log("No files found in clipboard"),[];const t=JSON.parse(e);return console.log("Retrieved from clipboard:",t),t}catch(e){return console.error("Error retrieving from localStorage:",e),[]}}function initNetworkTools(){const e=document.getElementById("portScannerForm");e&&e.addEventListener("submit",(function(e){e.preventDefault(),performPortScan()}));const t=document.getElementById("getNetworkInfo");t&&t.addEventListener("click",(function(){getNetworkInfo()}));const n=document.getElementById("getArpTable");n&&n.addEventListener("click",(function(){getArpTable()}));const r=document.getElementById("pingForm");r&&r.addEventListener("submit",(function(e){e.preventDefault(),performPing()}));const o=document.getElementById("dnsLookupForm");o&&o.addEventListener("submit",(function(e){e.preventDefault(),performDnsLookup()}));const a=document.getElementById("tracerouteForm");a&&a.addEventListener("submit",(function(e){e.preventDefault(),performTraceroute()}));const i=document.getElementById("whoisForm");i&&i.addEventListener("submit",(function(e){e.preventDefault(),performWhoisLookup()}))}function performPortScan(){const e=document.getElementById("hostInput").value,t=parseInt(document.getElementById("startPortInput").value),n=parseInt(document.getElementById("endPortInput").value),r=parseInt(document.getElementById("timeoutInput").value),o=document.getElementById("commonPortsOnly").checked;if(!e)return void triggerAlert("warning","Please enter a host/IP address");const a=document.getElementById("portScanResults"),i=document.getElementById("scanStatus"),s=document.getElementById("portScanResultsBody");a.classList.remove("hidden"),i.textContent=`Scanning ${e}...`,s.innerHTML='<tr><td colspan="3" class="text-center py-2">Scanning...</td></tr>';sendNetworkRequest("port_scan",{host:e,start_port:t,end_port:n,timeout:r,common_ports_only:o}).then((e=>{if(e.error)return triggerAlert("warning",e.error),i.textContent=`Scan failed: ${e.error}`,void(s.innerHTML='<tr><td colspan="3" class="text-center py-2 text-red-500">Scan failed</td></tr>');i.textContent=`Scan completed for ${e.host}`,s.innerHTML="";const t=e.results.filter((e=>"open"===e.status)),n=e.results.filter((e=>"closed"===e.status));if(0===t.length)s.innerHTML='<tr><td colspan="3" class="text-center py-2">No open ports found</td></tr>';else if(t.forEach((e=>{const t=document.createElement("tr");t.innerHTML=`\n                            <td class="px-4 py-2">${e.port}</td>\n                            <td class="px-4 py-2"><span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">open</span></td>\n                            <td class="px-4 py-2">${e.service||"unknown"}</td>\n                        `,s.appendChild(t)})),n.length>0){const e=document.createElement("tr");e.innerHTML=`\n                            <td colspan="3" class="px-4 py-2 text-gray-500 italic">${n.length} port(s) closed or filtered</td>\n                        `,s.appendChild(e)}})).catch((e=>{triggerAlert("warning","Error performing port scan"),i.textContent="Scan failed",s.innerHTML='<tr><td colspan="3" class="text-center py-2 text-red-500">Error connecting to server</td></tr>'}))}function getNetworkInfo(){const e=document.getElementById("networkInfoResults");e.classList.remove("hidden"),e.innerHTML='<div class="text-center py-2">Loading network information...</div>',sendNetworkRequest("network_info",{}).then((t=>{if(t.error)return triggerAlert("warning",t.error),void(e.innerHTML=`<div class="text-center py-2 text-red-500">${t.error}</div>`);let n='<div class="space-y-4">';0===t.interfaces.length?n+='<div class="text-center py-2">No network interfaces found</div>':t.interfaces.forEach((e=>{n+=`\n                            <div class="border-b pb-3 dark:border-gray-600">\n                                <h4 class="font-medium text-gray-800 dark:text-gray-200">${e.name}</h4>\n                                <div class="mt-2">\n                        `,0===e.addresses.length?n+='<p class="text-sm text-gray-600 dark:text-gray-400">No addresses</p>':e.addresses.forEach((e=>{n+=`\n                                    <div class="flex flex-col text-sm">\n                                        <span class="text-gray-700 dark:text-gray-300">\n                                            <span class="font-medium">${e.family}:</span> ${e.address}\n                                        </span>\n                                        <span class="text-gray-600 dark:text-gray-400">\n                                            Netmask: ${e.netmask||"N/A"}\n                                        </span>\n                                    </div>\n                                `})),n+="</div></div>"})),n+="</div>",e.innerHTML=n})).catch((t=>{triggerAlert("warning","Error getting network information"),e.innerHTML='<div class="text-center py-2 text-red-500">Error connecting to server</div>'}))}function getArpTable(){const e=document.getElementById("arpTableResults");e.classList.remove("hidden"),e.innerHTML='<div class="text-center py-2">Loading ARP table...</div>',sendNetworkRequest("arp_table",{}).then((t=>{if(t.error)return triggerAlert("warning",t.error),void(e.innerHTML=`<div class="text-center py-2 text-red-500">${t.error}</div>`);if(0===t.arp_table.length)return void(e.innerHTML='<div class="text-center py-2">No ARP entries found</div>');let n='\n                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">\n                        <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-800 dark:text-gray-400">\n                            <tr>\n                                <th scope="col" class="px-4 py-2">IP Address</th>\n                                <th scope="col" class="px-4 py-2">MAC Address</th>\n                                <th scope="col" class="px-4 py-2">Interface</th>\n                            </tr>\n                        </thead>\n                        <tbody>\n                ';t.arp_table.forEach((e=>{n+=`\n                        <tr>\n                            <td class="px-4 py-2">${e.ip}</td>\n                            <td class="px-4 py-2">${e.mac}</td>\n                            <td class="px-4 py-2">${e.interface}</td>\n                        </tr>\n                    `})),n+="</tbody></table>",e.innerHTML=n})).catch((t=>{triggerAlert("warning","Error getting ARP table"),e.innerHTML='<div class="text-center py-2 text-red-500">Error connecting to server</div>'}))}function performPing(){const e=document.getElementById("pingHost").value,t=parseInt(document.getElementById("pingCount").value),n=parseInt(document.getElementById("pingTimeout").value);if(!e)return void triggerAlert("warning","Please enter a host/IP address");const r=document.getElementById("pingResults"),o=r.querySelector("div");r.classList.remove("hidden"),o.innerHTML='<div class="text-center py-2">Pinging '+e+"...</div>";sendNetworkRequest("ping",{host:e,count:t,timeout:n}).then((e=>{if(e.error)return triggerAlert("warning",e.error),void(o.innerHTML=`<div class="text-center py-2 text-red-500">${e.error}</div>`);let t="";e.results.forEach((e=>{t+=e+"<br>"})),o.innerHTML=t})).catch((e=>{triggerAlert("warning","Error performing ping"),o.innerHTML='<div class="text-center py-2 text-red-500">Error connecting to server</div>'}))}function performDnsLookup(){const e=document.getElementById("dnsHost").value,t=document.getElementById("dnsType").value;if(!e)return void triggerAlert("warning","Please enter a domain name");const n=document.getElementById("dnsResults"),r=n.querySelector("div");n.classList.remove("hidden"),r.innerHTML='<div class="text-center py-2">Looking up '+e+"...</div>";sendNetworkRequest("dns_lookup",{host:e,type:t}).then((n=>{if(n.error)return triggerAlert("warning",n.error),void(r.innerHTML=`<div class="text-center py-2 text-red-500">${n.error}</div>`);if(0===n.results.length)return void(r.innerHTML=`<div class="text-center py-2">No ${t} records found for ${e}</div>`);let o='<div class="space-y-4">';n.results.forEach((e=>{o+=`\n                        <div class="border-b pb-3 dark:border-gray-600">\n                            <h4 class="font-medium text-gray-800 dark:text-gray-200">${e.type} Record</h4>\n                            <div class="mt-2 space-y-1">\n                    `;const t=e.data;for(const[e,n]of Object.entries(t))"type"!==e&&"class"!==e&&(o+=`\n                                <div class="text-sm">\n                                    <span class="font-medium text-gray-700 dark:text-gray-300">${e}:</span>\n                                    <span class="text-gray-600 dark:text-gray-400">${n}</span>\n                                </div>\n                            `);o+="</div></div>"})),o+="</div>",r.innerHTML=o})).catch((e=>{triggerAlert("warning","Error performing DNS lookup"),r.innerHTML='<div class="text-center py-2 text-red-500">Error connecting to server</div>'}))}function performTraceroute(){const e=document.getElementById("tracerouteHost").value,t=parseInt(document.getElementById("tracerouteMaxHops").value),n=parseInt(document.getElementById("tracerouteTimeout").value);if(!e)return void triggerAlert("warning","Please enter a host/IP address");const r=document.getElementById("tracerouteResults"),o=r.querySelector("div");r.classList.remove("hidden"),o.innerHTML='<div class="text-center py-2">Tracing route to '+e+"...</div>";sendNetworkRequest("traceroute",{host:e,max_hops:t,timeout:n}).then((e=>{if(e.error)return triggerAlert("warning",e.error),void(o.innerHTML=`<div class="text-center py-2 text-red-500">${e.error}</div>`);let n='<div class="font-mono">';n+=`<div class="mb-2">Traceroute to ${e.host}, ${t} hops max:</div>`,e.results.forEach(((e,t)=>{n+=`<div>${e}</div>`})),n+="</div>",o.innerHTML=n})).catch((e=>{triggerAlert("warning","Error performing traceroute"),o.innerHTML='<div class="text-center py-2 text-red-500">Error connecting to server</div>'}))}function performWhoisLookup(){const e=document.getElementById("whoisDomain").value;if(!e)return void triggerAlert("warning","Please enter a domain or IP address");const t=document.getElementById("whoisResults"),n=t.querySelector("div");t.classList.remove("hidden"),n.innerHTML='<div class="text-center py-2">Looking up WHOIS information for '+e+"...</div>";sendNetworkRequest("whois",{domain:e}).then((t=>{if(t.error)return triggerAlert("warning",t.error),void(n.innerHTML=`<div class="text-center py-2 text-red-500">${t.error}</div>`);t.results?n.textContent=t.results:n.innerHTML=`<div class="text-center py-2">No WHOIS information found for ${e}</div>`})).catch((e=>{triggerAlert("warning","Error performing WHOIS lookup"),n.innerHTML='<div class="text-center py-2 text-red-500">Error connecting to server</div>'}))}function sendNetworkRequest(e,t){return new Promise(((n,r)=>{progr();const o={action:"network_tool",tool:e,params:t,csrf:phpVars.csrf},a=JSON.stringify(o),i="1"===phpVars.isEnc,s=CryptoJS.enc.Utf8.parse(phpVars.encryptionKey),l=i?encrypt(a,s):a;fetch("",{method:"POST",body:l}).then((e=>e.text())).then((e=>{try{let t;if(dprogr(),i)try{console.log("Attempting to decrypt response");const n=decrypt(e,s);console.log("Decrypted data:",n.substring(0,100)+"..."),t=JSON.parse(n)}catch(n){console.error("Decryption error:",n),console.log("Attempting direct JSON parse as fallback"),t=JSON.parse(e)}else t=JSON.parse(e);n(t)}catch(t){console.error("Error processing response:",t),console.error("Raw response:",e),dprogr(),r(t)}})).catch((e=>{console.error("Network error:",e),dprogr(),r(e)}))}))}function restoreOpenEditorFiles(){try{const t=localStorage.getItem("fileManager_openFiles");if(!t)return console.log("No saved editor files found in localStorage"),!1;const n=JSON.parse(t);if(!Array.isArray(n)||0===n.length)return console.log("Invalid or empty editor files data in localStorage"),!1;console.log("Restoring editor files:",n);const r=phpVars.csrf,o=phpVars.isEnc,a=CryptoJS.enc.Utf8.parse(phpVars.encryptionKey);async function e(e,t,n,r){try{const o=await sendRequest({csrf:t,action:"check_file_exists",file:e},n,r);return o&&!0===o.exists}catch(e){return console.error("Error checking if file exists:",e),!1}}return(async()=>{triggerAlert("info",`Restoring ${n.length} previously opened files...`);const t={success:[],failed:[]};for(let i=0;i<n.length;i++){const s=n[i];try{await e(s,r,a,o)?await new Promise((e=>{setTimeout((()=>{viewEditFile(s,r,a,o),t.success.push(s),e()}),300)})):(console.warn(`File not found: ${s}`),t.failed.push(s))}catch(e){console.error(`Error restoring file ${s}:`,e),t.failed.push(s)}}if(t.failed.length>0){const e=n.filter((e=>!t.failed.includes(e)));localStorage.setItem("fileManager_openFiles",JSON.stringify(e)),t.failed.length===n.length?triggerAlert("warning","Could not restore any previously opened files."):triggerAlert("warning",`Restored ${t.success.length} files. ${t.failed.length} files could not be found.`)}else t.success.length>0&&triggerAlert("success",`Successfully restored ${t.success.length} previously opened files.`);return t.success.length>0})()}catch(e){return console.error("Error restoring editor files from localStorage:",e),triggerAlert("warning","Failed to restore previously opened files."),!1}}document.addEventListener("DOMContentLoaded",(function(){if(window.loadTabsFromLocalStorage&&"function"==typeof window.loadTabsFromLocalStorage){window.loadTabsFromLocalStorage()&&restoreOpenEditorFiles()}document.getElementById("sql-tab")?.addEventListener("click",(function(){"function"==typeof window.initSQLExplorer&&window.initSQLExplorer()})),"function"==typeof window.initContextMenu&&window.initContextMenu(),exposeUtilityFunctions(),initGlobalKeyboardShortcuts(),window.clearFileSelection=function(){window.fileManagerState&&(window.fileManagerState.selectedFiles=[]),document.querySelectorAll(".file-checkbox:checked").forEach((e=>{e.checked=!1}));let e=document.getElementById("selectAll");e&&(e.checked=!1,e.indeterminate=!1),document.querySelectorAll("#fileList tr.bg-blue-50, #fileList tr.dark\\:bg-blue-900\\/20").forEach((e=>{e.classList.remove("bg-blue-50","dark:bg-blue-900/20")}))};const e=phpVars.csrf;let t=phpVars.currentDir;const n=phpVars.isEnc,r=CryptoJS.enc.Utf8.parse(phpVars.encryptionKey),o=phpVars.currentDir;let a;var i=phpVars.terPWD,s="",l=[],c=0,d=!1,u=0,g=0,m="",f=[],p="";let h=phpVars.cmList;window.editorThemePreference=localStorage.getItem("editor-theme"),"system"===window.editorThemePreference&&(window.editorThemePreference=window.matchMedia("(prefers-color-scheme: dark)").matches?"vs-dark":"vs");function y(e,t,n,r="",o){const a=document.documentElement.classList.contains("dark");Swal.fire({title:e,html:`\n                <div class="flex flex-col w-full">\n                    <label for="dialog-input" class="text-left mb-2 text-gray-700 dark:text-gray-300 text-sm font-medium">${t}</label>\n                    <input id="dialog-input" type="text" value="${r}" class="w-full p-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">\n                </div>\n            `,showCancelButton:!0,confirmButtonText:n,cancelButtonText:"Cancel",customClass:{popup:"dark:bg-gray-800 dark:text-gray-200",title:"text-gray-800 dark:text-gray-200",confirmButton:"bg-blue-600 hover:bg-blue-700 text-white",cancelButton:"bg-gray-500 hover:bg-gray-600 text-white"},background:a?"#1F2937":"#FFFFFF",focusConfirm:!1,preConfirm:()=>{const e=document.getElementById("dialog-input").value;return e&&""!==e.trim()?e:(Swal.showValidationMessage("You need to enter a value!"),!1)}}).then((e=>{e.isConfirmed&&e.value&&o(e.value)}))}function b(e,t,n,r){const o=document.documentElement.classList.contains("dark");Swal.fire({title:e,text:t,icon:"warning",iconColor:o?"#FBBF24":"#F59E0B",showCancelButton:!0,confirmButtonText:n,cancelButtonText:"Cancel",customClass:{popup:"dark:bg-gray-800 dark:text-gray-200",title:"text-gray-800 dark:text-gray-200",confirmButton:"bg-blue-600 hover:bg-blue-700 text-white",cancelButton:"bg-gray-500 hover:bg-gray-600 text-white"},background:o?"#1F2937":"#FFFFFF"}).then((e=>{e.isConfirmed&&r()}))}const w=localStorage.getItem("default-items-per-page");if(w){const e=document.getElementById("itemLimit");e&&(e.value=w)}if(loadTabsFromLocalStorage()){const e=fileManagerState.tabs.find((e=>e.active));e&&(t=e.path)}initializeFileManager(e,t,n,r),E(),$(document).on("click","#location-tabs button",(function(e){if(e.target.classList.contains("fa-times"))return;const t=$(this).data("tab-id");if(!fileManagerState.tabs.find((e=>e.id===t)))return;document.querySelectorAll('[role="tabpanel"]').forEach((e=>{e.classList.add("hidden")})),document.querySelectorAll("[data-tabs-target]").forEach((e=>{const t=e.getAttribute("data-tabs-target");t&&document.querySelector(t)&&document.querySelector(t).classList.add("hidden")})),function(e){window.switchToTab(e)}(t);const n=document.createElement("span");n.className="absolute inset-0 bg-blue-500 opacity-30 rounded-t-lg animate-ripple",this.appendChild(n),setTimeout((()=>n.remove()),600)})),$(document).on("click","[data-close-tab]",(function(o){o.stopPropagation();const a=$(this).data("close-tab");$(this).closest("li").addClass("animate-tab-closing"),setTimeout((()=>{!function(o){if(fileManagerState.tabs.length<=1)return;const a=fileManagerState.tabs.findIndex((e=>e.id===o));if(-1===a)return;const i=fileManagerState.tabs[a].active;if("editor"===fileManagerState.tabs[a].type){const e=fileManagerState.tabs[a].path;e&&window.saveOpenedFilesState&&window.saveOpenedFilesState(e,"remove")}if(fileManagerState.tabs.splice(a,1),i){const o=Math.max(0,a-1);fileManagerState.tabs[o].active=!0,fileManagerState.activeTabId=fileManagerState.tabs[o].id;const i=fileManagerState.tabs[o].type,s=document.getElementById("fileManagerUI");if(s)if("filemanager"===i){s.classList.remove("hidden"),s.style.display="block",document.querySelectorAll(".tabs-panel").forEach((e=>{e.classList.add("hidden")})),t=fileManagerState.tabs[o].path,updateCurrentPath();let a=document.getElementById("itemLimit"),i=a?a.value:"50";loadDirectory(t,1,e,r,n,i)}else{s.classList.add("hidden"),s.style.display="none";const e=document.getElementById(`${fileManagerState.activeTabId}-content`);e&&(document.querySelectorAll(".tabs-panel").forEach((e=>{e.classList.add("hidden")})),e.classList.remove("hidden"),window.editor&&setTimeout((()=>window.editor.refresh()),10))}}E(),saveTabsToLocalStorage()}(a)}),150)})),$("#add-tab-btn").click((function(){L(),$(this).addClass("animate-pulse"),setTimeout((()=>{$(this).removeClass("animate-pulse")}),500)})),window.addEventListener("resize",function(e,t){let n;return function(...r){const o=()=>{clearTimeout(n),e(...r)};clearTimeout(n),n=setTimeout(o,t)}}(I,100)),initThemeToggle(),initSettings();const v=document.getElementById("selectAll");function x(e){console.log("Select All checkbox changed:",e.target.checked);const t=e.target.checked,n=document.querySelectorAll(".file-checkbox");console.log("Found file checkboxes:",n.length),window.fileManagerState||(window.fileManagerState={selectedFiles:[]}),window.fileManagerState.selectedFiles=[],n.forEach((e=>{if(e.checked=t,t){const t=e.dataset.fullPath||e.dataset.file;updateSelectedFiles(t,!0,!0);e.closest("tr").classList.add("bg-blue-50","dark:bg-blue-900/20")}else{e.closest("tr").classList.remove("bg-blue-50","dark:bg-blue-900/20")}})),console.log("Updated selected files:",window.fileManagerState.selectedFiles),console.log("Selected file count:",window.fileManagerState.selectedFiles.length)}v&&(v.removeEventListener("change",x),v.addEventListener("change",x));const k=document.getElementById("fileList");function S(e){const t=$("#breadcrumbs ol"),n=e.split("/").filter((e=>""!==e));let r="";r+='\n            <li class="inline-flex items-center">\n                <a href="#" class="breadcrumb-link" data-path="/">\n                    /\n                </a>\n            </li>\n        ',n.forEach(((e,t)=>{const o="/"+n.slice(0,t+1).join("/");r+=`\n                <li class="inline-flex items-center">\n                    <i class="fas fa-chevron-right mx-2 text-gray-500"></i>\n                    <a href="#" class="breadcrumb-link" data-path="${o}">${e}</a>\n                </li>\n            `})),t.html(r)}function E(){const e=document.getElementById("location-tabs");if(!e)return;e.innerHTML="",fileManagerState.tabs.forEach((t=>{const n=document.createElement("li");n.className="mr-1 flex-shrink-0",n.setAttribute("role","presentation");const r=t.name||A(t.path);let o="fa-folder";"Root"!==r&&"Home"!==r||(o="fa-home");n.innerHTML=`\n                <button class="${t.active?"inline-flex items-center p-3 border-b-2 rounded-t-lg text-blue-600 border-blue-600 active dark:text-blue-500 dark:border-blue-500 bg-white dark:bg-gray-800 shadow-sm":"inline-flex items-center p-3 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 dark:hover:border-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600"} transition-all duration-200 group" \n                        data-tab-id="${t.id}" \n                        type="button" \n                        role="tab">\n                    <i class="fas ${o} mr-2 ${t.active?"text-blue-500":"group-hover:text-blue-400"} transition-colors"></i>\n                    <span class="truncate max-w-[100px] md:max-w-[150px]">${r}</span>\n                    ${"tab-1"!==t.id?`\n                        <i class="fas fa-times ml-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full text-xs opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all" data-close-tab="${t.id}"></i>\n                    `:""}\n                </button>\n            `,e.appendChild(n)}));const t=e.querySelector('button[data-tab-id="'+fileManagerState.activeTabId+'"]');t&&(t.classList.add("animate-pulse"),setTimeout((()=>{t.classList.remove("animate-pulse")}),500),requestAnimationFrame((()=>{const n=t.getBoundingClientRect(),r=e.getBoundingClientRect();n.left<r.left?e.scrollLeft+=n.left-r.left-16:n.right>r.right&&(e.scrollLeft+=n.right-r.right+16)}))),I()}function I(){const e=document.getElementById("location-tabs");if(!e)return;if(e.scrollWidth>e.clientWidth){if(e.classList.add("tabs-overflow"),!document.getElementById("tab-scroll-left")){const t=document.createElement("button");t.id="tab-scroll-left",t.className="absolute left-0 top-0 bottom-0 px-1 bg-gradient-to-r from-white to-transparent dark:from-gray-800 dark:to-transparent z-10 opacity-80 hover:opacity-100 transition-opacity",t.innerHTML='<i class="fas fa-chevron-left"></i>',t.addEventListener("click",(()=>{e.scrollBy({left:-150,behavior:"smooth"})}));const n=document.createElement("button");n.id="tab-scroll-right",n.className="absolute right-0 top-0 bottom-0 px-1 bg-gradient-to-l from-white to-transparent dark:from-gray-800 dark:to-transparent z-10 opacity-80 hover:opacity-100 transition-opacity",n.innerHTML='<i class="fas fa-chevron-right"></i>',n.addEventListener("click",(()=>{e.scrollBy({left:150,behavior:"smooth"})})),e.parentElement.appendChild(t),e.parentElement.appendChild(n)}}else e.classList.remove("tabs-overflow"),document.getElementById("tab-scroll-left")?.remove(),document.getElementById("tab-scroll-right")?.remove()}function L(e,t="filemanager"){return window.addNewTab(e,t)}function A(e){const t=e.endsWith("/")?e.slice(0,-1):e;if(""===t||"/"===t)return"Root";const n=t.split("/");return n[n.length-1]||"Root"}function B({action:o,files:a,options:i=null,onSuccess:s=null,onError:l=null}){progr();const c={action:o,file:a,dir:t,csrf:e};i&&Object.assign(c,i);const d=JSON.stringify(c),u="1"===n?encrypt(d,r):d;if("telegram_backup"===o){const e=new AbortController,t=setTimeout((()=>e.abort()),1e3);fetch("",{method:"POST",body:u,signal:e.signal}).then((e=>{if(clearTimeout(t),!e.ok)throw new Error("Network response was not ok");return e.text()})).then((e=>{try{const t="1"===n?decrypt(e,r):e,o=JSON.parse(t);o.error?(triggerAlert("warning",o.error),l&&l(o.error)):s&&s(o)}catch(e){console.error("Error processing response:",e),triggerAlert("error","Failed to process server response"),l&&l(e)}dprogr()})).catch((e=>{"AbortError"===e.name?(console.log("Background process started"),s&&s({status:"Backup started in background"})):(console.error("Request failed:",e),triggerAlert("error","Request failed: "+e.message),l&&l(e)),dprogr()}))}else $.post("",u,(function(e){try{const t="1"===n?decrypt(e,r):e,o=JSON.parse(t);console.log("Response:",o),o.error?(triggerAlert("warning",o.error),l&&l(o.error)):o.success?s?s(o):triggerAlert("success",o.success):s?s(o):triggerAlert("success","Operation completed successfully")}catch(e){console.error("Error processing response:",e),triggerAlert("error","Failed to process server response"),l&&l(e)}dprogr()})).fail((function(e,t,n){console.error("Request failed:",t,n),triggerAlert("error","Request failed: "+(n||"Unknown error")),l&&l(n),dprogr()}))}k&&k.addEventListener("change",(function(e){if(e.target.classList.contains("file-checkbox")){const t=e.target.checked;updateSelectedFiles(e.target.dataset.file,t);const n=document.querySelectorAll(".file-checkbox"),r=Array.from(n).every((e=>e.checked)),o=Array.from(n).some((e=>e.checked));v&&(v.checked=r,v.indeterminate=!r&&o)}})),document.addEventListener("click",(function(o){if(o.target.classList.contains("fa-trash-alt")){const a=o.target.dataset.file;deleteFile(a,e,t,r,n)}})),$(".fa-folder-plus").click((function(){y("Create Folder","Enter the name of new folder: ","mkdir","NewFolder",(o=>{o&&(data={csrf:e,action:"mkdir",dir:t,dirName:o},handleCreate(data,"folder",r,n,t,e))}))})),$(".fa-file-circle-plus").click((function(){y("Create File","Enter the name of new File: ","touch","File",(o=>{o&&(data={csrf:e,action:"touch",dir:t,dirName:o},handleCreate(data,"file",r,n,t,e))}))})),$(".codeme").click((function(){y("Execute PHP Code","Enter the PHP code to execute:","Execute","",(o=>{o&&""!==o.trim()&&sendRequest({csrf:e,action:"execute",code:o.trim(),dir:t},r,n).then((e=>{e.output&&(triggerAlert("success","Code executed successfully"),Swal.fire({title:"Execution Result",html:`<pre class="text-left">${e.output}</pre>`,width:"80%",customClass:{popup:"dark:bg-gray-800 dark:text-white",htmlContainer:"overflow-auto max-h-[70vh]"}}))})).catch((e=>{triggerAlert("warning","Error executing code: "+e)}))}))})),$("#searchBar").on("keyup",(function(){const o=$(this).val().toLowerCase();console.log("Search query:",o),o.length>0?$("#clearSearch").show():$("#clearSearch").hide(),window.fileManagerState?"function"==typeof window.renderFiles?window.renderFiles(window.fileManagerState.files,t,e,r,n):console.error("renderFiles function not found"):console.error("fileManagerState is not initialized")})),$("#clearSearch").on("click",(function(){$("#searchBar").val("").focus(),$(this).hide(),"function"==typeof window.renderFiles&&window.fileManagerState&&window.renderFiles(window.fileManagerState.files,t,e,r,n)})),document.addEventListener("click",(function(t){if(t.target.classList.contains("fa-download")){const o=t.target.dataset.file;console.log("filePath "+A(o)),dwn(o,e,r,n)}})),$(window).on("scroll",(function(){if($(window).scrollTop()+$(window).height()>=$(document).height()-100){let o=document.getElementById("itemLimit").value;fileManagerState.currentPage<fileManagerState.totalPages&&!fileManagerState.isLoading&&(fileManagerState.currentPage++,loadDirectory(t,fileManagerState.currentPage,e,r,n,o))}})),$("th[data-sort]").click((function(){const o=$(this).data("sort");if(console.log("Sorting by column:",o),!window.fileManagerState)return void console.error("fileManagerState is not initialized");window.fileManagerState.currentSort.column===o?window.fileManagerState.currentSort.direction="asc"===window.fileManagerState.currentSort.direction?"desc":"asc":(window.fileManagerState.currentSort.column=o,window.fileManagerState.currentSort.direction="asc"),console.log("Sort state:",window.fileManagerState.currentSort),"function"==typeof window.sortFiles?window.sortFiles():console.error("sortFiles function not found"),"function"==typeof window.renderFiles?window.renderFiles(window.fileManagerState.files,t,e,r,n):console.error("renderFiles function not found"),$("th[data-sort]").find("i.fas").removeClass("fa-sort-up fa-sort-down").addClass("fa-sort");const a=$(this).find("i.fas");a.removeClass("fa-sort"),"asc"===window.fileManagerState.currentSort.direction?a.addClass("fa-sort-up"):a.addClass("fa-sort-down")})),$(document).on("click",".directory-link",(function(o){o.preventDefault();let i=document.getElementById("itemLimit").value;const s=$(this).data("path");s&&s!==t&&(t=s,a=t,console.log(a),updateCurrentPath(),loadDirectory(t,1,e,r,n,i),updateActiveTabPath(t))})),window.updateCurrentPath=function(){S(t)},$("#breadcrumbs").on("dblclick",(function(o){console.log("Double-click detected"),o.preventDefault();const a=$("#breadcrumbs ol"),i=t,s=$("<input>",{type:"text",value:i,class:"w-96 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"});console.log("originalPath"+i),a.html(`<li class="inline-flex items-center">${s.prop("outerHTML")}</li>`),a.find("input").focus(),a.find("input").on("blur",(function(){$(this).val().trim();S(i)})),a.find("input").on("keydown",(function(o){if(13===o.keyCode){o.preventDefault();const a=$(this).val().trim();a&&(t=a,updateCurrentPath(),loadDirectory(t,1,e,r,n),updateActiveTabPath(t))}}))})),$(document).on("click",".breadcrumb-link",(function(o){o.preventDefault();const i=$(this).data("path");if(i){t=i,updateCurrentPath(),a=t,console.log(a);let o=document.getElementById("itemLimit"),s=o?o.value:"50";loadDirectory(t,1,e,r,n,s),updateActiveTabPath(t)}})),$(document).on("click","#goHome",(function(i){i.preventDefault(),t=o,updateCurrentPath(),a=t;let s=document.getElementById("itemLimit"),l=s?s.value:"50";loadDirectory(t,1,e,r,n,l),updateActiveTabPath(t),$(this).addClass("animate-pulse"),setTimeout((()=>{$(this).removeClass("animate-pulse")}),300)})),window.switchToTab=function(o){const a=fileManagerState.tabs.find((e=>e.id===o));if(!a)return;fileManagerState.tabs.forEach((e=>e.active=!1)),a.active=!0,fileManagerState.activeTabId=o,E(),document.querySelectorAll('[role="tabpanel"]').forEach((e=>{e.classList.add("hidden")}));let i=document.getElementById(`${o}-content`);if(!i&&("editor"===a.type||"search"===a.type)){console.log("Creating tab content element for tab:",o);const e=document.getElementById("tabs-content");if(!e)return void console.error("Tabs content container not found!");i=document.createElement("div"),i.id=`${o}-content`,i.className="tabs-panel w-full",e.appendChild(i)}document.querySelectorAll(".tabs-panel").forEach((e=>{e.classList.add("hidden")}));const s=document.getElementById("fileManagerUI");if("editor"===a.type||"search"===a.type)if(console.log("Handling editor/search tab"),s?(console.log("Hiding fileManagerUI"),s.classList.add("hidden"),s.style.display="none"):console.warn("fileManagerUI element not found"),i){i.classList.remove("hidden");const e=i.querySelector(".editor-container");e&&(e.style.height="90vh",e.style.width="100%",window.editor&&setTimeout((()=>window.editor.refresh()),10))}else console.error("Tab content not found for ID:",`${o}-content`);else{const o=document.getElementById("file");if(s){console.log("Showing fileManagerUI"),s.classList.remove("hidden"),s.style.display="block",o&&o.classList.remove("hidden"),t=a.path,updateCurrentPath();let i=document.getElementById("itemLimit"),l=i?i.value:"50";loadDirectory(t,1,e,r,n,l)}else console.warn("fileManagerUI element not found")}saveTabsToLocalStorage()},window.addNewTab=function(e=null,n="filemanager"){const r=`tab-${Date.now()}`;fileManagerState.tabs.forEach((e=>e.active=!1)),fileManagerState.tabs.push({id:r,path:t,active:!0,name:e||A(t),type:n}),fileManagerState.activeTabId=r,E();const o=document.getElementById("fileManagerUI");return o&&("filemanager"===n?(o.classList.remove("hidden"),o.style.display="block",document.querySelectorAll(".tabs-panel").forEach((e=>{e.classList.add("hidden")}))):(o.classList.add("hidden"),o.style.display="none")),saveTabsToLocalStorage(),r},window.updateActiveTabPath=function(e){const t=fileManagerState.tabs.find((e=>e.id===fileManagerState.activeTabId));t&&(t.path=e,t.name=A(e),E(),saveTabsToLocalStorage())},$("#bulkActions").change((function(){const o=$(this).val();setTimeout((()=>{$(this).val("")}),100);const a=()=>{const e=document.querySelectorAll(".file-checkbox:checked"),t=[];return e.forEach((e=>{const n=e.dataset.fullPath||e.dataset.file;n&&t.push(n)})),t},i=a();if(console.log("Bulk action triggered:",o),console.log("Selected files:",i),console.log("Selected files count:",i.length),0!==i.length||"paste"===o)switch(o){case"delete":b("Delete Files",`Are you sure you want to delete ${i.length} file(s)?`,"Delete",(()=>{const o=a();o.length>0?(console.log("Sending files for deletion:",o),B({action:"delete",files:o,onSuccess:()=>{clearFileSelection(),triggerAlert("success","Files deleted successfully"),loadDirectory(t,1,e,r,n)}})):triggerAlert("warning","No files selected for deletion.")}));break;case"zip":!function(e,t,n,r="",o){const a=document.documentElement.classList.contains("dark"),i=a?"bg-gray-800 text-white border-gray-700":"bg-white text-gray-900 border-gray-300";Swal.fire({title:e,html:`\n                <div class="flex flex-col space-y-4">\n                    <div class="w-full">\n                        <label for="zipFileName" class="text-sm font-medium block mb-1">\n                            ${t}\n                        </label>\n                        <input id="zipFileName" type="text" value="${r}" \n                               class="w-full p-2 border rounded ${i}">\n                    </div>\n                    <div class="w-full">\n                        <label for="compressionLevel" class="text-sm font-medium block mb-1">\n                            Compression Level:\n                        </label>\n                        <select id="compressionLevel" class="w-full p-2 border rounded ${i}">\n                            <option value="0">Store only (no compression)</option>\n                            <option value="1">Fastest (lowest compression)</option>\n                            <option value="5" selected>Normal (balanced)</option>\n                            <option value="9">Maximum (slowest)</option>\n                        </select>\n                    </div>\n                    <div class="w-full">\n                        <label for="archiveFormat" class="text-sm font-medium block mb-1">\n                            Archive Format:\n                        </label>\n                        <select id="archiveFormat" class="w-full p-2 border rounded ${i}">\n                            <option value="zip" selected>ZIP (.zip)</option>\n                            <option value="tar">TAR (.tar)</option>\n                            <option value="tar.gz">TAR GZ (.tar.gz)</option>\n                            <option value="tar.bz2">TAR BZ2 (.tar.bz2)</option>\n                            <option value="tar.xz">TAR XZ (.tar.xz)</option>\n                            <option value="gz">GZIP (.gz)</option>\n                        </select>\n                    </div>\n                </div>\n            `,focusConfirm:!1,showCancelButton:!0,confirmButtonText:n,cancelButtonText:"Cancel",customClass:{popup:a?"bg-gray-800 text-white":"bg-white text-gray-900",confirmButton:"bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded",cancelButton:"bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded mr-2"},preConfirm:()=>{const e=document.getElementById("zipFileName").value,t=document.getElementById("compressionLevel").value,n=document.getElementById("archiveFormat").value;return e?{zipFileName:e,compressionLevel:t,archiveFormat:n}:(Swal.showValidationMessage("Please enter a filename"),!1)}}).then((e=>{e.isConfirmed&&e.value&&o(e.value)}))}("Create Zip Archive","Enter the name for the zip file:","Create","archive.zip",(o=>{if(o){const i=a();if(0===i.length)return void triggerAlert("warning","No files selected for archiving.");const s=o.archiveFormat;let l=o.zipFileName;l.toLowerCase().endsWith("."+s)||(l.includes(".")&&(l=l.substring(0,l.lastIndexOf("."))),l+="."+s),o.zipFileName=l,B({action:"zip",files:i,options:o,onSuccess:()=>{clearFileSelection(),triggerAlert("success","Archive created successfully"),loadDirectory(t,1,e,r,n)}})}}));break;case"unzip":if(i.length>1){const o=i.map((e=>{const t=e.split(".").pop().toLowerCase();if(["gz","bz2","xz"].includes(t)){if(e.substring(0,e.lastIndexOf(".")).toLowerCase().endsWith(".tar"))return`tar.${t}`}return t}));if(!o.every((e=>e===o[0])))return void b("Warning: Different Archive Types","You've selected different types of archives. This may cause extraction issues. Continue anyway?","Continue",(()=>{const o=a();o.length>0&&B({action:"unzip",files:o,onSuccess:()=>{clearFileSelection(),triggerAlert("success","Archives extracted successfully"),loadDirectory(t,1,e,r,n)}})}))}b("Extract Archive",i.length>1?`Extract ${i.length} archives to the current directory?`:`Extract "${i[0]}" to the current directory?`,"Extract",(()=>{const o=a();o.length>0&&B({action:"unzip",files:o,onSuccess:()=>{clearFileSelection(),triggerAlert("success","Archives extracted successfully"),loadDirectory(t,1,e,r,n)}})}));break;case"copy":if(i.length>0){const e=i.map((e=>e.includes("/")?e:`${t}/${e}`));localStorage.setItem("copiedFiles",JSON.stringify(e)),triggerAlert("success",`${i.length} file(s) copied to clipboard`)}break;case"paste":try{const o=JSON.parse(localStorage.getItem("copiedFiles")||"[]");o.length>0?B({action:"paste",files:o,onSuccess:()=>{clearFileSelection(),triggerAlert("success","Files pasted successfully"),loadDirectory(t,1,e,r,n),localStorage.removeItem("copiedFiles")}}):triggerAlert("warning","No files in clipboard to paste")}catch(e){console.error("Error reading clipboard:",e),triggerAlert("error","Failed to read clipboard data")}break;case"telegram_backup":b("Secure Backup to Telegram",`Are you sure you want to backup ${i.length} file(s) to Telegram? All files and folders will be compressed with maximum compression (level 9) and protected with strong AES-256 encryption using a random password.`,"Secure Backup",(()=>{const e=a();e.length>0?(console.log("Sending files for Telegram backup:",e),triggerAlert("info","Sending files to Telegram with maximum compression and password protection. This may take a while for large files..."),B({action:"telegram_backup",files:e,onSuccess:e=>{clearFileSelection(),"Backup started in background"===e.status?triggerAlert("info","Backup started in background. You can continue using the app."):e.success?triggerAlert("success",e.success):e.warning?triggerAlert("warning",e.warning):triggerAlert("success","Files are being backed up.")},onError:e=>{triggerAlert("error","Failed to backup files: "+e)}})):triggerAlert("warning","No files selected for backup.")}));break;default:console.log("Unknown action:",o);break}else triggerAlert("info","No files selected! Please select files to perform bulk actions.")}));const T=document.getElementById("dropZone"),M=document.getElementById("fileInput"),F=document.getElementById("uploadForm"),C=document.getElementById("uploadProgress"),P=document.getElementById("progressBar"),D=document.getElementById("progressText");if(T&&M&&F&&C&&P&&D){function q(e){e.preventDefault(),e.stopPropagation()}function z(o){C.classList.remove("hidden"),P.style.width="0%",D.textContent="Uploading...";const a=new FormData(F);a.append("updir",t),a.append("csrf",e),fetch("",{method:"POST",body:a}).then((e=>e.json())).then((o=>{o.success?(D.textContent="Upload complete!",setTimeout((()=>C.classList.add("hidden")),3e3),loadDirectory(t,1,e,r,n)):D.textContent=o.error||"Upload failed. Please try again."})).catch((e=>{D.textContent="Upload failed. Please try again.",console.error("Error:",e)}))}["dragenter","dragover","dragleave","drop"].forEach((e=>{T.addEventListener(e,q,!1)})),["dragenter","dragover"].forEach((e=>{T.addEventListener(e,(()=>T.classList.add("bg-blue-50","dark:bg-gray-600")),!1)})),["dragleave","drop"].forEach((e=>{T.addEventListener(e,(()=>T.classList.remove("bg-blue-50","dark:bg-gray-600")),!1)})),T.addEventListener("drop",(function(e){const n=e.dataTransfer.files;n.length>0&&(M.files=n,a=t,z(a))}),!1),M.addEventListener("change",z),T.addEventListener("click",(()=>M.click()))}function N(e,t,n,r,o){if(progr(),console.log("Saving file content for:",e),!t)return triggerAlert("warning","File content is empty."),void dprogr();if(!e)return triggerAlert("warning","No file path specified."),void dprogr();const a=document.querySelector(`[data-file-path="${e}"]`);let i="";if(a){const e=a.id.replace("-content",""),t=document.getElementById(`file-type-select-${e}`);t&&(i=t.value)}sendRequest({csrf:n,action:"save_content",file:e,content:t,file_type:i},r,o).then((e=>{console.log("File saved successfully:",e),triggerAlert("success","File saved successfully"),dprogr()})).catch((e=>{console.error("Error saving file:",e),triggerAlert("danger","Failed to save file: "+e),dprogr()}))}function H(e){switch(e.split(".").pop().toLowerCase()){case"js":return"javascript";case"php":return"php";case"html":case"htm":return"htmlmixed";case"css":return"css";case"json":return"application/json";case"xml":return"xml";case"md":return"markdown";case"py":return"python";case"rb":return"ruby";case"java":return"text/x-java";case"c":return"text/x-csrc";case"cpp":case"cc":case"h":case"hpp":return"text/x-c++src";case"cs":return"text/x-csharp";case"go":return"text/x-go";case"rs":return"text/x-rustsrc";case"ts":return"text/typescript";case"sql":return"sql";case"sh":case"bash":return"shell";case"yml":case"yaml":return"yaml";case"txt":return"text";default:return"plaintext"}}document.addEventListener("click",(function(t){if(t.target.classList.contains("file-link")){t.preventDefault();!function(e,t,n,r){progr(),console.log("ViewEditFile called for:",e);try{const o=e.split("/").pop(),a=(o.split(".").pop()||"").toLowerCase();if([...["jpg","jpeg","png","gif","bmp","webp","svg","ico"],...["mp4","webm","ogg","avi","mov","wmv","flv","mkv"],...["mp3","wav","ogg","aac","flac","m4a"],...["pdf"],...["doc","docx","xls","xlsx","ppt","pptx"]].includes(a)&&"function"==typeof window.showFilePreviewModal)return window.showFilePreviewModal(e,o,a,t,n,r),void dprogr()}catch(e){console.warn("Preview detection failed:",e)}try{const a=L(e.split("/").pop(),"editor");function o(o){o.dataset.filePath=e,o.innerHTML="";const i=document.createElement("div");i.className="editor-container",i.style.width="100%",i.style.height="90vh",i.style.border="1px solid #ddd",i.style.position="relative",o.appendChild(i);const s=document.createElement("div");s.className="file-type-selector fixed top-4 right-4 z-50",s.innerHTML=`\n                    <select id="file-type-select-${a}" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm">\n                        <option value="">Auto-detect</option>\n                        <option value="javascript">JavaScript</option>\n                        <option value="php">PHP</option>\n                        <option value="htmlmixed">HTML</option>\n                        <option value="css">CSS</option>\n                        <option value="application/json">JSON</option>\n                        <option value="xml">XML</option>\n                        <option value="markdown">Markdown</option>\n                        <option value="python">Python</option>\n                        <option value="text/x-java">Java</option>\n                        <option value="text/x-csrc">C</option>\n                        <option value="text/x-c++src">C++</option>\n                        <option value="sql">SQL</option>\n                        <option value="shell">Shell/Bash</option>\n                        <option value="yaml">YAML</option>\n                        <option value="text">Plain Text</option>\n                    </select>\n                `,o.appendChild(s),sendRequest({csrf:t,action:"view_content",file:e},n,r).then((s=>{if(console.log("File content fetched successfully, length:",s.content?.length),"undefined"==typeof CodeMirror)return console.error("CodeMirror is not defined!"),i.innerHTML=`<pre style="white-space: pre-wrap; padding: 1rem;">${s.content}</pre>`,triggerAlert("warning","CodeMirror not found. Displaying content in plain text mode."),void dprogr();const l=s.file_type||H(e),c=CodeMirror(i,{value:s.content||"",mode:l,theme:document.documentElement.classList.contains("dark")?"dracula":"eclipse",lineNumbers:!0,lineWrapping:!0,matchBrackets:!0,autoCloseBrackets:!0,styleActiveLine:!0});window.editor=c,c.setSize("100%","100%");const d=document.getElementById(`file-type-select-${a}`);if(d){Array.from(d.options).find((e=>e.value===l))&&(d.value=l),d.addEventListener("change",(()=>{const o=d.value||H(e);c.setOption("mode",o),sendRequest({csrf:t,action:"view_content",file:e,file_type:o},n,r),setTimeout((()=>c.refresh()),50)}))}let u=o.querySelector(".save-file-btn");u||(u=document.createElement("button"),u.className="save-file-btn fixed bottom-4 right-4 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded shadow-lg z-50",u.innerHTML='<i class="fas fa-save mr-2"></i> Save',u.addEventListener("click",(()=>{const o=c.getValue();N(e,o,t,n,r)})),o.appendChild(u)),setTimeout((()=>{c&&(c.refresh(),c.focus())}),100),dprogr()})).catch((e=>{console.error("Error fetching file content:",e),i.innerHTML='<div class="p-4 text-red-500">Failed to load file content: '+e+"</div>",dprogr()}))}console.log("Created new tab with ID:",a),window.saveOpenedFilesState&&window.saveOpenedFilesState(e,"add"),setTimeout((()=>{const e=document.getElementById("fileManagerUI");e&&(e.classList.add("hidden"),e.style.display="none",console.log("fileManagerUI hidden"));const t=document.getElementById("tabs-content");if(!t)return console.error("Tabs content container not found"),dprogr(),void triggerAlert("warning","Failed to initialize editor. Try refreshing the page.");let n=document.getElementById(`${a}-content`);n||(console.log("Creating new tab content with ID:",`${a}-content`),n=document.createElement("div"),n.id=`${a}-content`,n.className="tabs-panel w-full",t.appendChild(n)),document.querySelectorAll(".tabs-panel").forEach((e=>{e.classList.add("hidden")})),document.querySelectorAll('[role="tabpanel"]').forEach((e=>{e.classList.add("hidden")})),n.classList.remove("hidden"),o(n)}),100)}catch(e){console.error("Error in viewEditFile:",e),dprogr()}}(t.target.dataset.file,e,r,n)}})),function(){const t=document.getElementById("cancelEdit"),o=document.getElementById("cancelEditBtn"),a=document.getElementById("editorLanguage"),i=document.getElementById("saveFile");t&&t.addEventListener("click",(function(){const e=document.getElementById("editorModal");e&&e.classList.add("hidden")})),o&&o.addEventListener("click",(function(){const e=document.getElementById("editorModal");e&&e.classList.add("hidden")})),a&&a.addEventListener("change",(function(){if(window.editor){const e=this.value,t={javascript:"javascript",php:"php",html:"htmlmixed",css:"css",json:"javascript",plaintext:"null"}[e]||"null";window.editor.setOption("mode",t);const n=document.getElementById("editorStatus");n&&(n.textContent=`Language changed to ${e}`)}})),i&&i.addEventListener("click",(function(){const t=window.editor?window.editor.getValue():"",o=document.getElementById("editorModal"),a=o&&o.dataset.filePath?o.dataset.filePath:"",i=document.getElementById("editorStatus");i&&(i.textContent="Saving..."),N(a,t,e,r,n)}))}();function O(){const e=document.querySelector('[role="tab"][aria-selected="true"]')?.getAttribute("data-tabs-target"),t=document.querySelector(".mb-4.border-b.border-gray-200.dark\\:border-gray-700"),n=document.getElementById("breadcrumbs");e&&t&&n?"#terminal"===e||"#config"===e||"#setting"===e?(t.classList.add("hidden"),n.classList.add("hidden")):(t.classList.remove("hidden"),n.classList.remove("hidden")):console.warn("Could not find all required elements for navigation toggle")}function R(){s="",c=0,u=0,g=0,p="",d=!1}function V(){$("line.current bl").remove(),$("line.current").removeClass("current")}function _(){$("terminal content").append('<line class="current"><path>'+i+"</path> <sp></sp> <t><bl></bl></t></line>")}function U(){let e=$("line.current t").html(),t=1==e.split(" ").length?"<cm>"+e+"</cm>":"<cm>"+e.split(" ")[0]+"</cm> <code>"+e.split(" ").slice(1).join(" ").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</code>";$("line.current t").html(t.replace("&lt;bl&gt;&lt;/bl&gt;","<bl></bl>"))}function j(e=""){""===e?e=s:u=0;let t=e.substr(0,e.length+u),n=e.substr(e.length+u);$("line.current t").html(t+"<bl></bl>"+n)}window.initializeEditor=function(e,t="plaintext",n="editorContainer"){progr();const r=document.getElementById(n);if(!r)return console.error("Editor container not found:",n),void dprogr();const o=document.documentElement.classList.contains("dark")?"dracula":"eclipse";try{const a={"Ctrl-S":function(e){const t=r.closest('[id$="-content"]');if(t){const e=t.querySelector(".save-file-btn");e&&e.click()}else{const e=document.getElementById("saveFile");e&&e.click()}return!1},"Ctrl-F":"findPersistent","Ctrl-H":"replace","Ctrl-/":"toggleComment",Tab:function(e){return e.somethingSelected()?e.indentSelection("add"):e.replaceSelection("    ","end"),!0},"Shift-Tab":function(e){return e.indentSelection("subtract"),!0},"Ctrl-Q":function(e){return e.foldCode(e.getCursor()),!1},Esc:function(e){return e.getOption("fullScreen")&&e.setOption("fullScreen",!1),!1}};r.innerHTML="";const i=CodeMirror(r,{value:e||"",mode:t,theme:o,lineNumbers:!0,indentUnit:4,smartIndent:!0,indentWithTabs:!1,lineWrapping:!0,matchBrackets:!0,autoCloseBrackets:!0,autoCloseTags:!0,styleActiveLine:!0,selectionPointer:!0,tabSize:parseInt(localStorage.getItem("tab-size")||"4"),extraKeys:a,scrollbarStyle:"native",undoDepth:200,historyEventDelay:200});window.editor=i,i.setSize("100%","100%"),setTimeout((()=>{i&&i.focus()}),100),setTimeout((()=>{i&&i.refresh()}),50),console.log(`CodeMirror editor initialized with mode: ${t} in container: ${n}`)}catch(e){console.error("Error initializing CodeMirror editor:",e),triggerAlert("warning","Failed to initialize the editor. Please try again.")}finally{dprogr()}},window.createEditor=function(e,t){if(console.log("createEditor called - redirecting to initializeEditor"),"function"!=typeof window.initializeEditor)return console.error("initializeEditor function not found"),void triggerAlert("warning","Editor initialization failed. Please refresh the page.");if(!document.getElementById("editorContainer"))return console.error("Editor container not found"),void triggerAlert("warning","Editor container not found in DOM. Please refresh the page.");try{window.initializeEditor(e,t)}catch(e){console.error("Error in createEditor:",e),triggerAlert("warning","Failed to initialize editor. Please try again.")}},$(document).ready((function(){window.fileManagerState||(window.fileManagerState={files:[],totalPages:1,currentPage:1,currentSort:{column:"name",direction:"asc"},selectedFiles:[],tabs:[{id:"tab-1",path:t,active:!0,name:"Home"}],activeTabId:"tab-1"});const o=document.getElementById("itemLimit");let a="50";if(o&&o.value)a=o.value;else{const e=localStorage.getItem("default-items-per-page");e&&(a=e,o&&(o.value=a))}function y(e){var t="number"==typeof e.which?e.which:e.keyCode;8===t||9===t||46===t?(e.preventDefault(),""!==s&&(8===t?function(){0!==g&&(g=0,s=p);let e=s.substr(0,s.length+u),t=s.substr(s.length+u);s=e.substr(0,e.length-1)+t,j(),U()}():46===t?function(){let e=s.substr(0,s.length+u),t=s.substr(s.length+u);s=e+t.substr(1),0!==u&&u++;j(),U()}():9===t&&function(){if(m!==s)if(m=s,f=[],1===s.split(" ").length){let e=h.concat(Object.keys(J));f=e.filter((function(e){return e.length>s.length&&e.substr(0,s.length).toLowerCase()==s.toLowerCase()})).reverse().sort((function(e,t){return t.length-e.length}))}else if(2===s.split(" ").length){let t=s.split(" ")[0],n=s.split(" ")[1];var e="";if("cd"===t||"cp"===t||"mv"===t||"cat"===t){switch(t){case"cd":e="ls -d "+n+"*/";break;case"cp":case"mv":e="ls -d "+n+"*/";break;case"cat":e="ls -p | grep -v /";break;default:e=""}$.ajax({type:"POST",async:!1,data:{command:e,path:i},cache:!1,success:function(e){e=$.parseJSON(e),f=e.result.split("<br>").filter((function(e){return 0!==e.length}))}})}}f.length&&f.length>Math.abs(g)?(g--,j(p=(2===s.split(" ").length?s.split(" ")[0]+" ":"")+f[f.length+g]),U()):(g=0,p="",j(),U())}())):e.ctrlKey&&67===t?(g=0,V(),_(),R()):13===t?(0!==g&&(g=0,s=p),s.toLowerCase().split(" ")[0]in J?J[s.toLowerCase().split(" ")[0]](s.split(" ").slice(1)):0!==s.length&&$.ajax({type:"POST",async:!1,data:{command:s,path:i},cache:!1,success:function(e){e=$.parseJSON(e),i=e.path,$("terminal content").append("<line><br>"+e.result+"</line>")}}),V(),function(e){e.length>=2&&(0===l.length||l[l.length-1]!==e)&&(l[l.length]=e)}(s),_(),R(),$("terminal content").scrollTop($("terminal content").prop("scrollHeight"))):35!==t&&36!==t&&37!==t&&39!==t||""===s?38!==t&&40!==t||""!==s&&!d?(32===t||222===t||220===t||t>=45&&t<=195&&!(t>=112&&t<=123)&&46!=t&&91!=t&&93!=t&&144!=t&&145!=t&&45!=t)&&(!function(e){const t=Date.now();if(window.lastTypeTimestamp&&t-window.lastTypeTimestamp<10)return;window.lastTypeTimestamp=t,c=0,d=!1,0!==g&&(g=0,s=p);if("/"===s[s.length-1]&&"/"===e)return;let n=s.substr(0,s.length+u),r=s.substr(s.length+u);s=n+e+r,j(),U()}(e.key),$("terminal content").scrollTop($("terminal content").prop("scrollHeight"))):(e.preventDefault(),38===t&&l.length&&l.length>=-1*c+1?(c--,s=l[l.length+c],j(),U(),d=!0):40===t&&l.length&&l.length>=-1*c&&0!==c&&(c++,s=0===c?"":l[l.length+c],j(),U(),d=0!==c)):(e.preventDefault(),$("line.current bl").remove(),0!==g&&(g=0,s=p),35===t&&(u=0),36===t&&(u=-1*s.length),37===t&&s.length!==Math.abs(u)&&u--,39===t&&0!==u&&u++,j(),U())}function b(){$(document).off("keydown",y),$("#terminal").is(":visible")?($(document).on("keydown",y),console.log("Terminal keydown listener attached")):console.log("Terminal keydown listener removed")}loadDirectory(t,1,e,r,n,a),setTimeout((function(){const{column:e,direction:t}=window.fileManagerState.currentSort;$("th[data-sort]").find("i.fas").removeClass("fa-sort-up fa-sort-down").addClass("fa-sort");const n=$(`th[data-sort="${e}"]`);if(n.length){const e=n.find("i.fas");e.removeClass("fa-sort"),e.addClass("asc"===t?"fa-sort-up":"fa-sort-down")}}),500),b(),window.updateKeydownListener=b,$("[data-tabs-target]").off("click.terminal").on("click.terminal",(function(){setTimeout((()=>{window.updateKeydownListener&&window.updateKeydownListener()}),100)}))})),document.addEventListener("DOMContentLoaded",(function(){O(),document.querySelectorAll("[data-tabs-target]").forEach((e=>{e.addEventListener("click",(function(){setTimeout(O,50)}))}));const e=new MutationObserver((e=>{e.forEach((e=>{"aria-selected"===e.attributeName&&O()}))}));document.querySelectorAll('[role="tab"]').forEach((t=>{e.observe(t,{attributes:!0,attributeFilter:["aria-selected"]})}))})),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",O):O();var J={clear:function(){$("terminal content").html("")},history:function(e){var t=[];let n=e.length&&Number.isInteger(Number(e[0]))?Number(e[0]):0;if(0!=n&&n<=l.length)for(var r=l.length-n;r<l.length;r++)t[t.length]=r+1+" &nbsp;"+l[r];else l.forEach((function(e,n){t[t.length]=n+1+" &nbsp;"+e}));$("terminal content").append("<line>"+t.join("<br>")+"</line>")}};updateCurrentPath(),document.getElementById("itemLimit").addEventListener("change",(o=>{const a=o.target.value;console.log("Items per page changed to:",a),localStorage.setItem("default-items-per-page",a),window.fileManagerState.currentPage=1,loadDirectory(t,1,e,r,n,a)})),document.addEventListener("click",(function(o){o.target.classList.contains("codeme")&&function(e,t,n,r,o){const a=document.documentElement.classList.contains("dark");Swal.fire({title:"Execute PHP Code",html:'\n                <div class="flex flex-col w-full">\n                    <label for="php-code-input" class="text-left mb-2 text-gray-700 dark:text-gray-300 text-sm font-medium">Enter the PHP code to execute:</label>\n                    <textarea id="php-code-input" rows="8" class="w-full p-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 font-mono text-sm"></textarea>\n                </div>\n            ',showCancelButton:!0,confirmButtonText:"Execute",cancelButtonText:"Cancel",customClass:{popup:"dark:bg-gray-800 dark:text-gray-200",title:"text-gray-800 dark:text-gray-200",confirmButton:"bg-blue-600 hover:bg-blue-700 text-white",cancelButton:"bg-gray-500 hover:bg-gray-600 text-white"},background:a?"#1F2937":"#FFFFFF",focusConfirm:!1,preConfirm:()=>{const e=document.getElementById("php-code-input").value;return e&&""!==e.trim()?e:(Swal.showValidationMessage("Please enter PHP code to execute"),!1)}}).then((e=>{if(e.isConfirmed&&e.value){const i=e.value;sendRequest({csrf:t,action:"execute",code:i.trim(),dir:n},r,o).then((e=>{Swal.fire({title:"PHP Execution Result",html:`<div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">\n                                    <pre class="text-left overflow-auto max-h-96 text-gray-800 dark:text-gray-200 font-mono text-sm bg-gray-100 dark:bg-gray-700 p-4 rounded">${e.output}</pre>\n                                  </div>`,icon:"info",confirmButtonText:"Close",customClass:{popup:"dark:bg-gray-800 dark:text-gray-200",title:"text-gray-800 dark:text-gray-200",confirmButton:"bg-blue-600 hover:bg-blue-700 text-white",htmlContainer:"p-0"},background:a?"#1F2937":"#FFFFFF",iconColor:"#3B82F6"})})).catch((e=>{triggerAlert("warning",e),console.error("Error executing PHP code:",e)}))}}))}(0,e,t,r,n)}))})),window.initEditorLanguageSelector=function(){const e=document.getElementById("editorLanguage");e&&!e.dataset.initialized&&(e.addEventListener("change",(function(){const e=this.value;if(window.editor&&e)try{window.editor.setOption("mode",e),console.log("Editor mode changed to:",e);const t=document.getElementById("editorStatus");if(t){const n=(t.textContent||"").replace(/\|.*\|/,`| ${e} |`);t.textContent=n}}catch(e){console.error("Error changing editor mode:",e)}})),e.dataset.initialized="true",console.log("Editor language selector initialized"))},document.addEventListener("DOMContentLoaded",(function(){document.querySelectorAll("[data-tabs-target]").forEach((e=>{e.addEventListener("click",(function(){handleTabSwitch(this.getAttribute("data-tabs-target"))}))}));const e=document.querySelector('[role="tab"][aria-selected="true"]');handleTabSwitch(e?e.getAttribute("data-tabs-target"):"#file")})),window.showConfirmation="function"==typeof showConfirmation?showConfirmation:function(){console.error("showConfirmation not found")},window.diagnoseFunctions=function(){console.log("--- Function Diagnostic Report ---"),console.log("updateSelectedFiles:","function"==typeof window.updateSelectedFiles?"Available ✓":"Missing ✗"),console.log("saveToLocalStorage:","function"==typeof window.saveToLocalStorage?"Available ✓":"Missing ✗"),console.log("getFromLocalStorage:","function"==typeof window.getFromLocalStorage?"Available ✓":"Missing ✗"),console.log("freeclipbroad:","function"==typeof window.freeclipbroad?"Available ✓":"Missing ✗"),console.log("performBulkAction:","function"==typeof window.performBulkAction?"Available ✓":"Missing ✗"),console.log("renameFile:","function"==typeof window.renameFile?"Available ✓":"Missing ✗"),console.log("loadDirectory:","function"==typeof window.loadDirectory?"Available ✓":"Missing ✗"),console.log("triggerAlert:","function"==typeof window.triggerAlert?"Available ✓":"Missing ✗"),console.log("showConfirmation:","function"==typeof window.showConfirmation?"Available ✓":"Missing ✗"),console.log("showAdvancedSearch:","function"==typeof window.showAdvancedSearch?"Available ✓":"Missing ✗"),console.log("--- fileManagerState Report ---"),console.log("fileManagerState:",window.fileManagerState?"Available ✓":"Missing ✗"),window.fileManagerState&&(console.log("selectedFiles:",Array.isArray(window.fileManagerState.selectedFiles)?`Available ✓ (${window.fileManagerState.selectedFiles.length} items)`:"Missing ✗"),console.log("currentDir:",window.fileManagerState.currentDir||"Not set")),console.log("--- phpVars Report ---"),console.log("phpVars:",window.phpVars?"Available ✓":"Missing ✗"),window.phpVars&&(console.log("csrf:",window.phpVars.csrf?"Available ✓":"Missing ✗"),console.log("isEnc:",void 0!==window.phpVars.isEnc?"Available ✓":"Missing ✗"),console.log("encryptionKey:",window.phpVars.encryptionKey?"Available ✓":"Missing ✗"))},document.addEventListener("DOMContentLoaded",(function(){initThemeToggle(),initEnhancedTabs(),initSettings(),initGlobalKeyboardShortcuts(),exposeUtilityFunctions(),"undefined"==typeof phpVars||window.phpVars?window.phpVars||console.warn("phpVars not found in global scope"):(window.phpVars=phpVars,console.log("phpVars initialized globally")),document.querySelector(".advanced-search")?.addEventListener("click",(function(){"function"==typeof window.showAdvancedSearch?window.showAdvancedSearch():(console.error("Advanced search function not found"),triggerAlert("warning","Advanced search feature is not available"))}))})),window.saveTabsToLocalStorage=function(){try{const e=fileManagerState.tabs.map((e=>({id:e.id,path:e.path,active:e.active,name:e.name,type:e.type||"filemanager"})));localStorage.setItem("fileManager_activeTabId",fileManagerState.activeTabId),localStorage.setItem("fileManager_tabs",JSON.stringify(e));const t=fileManagerState.tabs.filter((e=>"editor"===e.type));if(t.length>0){const e=t.map((e=>e.path));localStorage.setItem("fileManager_openFiles",JSON.stringify(e))}}catch(e){console.error("Error saving tabs to localStorage:",e)}},window.loadTabsFromLocalStorage=function(){try{const e=localStorage.getItem("fileManager_tabs");if(!e)return console.log("No saved tabs found in localStorage"),!1;const t=JSON.parse(e);if(!Array.isArray(t)||0===t.length)return console.log("Invalid or empty tabs data in localStorage"),!1;const n=localStorage.getItem("fileManager_activeTabId");return fileManagerState.tabs=t,n&&fileManagerState.tabs.find((e=>e.id===n))?(fileManagerState.activeTabId=n,fileManagerState.tabs.forEach((e=>{e.active=e.id===n}))):(fileManagerState.tabs[0].active=!0,fileManagerState.activeTabId=fileManagerState.tabs[0].id),!0}catch(e){return console.error("Error loading tabs from localStorage:",e),!1}},document.addEventListener("DOMContentLoaded",(function(){const e=document.getElementById("network-tab");e&&e.addEventListener("click",(function(){initNetworkTools()}))}));
+function initializeFileManager(csrf, currentDir, isEnc, encryptionKey) {
+    const key = isEnc === '1' ? (encryptionKey) : "null";
+
+
+    // Event delegation for rename button
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('fa-edit')) {
+            const oldName = event.target.dataset.file;
+            renameFile(oldName, csrf, currentDir, key, isEnc);
+        }
+    });
+
+    // Event delegation for delete button
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('fa-trash-alt')) {
+            const filePath = event.target.dataset.file;
+            if (filePath) {
+                deleteFile(filePath, csrf, currentDir, key, isEnc);
+            }
+        }
+    });
+
+
+    // Event delegation for directory navigation
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('directory-link')) {
+            event.preventDefault();
+            const newDir = event.target.dataset.path;
+            if (newDir && newDir !== currentDir) {
+                currentDir = newDir;
+                
+                // Get current items per page setting
+                let itemLimitElement = document.getElementById('itemLimit');
+                let itemsPerPage = itemLimitElement ? itemLimitElement.value : '50';
+                
+                loadDirectory(currentDir, 1, csrf, key, isEnc, itemsPerPage);
+            }
+        }
+    });
+
+    // Event delegation for table row clicks to toggle checkboxes
+    document.addEventListener('click', function (event) {
+        // Find if we clicked on a table cell (td) that's part of the file list
+        const td = event.target.closest('td');
+        if (!td) return;
+        
+        // Skip if we clicked directly on a checkbox, link, or button
+        if (event.target.tagName === 'INPUT' || 
+            event.target.tagName === 'A' || 
+            event.target.tagName === 'BUTTON' ||
+            event.target.tagName === 'I' ||
+            event.target.tagName === 'TH') {
+            return;
+        }
+        
+        // Skip if we clicked on a table header or if not in the fileList tbody
+        if (td.closest('thead') || !td.closest('#fileList')) {
+            return;
+        }
+        
+        // Find the parent row
+        const tr = td.closest('tr');
+        if (!tr) return;
+        
+        // Find the checkbox in this row
+        const checkbox = tr.querySelector('.file-checkbox');
+        if (!checkbox) return;
+        
+        // Toggle the checkbox
+        checkbox.checked = !checkbox.checked;
+        
+        // Update the selected files state
+        if (checkbox.dataset.file) {
+            updateSelectedFiles(checkbox.dataset.file, checkbox.checked);
+            
+            // Add visual feedback
+            if (checkbox.checked) {
+                tr.classList.add('bg-blue-50', 'dark:bg-blue-900/20');
+            } else {
+                tr.classList.remove('bg-blue-50', 'dark:bg-blue-900/20');
+            }
+        }
+    });
+
+   
+
+    // Load the initial directory
+    loadDirectory(currentDir, 1, csrf, key, isEnc);
+}
+
+
+function sendRequest(data, key, isEnc) {
+    // Ensure CSRF token is included in every request
+    if (!data.csrf) {
+        throw new Error('CSRF token is missing.');
+    }
+ 
+    const jsonData = JSON.stringify(data);
+    
+    // Make sure key is properly formatted for CryptoJS
+    let encryptionKey = key;
+    if (isEnc === '1' && typeof key === 'string') {
+        encryptionKey = CryptoJS.enc.Utf8.parse(key);
+    }
+    
+    const encryptedData = (isEnc === '1') ? encrypt(jsonData, encryptionKey) : jsonData;
+ 
+    return new Promise((resolve, reject) => {
+        console.log('Sending request with encryption:', isEnc === '1');
+        $.post('', encryptedData)
+            .done(response => {
+                try {
+                    console.log('Raw response:', response ? response.substring(0, 50) + (response.length > 50 ? '...' : '') : '<empty>');
+                    
+                    let decryptedResponse = response;
+                    if (isEnc === '1') {
+                        try {
+                            decryptedResponse = decrypt(response, encryptionKey);
+                            console.log('Decryption succeeded');
+                        } catch (decryptError) {
+                            console.error('Decryption failed:', decryptError);
+                            // Fall back to using the raw response
+                        }
+                    }
+
+                    // If response is empty string we just resolve with empty string.
+                    if (decryptedResponse === '') {
+                        resolve('');
+                        return;
+                    }
+
+                    // Attempt to parse JSON. If it fails we treat response as plain text.
+                    let parsed;
+                    try {
+                        parsed = JSON.parse(decryptedResponse);
+                    } catch (parseErr) {
+                        // Not JSON – return plain string
+                        console.warn('Response is not valid JSON, returning plain text.');
+                        resolve(decryptedResponse);
+                        return;
+                    }
+
+                    // Handle standard JSON response structure
+                    if (parsed && parsed.error) {
+                        reject(new Error(parsed.error));
+                    } else {
+                        resolve(parsed);
+                    }
+                } catch (error) {
+                    console.error('Unhandled error while processing response:', error);
+                    console.error('Response text:', response);
+                    reject(new Error('Failed to process server response.'));
+                    triggerAlert('warning', 'Failed to process server response');
+                }
+            })
+            .fail((jqXHR, textStatus, errorThrown) => {
+                console.error('Network error:', textStatus, errorThrown);
+                console.error('Status code:', jqXHR.status);
+                console.error('Response text:', jqXHR.responseText);
+                reject(new Error(`Network error: ${textStatus} - ${errorThrown || jqXHR.status}`));
+                triggerAlert('warning', `Request failed: ${textStatus} ${errorThrown || ''}`);
+            });
+    });
+}
+function showDialog(title, inputLabel, confirmButtonText, oldName, onConfirm) {
+    const isDarkMode = document.documentElement.classList.contains('dark');
+
+    Swal.fire({
+        title: title,
+        input: 'text',
+        inputLabel: inputLabel,
+        inputValue: oldName,
+        showCancelButton: true,
+        confirmButtonText: confirmButtonText,
+        cancelButtonText: 'Cancel',
+        customClass: {
+            popup: isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900',
+            confirmButton: isDarkMode ? 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' : 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded',
+            cancelButton: isDarkMode ? 'bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded' : 'bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded',
+            input: isDarkMode ? 'bg-gray-800 text-white border-gray-700' : 'bg-white text-gray-900 border-gray-300'
+        },
+
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const newName = result.value.trim();
+            onConfirm(newName); // Execute the callback with the new value
+        }
+    });
+}
+// confirm 
+function showConfirmation(title, text, confirmButtonText, onConfirm) {
+    const isDarkMode = document.documentElement.classList.contains('dark');
+
+    Swal.fire({
+        title: title,
+        text: text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: confirmButtonText,
+        cancelButtonText: 'Cancel',
+        customClass: {
+            popup: isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900',
+            confirmButton: isDarkMode ? 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded' : 'bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded',
+            cancelButton: isDarkMode ? 'bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded' : 'bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            onConfirm(); // Execute the callback if the user confirms
+        }
+    });
+}
+function renameFile(oldName, csrf, currentDir, key, isEnc) {
+     showDialog(
+        'Rename File',  
+        'Enter the new name for the file:',  
+        'Rename', 
+        oldName,  
+        (newName) => {
+            // Callback function executed when the user confirms
+            if (newName && newName.trim() !== oldName) {
+                sendRequest({ csrf, action: 'rename', oldName, newName: newName.trim(), dir: currentDir }, key, isEnc)
+                    .then(() => {
+                        triggerAlert('success', 'File renamed successfully!');
+                        loadDirectory(currentDir, 1, csrf, key, isEnc); // Reload directory
+                    })
+                    .catch(error => {
+                        triggerAlert('warning', error); // Show error message
+                        console.error('Error renaming file:', error); // Log error for debugging
+                    });
+            }
+        }
+    );
+}
+ 
+
+
+function deleteFile(fileName, csrf, currentDir, key, isEnc) {
+    console.log("currentDir : "+currentDir);
+    showConfirmation(
+        'Delete File', // Title
+        `Are you sure you want to delete "${fileName}"?`, // Text
+        'Delete', // Confirm button text
+        () => {
+            // Callback function executed when the user confirms
+            sendRequest({ csrf, action: 'delete', file: fileName, dir: currentDir }, key, isEnc)
+                .then(() => {
+                    triggerAlert('success', `"${fileName}" has been deleted successfully!`);
+                    loadDirectory(currentDir, 1, csrf, key, isEnc); // Reload directory
+                })
+                .catch(error => {
+                    triggerAlert('warning', error); // Show error message
+                    console.error('Error deleting file:', error); // Log error for debugging
+                });
+        }
+    );
+}
+// function handleDirectoryResponse(response, isEnc, key, dir, page, csrf) {
+
+//     let decryptedResponse = isEnc === '1' ? decrypt(response, key) : response;
+//     console.log(key);
+//     const result = JSON.parse(decryptedResponse);
+
+//     try {
+
+
+//         // console.log(response);
+
+
+//         if (result.error) {
+//             triggerAlert('warning', result.error);
+//         } else {
+//             fileManagerState.totalPages = result.totalPages;
+
+//             if (page === 1) {
+//                 fileManagerState.files = result.files; // Reset files for the first page
+//                 renderFiles(result.files, dir, csrf, key, isEnc);
+//             } else {
+//                 fileManagerState.files = fileManagerState.files.concat(result.files); // Append new files
+//                 appendFiles(result.files, dir, csrf, key, isEnc);
+//             }
+
+//         }
+
+//     } catch (error) {
+//         // triggerAlert('warning', 'An error occurred while loading the directory.');
+//         // Log detailed error information to the console for debugging
+//         // console.error('POST Request Failed:',error);
+//         console.error(error);
+
+
+//         // console.error('Response Text:', error.message);
+//     }
+// }
+function progr() {
+    if (isLoading) return;
+    isLoading = true;
+    NProgress.start();
+
+}
+function dprogr() {
+    NProgress.done();
+    isLoading = false;
+
+}
+function loadDirectory(dir, page, csrf, key, isEnc, itemsPerPage) {
+    progr();
+    
+    // Get default items per page from localStorage if not provided
+    if (!itemsPerPage) {
+        const itemLimitElement = document.getElementById('itemLimit');
+        if (itemLimitElement && itemLimitElement.value) {
+            itemsPerPage = itemLimitElement.value;
+        } else {
+        const defaultItemsPerPage = localStorage.getItem('default-items-per-page');
+            itemsPerPage = defaultItemsPerPage || '50';
+        }
+    }
+    
+    // For numeric values, ensure it's a valid number
+    if (itemsPerPage !== 'all' && itemsPerPage !== 'infinity') {
+        const parsedValue = parseInt(itemsPerPage, 10);
+        if (isNaN(parsedValue) || parsedValue <= 0) {
+            itemsPerPage = '50'; // Default to 50 if invalid
+        }
+    }
+     
+    const data = {
+        csrf: csrf,
+        action: 'list',
+        dir: dir,
+        page: page,
+        itemsPerPage: itemsPerPage
+    };
+    const jsonData = JSON.stringify(data);
+
+    const encryptedData = isEnc === '1' ? encrypt(jsonData, key) : jsonData;
+
+    $.post('', encryptedData, function (response) {
+        handleDirectoryResponse(response, isEnc, key, dir, page, csrf);
+        dprogr();
+    }).fail(function () {
+        triggerAlert('warning', 'An error occurred while loading the directory.');
+        dprogr();
+    });
+}
+
+function handleDirectoryResponse(response, isEnc, key, dir, page, csrf) {
+    try {
+        let decryptedResponse = isEnc === '1' ? decrypt(response, key) : response;
+        const result = JSON.parse(decryptedResponse);
+
+        // Ensure fileManagerState is initialized
+        if (!window.fileManagerState) {
+            window.fileManagerState = {
+                files: [],
+                totalPages: 1,
+                currentPage: 1,
+                totalItems: 0,
+                itemsPerPage: 50,
+                currentSort: { column: 'name', direction: 'asc' },
+                selectedFiles: []
+            };
+        }
+
+        if (result.error) {
+            triggerAlert('warning', result.error);
+        } else {
+            // Update fileManagerState
+            window.fileManagerState.files = result.files;
+            window.fileManagerState.totalPages = result.totalPages;
+            window.fileManagerState.currentPage = page;
+            window.fileManagerState.currentDir = dir;
+            window.fileManagerState.totalItems = result.totalItems || 0;
+            
+            // Get current items per page from the dropdown
+            const itemLimitElement = document.getElementById('itemLimit');
+            if (itemLimitElement) {
+                const itemsPerPage = itemLimitElement.value;
+                window.fileManagerState.itemsPerPage = itemsPerPage;
+            }
+
+            // Update current directory in global state
+            if (typeof window.updateCurrentPath === 'function') {
+                window.updateCurrentPath(dir);
+            }
+
+            // Render files
+            renderFiles(result.files, dir, csrf, key, isEnc);
+            
+            // Update breadcrumbs
+            if (typeof window.updateBreadcrumbs === 'function') {
+                window.updateBreadcrumbs(dir);
+            }
+            
+            // Update active tab path if available
+            if (typeof window.updateActiveTabPath === 'function') {
+                window.updateActiveTabPath(dir);
+                
+                // Save tabs state to localStorage after path update
+                if (typeof window.saveTabsToLocalStorage === 'function') {
+                    window.saveTabsToLocalStorage();
+                }
+            }
+            
+            // Update footer with item stats
+            updateFileTableFooter();
+        }
+    } catch (error) {
+        triggerAlert('warning', 'Failed to parse server response.');
+        console.error('Error parsing directory response:', error);
+    }
+}
+
+function createFileRow(file, currentDir, csrf, key, isEnc) {
+    let iconColorClass = 'text-blue-600 dark:text-blue-400';
+    
+    // Determine permission colors based on actual file access
+    let permsColor;
+    let permsTooltip;
+    let rowBgClass;
+    
+    // Use file.wr to determine if file is writable
+    if (file.wr) {
+        permsColor = 'text-green-600 dark:text-green-400';
+        permsTooltip = 'Writable';
+        rowBgClass = 'bg-green-50 dark:bg-green-900/10';
+    } 
+    // If not writable but can read (assuming we can read it since we're seeing it)
+    else if (file.perms && file.perms.includes('r')) {
+        permsColor = 'text-yellow-600 dark:text-yellow-400';
+        permsTooltip = 'Read Only';
+        rowBgClass = 'bg-yellow-50 dark:bg-yellow-900/10';
+    } 
+    // No read/write permissions
+    else {
+        permsColor = 'text-blue-600 dark:text-blue-400';
+        permsTooltip = 'No Read/Write Access';
+        rowBgClass = 'bg-blue-50 dark:bg-blue-900/10';
+    }
+    
+    let permsIcon = '';
+    
+    // Set icon color based on file type
+    if (file.is_dir) {
+        iconColorClass = 'text-yellow-600 dark:text-yellow-400';
+    } else if (file.name.endsWith('.php') || file.name.endsWith('.py') || file.name.endsWith('.js')) {
+        iconColorClass = 'text-green-600 dark:text-green-400';
+    } else if (file.name.endsWith('.zip') || file.name.endsWith('.tar') || file.name.endsWith('.gz')) {
+        iconColorClass = 'text-amber-600 dark:text-amber-400';
+    }
+
+    // Create full path for this file
+    const fullPath = `${currentDir}/${file.name}`;
+    
+    // Create a unique ID for this file's checkbox
+    const checkboxId = `file-checkbox-${file.name.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    
+    // Check if this file is in the selectedFiles array (by full path)
+    const isSelected = window.fileManagerState && 
+                      window.fileManagerState.selectedFiles && 
+                      (window.fileManagerState.selectedFiles.includes(fullPath) || 
+                       window.fileManagerState.selectedFiles.includes(file.name));
+    
+    const checkedAttr = isSelected ? 'checked' : '';
+    
+    // Create row class with permission-based colors
+    let rowClass = 'border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150';
+    
+    // If selected, use the selection color instead of permission color
+    if (isSelected) {
+        rowClass += ' bg-blue-50 dark:bg-blue-900/20';
+    } else {
+        rowClass += ' ' + rowBgClass;
+    }
+
+    return `
+        <tr class="${rowClass}" data-file="${file.name}" data-full-path="${fullPath}">
+            <td class="py-1 px-3 text-left">
+                <input type="checkbox" id="${checkboxId}" 
+                    class="file-checkbox w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" 
+                    data-file="${file.name}" 
+                    data-full-path="${fullPath}" 
+                    ${checkedAttr} 
+                />
+            </td>
+            <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">
+                <div class="flex items-center">
+                    <i class="fas ${file.icon} mr-2 ${iconColorClass}"></i>
+                ${file.is_dir
+                        ? `<a href="#" class="font-medium directory-link hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150" data-path="${fullPath}">${file.name}</a>`
+                        : `<a href="#" class="font-medium file-link hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150" data-file="${fullPath}">${file.name}</a>`
+                }
+                </div>
+            </td>
+            <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${file.size}</td>
+            <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${file.mtime}</td>
+            <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">${file.owner}</td>
+            <td class="py-3 px-6 text-left" title="${permsTooltip}">
+                ${formatPermissions(file.perms, file.wr)}
+            </td>
+            <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-300">
+                <div class="flex space-x-2">
+                ${!file.is_dir
+                        ? `<button class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-150">
+                              <i class="fas fa-edit text-yellow-600 dark:text-yellow-400" title="Rename" data-file="${file.name}"></i>
+                           </button>
+                           <button class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-150">
+                              <i class="fas fa-trash-alt text-red-600 dark:text-red-400" title="Delete" data-file="${fullPath}"></i>
+                           </button>
+                           <button class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-150">
+                       <i class="fas fa-download text-green-600 dark:text-green-400" title="Download" data-file="${currentDir + '/' + file.name}"></i>
+
+                           </button>`
+                        : `<button class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-150">
+                              <i class="fas fa-edit text-yellow-600 dark:text-yellow-400" title="Rename" data-file="${file.name}"></i>
+                           </button>
+                           <button class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-150">
+                              <i class="fas fa-trash-alt text-red-600 dark:text-red-400" title="Delete" data-file="${fullPath}"></i>
+                           </button>`
+                }
+                </div>
+            </td>
+        </tr>
+    `;
+}
+function triggerAlert(type, message) {
+    document.dispatchEvent(new CustomEvent('show-alert', {
+        detail: { type: type, message: message }
+    }));
+}
+
+function encrypt(message, key) {
+    return CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse(message), key, {
+        mode: CryptoJS.mode.ECB,
+        padding: CryptoJS.pad.Pkcs7
+    }).toString();
+}
+
+function decrypt(encryptedMessage, key) {
+    return CryptoJS.AES.decrypt(encryptedMessage, key, {
+        mode: CryptoJS.mode.ECB,
+        padding: CryptoJS.pad.Pkcs7
+    }).toString(CryptoJS.enc.Utf8);
+}
+
+/**
+ * Search files based on a query string
+ * @param {Array} files - Array of file objects to search through
+ * @param {string} query - Search query string
+ * @returns {Array} - Filtered array of files matching the query
+ */
+function searchFiles(files, query) {
+    if (!files || !Array.isArray(files)) {
+        console.error('Invalid files array provided to searchFiles');
+        return [];
+    }
+    
+    // If no query, return all files
+    if (!query || query.trim() === '') {
+        return files;
+    }
+    
+    // Normalize the query
+    const normalizedQuery = query.toLowerCase().trim();
+
+    // Filter files based on the search query
+    return files.filter(file => {
+        if (!file) return false;
+        
+        // Search in all available properties
+        return (
+            // Always search in name
+            (file.name && file.name.toLowerCase().includes(normalizedQuery)) ||
+            // Search in other properties if they exist
+            (file.owner && file.owner.toLowerCase().includes(normalizedQuery)) ||
+            (file.perms && file.perms.toLowerCase().includes(normalizedQuery)) ||
+            (file.size && file.size.toString().toLowerCase().includes(normalizedQuery)) ||
+            (file.mtime && file.mtime.toLowerCase().includes(normalizedQuery))
+        );
+    });
+}
+
+/**
+ * Update renderFiles to use the new searchFiles function
+ * @param {Array} files - Array of file objects to render
+ * @param {string} currentDir - Current directory
+ * @param {string} csrf - CSRF token
+ * @param {object} key - Encryption key
+ * @param {string} isEnc - Whether encryption is enabled
+ */
+function renderFiles(files, currentDir, csrf, key, isEnc) {
+    // Get search query from the search bar
+    const searchBar = document.getElementById('searchBar') || document.querySelector('#searchBar');
+    const searchQuery = searchBar ? searchBar.value.toLowerCase().trim() : '';
+    
+     
+    // Get the file list element
+    const fileList = document.getElementById('fileList');
+    if (!fileList) {
+        console.error('File list element not found');
+        return;
+    }
+    
+    // If no files, show a message
+    if (!files || files.length === 0) {
+        fileList.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-gray-500">No files found</td></tr>';
+        // Update footer with zero counts
+        updateFileTableFooter();
+        return;
+    }
+
+    // Filter files using the searchFiles function
+    const filteredFiles = searchFiles(files, searchQuery);
+ 
+    // Generate HTML for filtered files
+    if (filteredFiles.length === 0) {
+        fileList.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-gray-500">No matching files found</td></tr>';
+    } else {
+        fileList.innerHTML = filteredFiles.map(file => createFileRow(file, currentDir, csrf, key, isEnc)).join('');
+    }
+
+    // Add event listeners for checkboxes
+    addCheckboxEventListeners();
+    
+    // Update the table footer with item counts
+    updateFileTableFooter();
+}
+
+/**
+ * Update appendFiles to use the new searchFiles function
+ * @param {Array} files - Array of file objects to append
+ * @param {string} currentDir - Current directory
+ * @param {string} csrf - CSRF token
+ * @param {object} key - Encryption key
+ * @param {string} isEnc - Whether encryption is enabled
+ */
+function appendFiles(files, currentDir, csrf, key, isEnc) {
+    // Get search query from the search bar
+    const searchBar = document.getElementById('searchBar') || document.querySelector('#searchBar');
+    const searchQuery = searchBar ? searchBar.value.toLowerCase().trim() : '';
+    
+    console.log('Appending files with search query:', searchQuery);
+    
+    // Get the file list element
+    const fileList = document.getElementById('fileList');
+    if (!fileList) {
+        console.error('File list element not found');
+        return;
+    }
+    
+    // If no files, do nothing
+    if (!files || files.length === 0) {
+        return;
+    }
+
+    // Filter files using the searchFiles function
+    const filteredFiles = searchFiles(files, searchQuery);
+
+    // Generate HTML for filtered files and append to the list
+    if (filteredFiles.length > 0) {
+    const html = filteredFiles.map(file => createFileRow(file, currentDir, csrf, key, isEnc)).join('');
+    fileList.innerHTML += html;
+        
+        // Add event listeners for checkboxes
+        addCheckboxEventListeners();
+    }
+}
+
+// Function to add event listeners to checkboxes
+function addCheckboxEventListeners() {
+     const checkboxes = document.querySelectorAll('.file-checkbox');
+     
+    // Ensure fileManagerState exists
+    if (!window.fileManagerState) {
+        window.fileManagerState = { selectedFiles: [] };
+    }
+    
+    // Ensure selectedFiles array exists
+    if (!window.fileManagerState.selectedFiles) {
+        window.fileManagerState.selectedFiles = [];
+    }
+    
+     
+    checkboxes.forEach(checkbox => {
+        // Remove any existing event listeners
+        checkbox.removeEventListener('change', checkboxChangeHandler);
+        
+        // Add the change event listener with a named function for easier removal
+        checkbox.addEventListener('change', checkboxChangeHandler);
+        
+        // Apply initial state if this file should be checked according to fileManagerState
+        const fullPath = checkbox.dataset.fullPath || checkbox.dataset.file;
+        if (window.fileManagerState.selectedFiles.includes(fullPath)) {
+            console.log(`Setting checkbox for ${fullPath} to checked based on fileManagerState`);
+            checkbox.checked = true;
+            const row = checkbox.closest('tr');
+            if (row) {
+                row.classList.add('bg-blue-50', 'dark:bg-blue-900/20');
+            }
+        } else {
+            // If the file is not in selectedFiles, ensure the checkbox is unchecked
+            checkbox.checked = false;
+            const row = checkbox.closest('tr');
+            if (row) {
+                row.classList.remove('bg-blue-50', 'dark:bg-blue-900/20');
+            }
+        }
+    });
+    
+    // Update the select all checkbox state
+    updateSelectAllCheckbox();
+}
+
+// Function to update the state of the Select All checkbox based on current selections
+function updateSelectAllCheckbox() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    if (!selectAllCheckbox) return;
+    
+    const fileCheckboxes = document.querySelectorAll('.file-checkbox');
+    if (fileCheckboxes.length === 0) return;
+    
+    const allChecked = Array.from(fileCheckboxes).every(checkbox => checkbox.checked);
+    const anyChecked = Array.from(fileCheckboxes).some(checkbox => checkbox.checked);
+    
+    selectAllCheckbox.checked = allChecked;
+    selectAllCheckbox.indeterminate = !allChecked && anyChecked;
+   
+}
+
+// Separate change handler function for checkboxes
+function checkboxChangeHandler() {
+    const row = this.closest('tr');
+    const fileName = this.dataset.file;
+    const fullPath = this.dataset.fullPath || fileName;
+    
+    console.log('Checkbox changed:', fileName);
+    console.log('Checkbox state:', this.checked ? 'checked' : 'unchecked');
+    console.log('Full path:', fullPath);
+    
+    // Print all selected files before update
+    console.log('Selected files before update:', 
+                window.fileManagerState?.selectedFiles ? 
+                [...window.fileManagerState.selectedFiles] : []);
+    
+    if (this.checked) {
+        row.classList.add('bg-blue-50', 'dark:bg-blue-900/20');
+        updateSelectedFiles(fullPath, true, true);
+    } else {
+        row.classList.remove('bg-blue-50', 'dark:bg-blue-900/20');
+        updateSelectedFiles(fullPath, false, true);
+    }
+    
+    // Print all selected files after update
+    console.log('Selected files after update:', 
+                window.fileManagerState?.selectedFiles ? 
+                [...window.fileManagerState.selectedFiles] : []);
+    
+    // Check if other checkboxes are also checked
+    const checkedBoxes = document.querySelectorAll('.file-checkbox:checked');
+    console.log('Total checked checkboxes:', checkedBoxes.length);
+    
+    // Update the select all checkbox state
+    updateSelectAllCheckbox();
+}
+
+function sortFiles() {
+    // Ensure fileManagerState is initialized
+    if (!window.fileManagerState) {
+        window.fileManagerState = {
+            files: [],
+            totalPages: 1,
+            currentPage: 1,
+            currentSort: { column: 'name', direction: 'asc' },
+            selectedFiles: []
+        };
+        return; // Can't sort if there are no files
+    }
+
+    const { column, direction } = window.fileManagerState.currentSort;
+
+    window.fileManagerState.files.sort((a, b) => {
+        let valueA, valueB;
+
+        // Handle different columns
+        switch (column) {
+            case 'name':
+                valueA = a.name.toLowerCase();
+                valueB = b.name.toLowerCase();
+                break;
+            case 'size':
+                valueA = a.size === 'dir' ? -1 : parseFloat(a.size);
+                valueB = b.size === 'dir' ? -1 : parseFloat(b.size);
+                break;
+            case 'mtime':
+            case 'modified': // Add support for 'modified' column name from HTML
+                valueA = new Date(a.mtime).getTime();
+                valueB = new Date(b.mtime).getTime();
+                break;
+            case 'owner':
+                valueA = a.owner.toLowerCase();
+                valueB = b.owner.toLowerCase();
+                break;
+            case 'perms':
+                valueA = a.perms;
+                valueB = b.perms;
+                break;
+            default:
+                valueA = a.name.toLowerCase();
+                valueB = b.name.toLowerCase();
+        }
+
+        // Handle sorting direction
+        if (direction === 'asc') {
+            return valueA > valueB ? 1 : -1;
+        } else {
+            return valueA < valueB ? 1 : -1;
+        }
+    });
+}
+
+// Make sortFiles available globally
+window.sortFiles = sortFiles;
+
+function updateSelectedFiles(fileName, isChecked, isFullPath = false) {
+    console.log(`updateSelectedFiles called: ${fileName}, checked: ${isChecked}, isFullPath: ${isFullPath}`);
+    
+    // Ensure fileManagerState is initialized
+    if (!window.fileManagerState) {
+        console.log('Initializing fileManagerState');
+        window.fileManagerState = {
+            selectedFiles: []
+        };
+    }
+    
+    // Ensure selectedFiles array exists
+    if (!window.fileManagerState.selectedFiles) {
+        console.log('Initializing selectedFiles array');
+        window.fileManagerState.selectedFiles = [];
+    }
+    
+    // If not a full path, try to find the checkbox to get the full path
+    let fullPath = fileName;
+    if (!isFullPath) {
+        const checkbox = document.querySelector(`.file-checkbox[data-file="${fileName}"]`);
+        console.log('Checkbox found:', checkbox ? 'yes' : 'no');
+        
+        // If we found the checkbox and it has a full path attribute, use that
+        if (checkbox && checkbox.dataset.fullPath) {
+            fullPath = checkbox.dataset.fullPath;
+            console.log(`Using fullPath from checkbox: ${fullPath}`);
+        }
+        // Otherwise, use the current directory to construct the path
+        else if (!fileName.includes('/')) {
+            const currentDir = window.fileManagerState.currentDir || '';
+            if (currentDir) {
+                fullPath = `${currentDir}/${fileName}`;
+                console.log(`Constructed fullPath: ${fullPath}`);
+            }
+        }
+    } else {
+        console.log(`Using provided fullPath: ${fullPath}`);
+    }
+    
+    if (isChecked) {
+        // Only add if not already in the array
+        if (!window.fileManagerState.selectedFiles.includes(fullPath)) {
+            console.log(`Adding to selectedFiles: ${fullPath}`);
+            window.fileManagerState.selectedFiles.push(fullPath);
+        } else {
+            console.log(`File already in selectedFiles: ${fullPath}`);
+        }
+    } else {
+        console.log(`Removing from selectedFiles: ${fullPath}`);
+        window.fileManagerState.selectedFiles = window.fileManagerState.selectedFiles.filter(file => file !== fullPath);
+    }
+    
+    console.log('Selected Files after update:', window.fileManagerState.selectedFiles);
+    console.log('Selected Files count:', window.fileManagerState.selectedFiles.length);
+}
+
+// Function to reset bulk actions dropdown
+function resBulk() {
+    // Reset to the default option
+    let bulkActionsDropdown = document.getElementById('bulkActions');
+    if (bulkActionsDropdown) {
+    bulkActionsDropdown.value = '';
+}
+}
+
+// Clear clipboard function
+function freeclipbroad() {
+    try {
+        localStorage.removeItem('copiedFiles');
+        console.log('Clipboard cleared');
+    } catch (error) {
+        console.error('Failed to clear clipboard:', error);
+    }
+}
+function handleCreate(data, type, key, isEnc, currentDir, csrf) {
+    if (!['file', 'folder'].includes(type)) {
+        triggerAlert("warning", "Invalid type. Only file or folder are allowed");
+        return;
+    }
+
+ 
+    sendRequest(data, key, isEnc)
+
+        .then(() => {
+            loadDirectory(currentDir, 1, csrf, key, isEnc); // Reload directory
+        })
+        .catch(error => {
+            triggerAlert('warning', error); // Show error message
+        });
+
+
+}
+
+
+function viewEditFile(filePath, csrf, key, isEnc) {
+    // Show progress indicator once at the start
+    progr();
+
+    try {
+        // Normalise extension
+        const fileName      = filePath.split('/').pop();
+        const fileExtension = (fileName.split('.').pop() || '').toLowerCase();
+
+        // Preview-able file type groups
+        const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico'];
+        const videoTypes = ['mp4', 'webm', 'ogg', 'avi', 'mov', 'wmv', 'flv', 'mkv'];
+        const audioTypes = ['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a'];
+        const pdfTypes   = ['pdf'];
+        const officeDocTypes = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+
+        // If the file can be previewed directly in a modal, do so and return early.
+        if ([...imageTypes, ...videoTypes, ...audioTypes, ...pdfTypes, ...officeDocTypes].includes(fileExtension)) {
+            showFilePreviewModal(filePath, fileName, fileExtension, csrf, key, isEnc);
+            dprogr();
+            return;
+        }
+
+        // For any other extension we treat the file as text/code and open it in a new tab editor.
+        if (typeof window.addNewTab !== 'function') {
+            console.warn('addNewTab function not found, cannot open file in an editor tab');
+            triggerAlert('warning', 'Editor tab functionality is not available.');
+            dprogr();
+            return;
+        }
+
+        // Create an editor tab (type = 'editor')
+            const newTabId = window.addNewTab(fileName, 'editor');
+        let   tabContent = document.getElementById(`${newTabId}-content`);
+            if (!tabContent) {
+                const tabsContent = document.getElementById('tabs-content');
+                if (!tabsContent) {
+                dprogr();
+                triggerAlert('warning', 'Tabs container not found.');
+                return;
+                }
+                tabContent = document.createElement('div');
+                tabContent.id = `${newTabId}-content`;
+                tabContent.className = 'tabs-panel w-full';
+                tabsContent.appendChild(tabContent);
+            }
+            
+        // Preserve file path for save-later operations
+            tabContent.dataset.filePath = filePath;
+            
+        // Prepare the editor container
+        tabContent.innerHTML = '';
+            const editorContainer = document.createElement('div');
+            editorContainer.className = 'editor-container';
+        editorContainer.style.width  = '100%';
+            editorContainer.style.height = '90vh';
+            editorContainer.style.border = '1px solid #ddd';
+            editorContainer.style.position = 'relative';
+            tabContent.appendChild(editorContainer);
+            
+        // Ensure the tab is active
+            if (typeof window.switchToTab === 'function') {
+                window.switchToTab(newTabId);
+            }
+        document.querySelectorAll('.tabs-panel').forEach(p => p.classList.add('hidden'));
+            tabContent.classList.remove('hidden');
+            
+            // Fetch file content from the server
+            sendRequest({ csrf, action: 'view_content', file: filePath }, key, isEnc)
+                .then(response => {
+                let content = '';
+                if (typeof response === 'string') {
+                    content = response;
+                } else if (response && (response.content !== undefined || response.data !== undefined)) {
+                    content = response.content ?? response.data;
+                }
+
+                if (typeof window.CodeMirror === 'undefined') {
+                    editorContainer.innerHTML = `<pre style="white-space: pre-wrap; padding: 1rem;">${content}</pre>`;
+                    triggerAlert('warning', 'CodeMirror editor not found. Displaying content in plain text mode.');
+                    dprogr();
+                    return;
+                }
+
+                const language = getLanguageFromFileName(filePath);
+                        const editor = CodeMirror(editorContainer, {
+                    value: content,
+                            mode: language,
+                            theme: document.documentElement.classList.contains('dark') ? 'dracula' : 'eclipse',
+                            lineNumbers: true,
+                            lineWrapping: true,
+                            matchBrackets: true,
+                            autoCloseBrackets: true,
+                            styleActiveLine: true
+                        });
+                        window.editor = editor;
+                        editor.setSize('100%', '100%');
+                        
+                // Add/ensure a save button
+                        let saveBtn = tabContent.querySelector('.save-file-btn');
+                        if (!saveBtn) {
+                            saveBtn = document.createElement('button');
+                            saveBtn.className = 'save-file-btn fixed bottom-4 right-4 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded shadow-lg z-50';
+                            saveBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Save';
+                            saveBtn.addEventListener('click', () => {
+                        const updatedContent = editor.getValue();
+                        saveFileContent(filePath, updatedContent, csrf, key, isEnc);
+                            });
+                            tabContent.appendChild(saveBtn);
+                        }
+                        
+                        setTimeout(() => {
+                                editor.refresh();
+                                editor.focus();
+                        }, 100);
+                    dprogr();
+                })
+                .catch(error => {
+                console.error('Error loading file content:', error);
+                triggerAlert('warning', 'Failed to load file content.');
+                editorContainer.innerHTML = `<pre style="white-space: pre-wrap; padding: 1rem;">${String(error)}</pre>`;
+                    dprogr();
+            });
+    } catch (e) {
+        console.error('Unexpected error in viewEditFile:', e);
+        triggerAlert('warning', 'An unexpected error occurred while opening the file.');
+            dprogr();
+        }
+}
+
+function showFilePreviewModal(filePath, fileName, fileExtension, csrf, key, isEnc) {
+    // Remove existing modal if any
+    const existingModal = document.getElementById('file-preview-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Create modal container
+    const modal = document.createElement('div');
+    modal.id = 'file-preview-modal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+    modal.style.zIndex = '9999';
+    
+    // Create modal content
+    const modalContent = document.createElement('div');
+    modalContent.className = 'bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl max-h-[90vh] w-full m-4 flex flex-col';
+    
+    // Create modal header
+    const modalHeader = document.createElement('div');
+    modalHeader.className = 'flex items-center justify-between p-4 border-b dark:border-gray-700';
+    modalHeader.innerHTML = `
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white truncate">${fileName}</h3>
+        <div class="flex items-center space-x-2">
+            <a href="#" onclick="dwn('${filePath}', '${csrf}', '${key}', '${isEnc}'); return false;" class="text-blue-500 hover:text-blue-600 dark:text-blue-400" title="Download">
+                <i class="fas fa-download"></i>
+            </a>
+            
+            <button id="close-preview-modal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+    `;
+    
+    // Create modal body
+    const modalBody = document.createElement('div');
+    modalBody.className = 'flex-1 p-4 overflow-auto flex items-center justify-center';
+    modalBody.innerHTML = '<div class="flex items-center justify-center"><i class="fas fa-spinner fa-spin text-2xl text-gray-500"></i><span class="ml-2 text-gray-500">Loading...</span></div>';
+    
+    // Assemble modal
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(modalBody);
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // Add event listeners
+    document.getElementById('close-preview-modal').addEventListener('click', () => {
+        modal.remove();
+    });
+    
+    // Close modal when clicking outside
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+    
+    // Close modal with Escape key
+    const escapeHandler = (e) => {
+        if (e.key === 'Escape') {
+            modal.remove();
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+
+    // Fetch file content from server
+    sendRequest({ csrf, action: 'view_content', file: filePath }, key, isEnc)
+        .then(response => {
+            let content;
+            let mimeType;
+            
+            if (response.is_binary) {
+                content = atob(response.content); // Decode base64
+                mimeType = response.mime_type;
+            } else {
+                content = response.content;
+                mimeType = response.mime_type;
+            }
+
+            const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico'];
+            const videoTypes = ['mp4', 'webm', 'ogg', 'avi', 'mov', 'wmv', 'flv', 'mkv'];
+            const audioTypes = ['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a'];
+            const officeTypes = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+
+            // Convert base64 to binary array
+            if (response.is_binary) {
+                const binaryLen = content.length;
+                const bytes = new Uint8Array(binaryLen);
+                for (let i = 0; i < binaryLen; i++) {
+                    bytes[i] = content.charCodeAt(i);
+                }
+                content = bytes;
+            }
+
+            if (imageTypes.includes(fileExtension)) {
+                // For images, create blob URL
+                const blob = new Blob([content], { type: mimeType });
+                const blobUrl = URL.createObjectURL(blob);
+                
+                const img = document.createElement('img');
+                img.className = 'max-w-full max-h-full object-contain';
+                img.style.maxHeight = '70vh';
+                img.src = blobUrl;
+                img.alt = fileName;
+                
+                modalBody.innerHTML = '';
+                modalBody.appendChild(img);
+                
+                // Clean up blob URL when image loads or errors
+                img.onload = () => URL.revokeObjectURL(blobUrl);
+                img.onerror = () => {
+                    URL.revokeObjectURL(blobUrl);
+                    modalBody.innerHTML = `
+                        <div class="text-center text-red-500">
+                            <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+                            <p>Failed to load image</p>
+                            <p class="text-sm text-gray-500 mt-2">${fileName}</p>
+                        </div>
+                    `;
+                };
+            } else if (videoTypes.includes(fileExtension)) {
+                // For videos, create blob URL
+                const blob = new Blob([content], { type: mimeType });
+                const blobUrl = URL.createObjectURL(blob);
+                
+                const video = document.createElement('video');
+                video.className = 'max-w-full max-h-full';
+                video.style.maxHeight = '70vh';
+                video.controls = true;
+                video.preload = 'metadata';
+                video.src = blobUrl;
+                
+                modalBody.innerHTML = '';
+                modalBody.appendChild(video);
+                
+                // Clean up blob URL when video is removed
+                video.onloadedmetadata = () => URL.revokeObjectURL(blobUrl);
+                video.onerror = () => {
+                    URL.revokeObjectURL(blobUrl);
+                    modalBody.innerHTML = `
+                        <div class="text-center text-red-500">
+                            <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+                            <p>Failed to load video</p>
+                            <p class="text-sm text-gray-500 mt-2">${fileName}</p>
+                        </div>
+                    `;
+                };
+            } else if (audioTypes.includes(fileExtension)) {
+                // For audio, create blob URL
+                const blob = new Blob([content], { type: mimeType });
+                const blobUrl = URL.createObjectURL(blob);
+                
+                const audioContainer = document.createElement('div');
+                audioContainer.className = 'flex flex-col items-center space-y-4 p-8';
+                
+                const audio = document.createElement('audio');
+                audio.className = 'w-full max-w-md';
+                audio.controls = true;
+                audio.preload = 'metadata';
+                audio.src = blobUrl;
+                
+                audioContainer.innerHTML = `
+                    <i class="fas fa-music text-6xl text-gray-400 mb-4"></i>
+                    <p class="text-gray-600 dark:text-gray-400 text-center">${fileName}</p>
+                `;
+                audioContainer.appendChild(audio);
+                
+                modalBody.innerHTML = '';
+                modalBody.appendChild(audioContainer);
+                
+                // Clean up blob URL when audio is removed
+                audio.onloadedmetadata = () => URL.revokeObjectURL(blobUrl);
+                audio.onerror = () => {
+                    URL.revokeObjectURL(blobUrl);
+                    modalBody.innerHTML = `
+                        <div class="text-center text-red-500">
+                            <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+                            <p>Failed to load audio</p>
+                            <p class="text-sm text-gray-500 mt-2">${fileName}</p>
+                        </div>
+                    `;
+                };
+            } else if (fileExtension === 'pdf') {
+                // For PDFs, create blob URL
+                const blob = new Blob([content], { type: 'application/pdf' });
+                const blobUrl = URL.createObjectURL(blob);
+                
+                const iframe = document.createElement('iframe');
+                iframe.src = blobUrl;
+                iframe.className = 'w-full border-0 rounded';
+                iframe.style.height = '70vh';
+                
+                modalBody.innerHTML = '';
+                modalBody.appendChild(iframe);
+                
+                // Clean up blob URL when iframe loads or errors
+                iframe.onload = () => URL.revokeObjectURL(blobUrl);
+                iframe.onerror = () => {
+                    URL.revokeObjectURL(blobUrl);
+                    modalBody.innerHTML = `
+                        <div class="text-center text-red-500">
+                            <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+                            <p>Failed to load PDF</p>
+                            <p class="text-sm text-gray-500 mt-2">
+                                <a href="#" onclick="dwn('${filePath}', '${csrf}', '${key}', '${isEnc}'); return false;" class="text-blue-500 underline hover:text-blue-600">
+                                    Download to view
+                                </a>
+                            </p>
+                        </div>
+                    `;
+                };
+            } else if (officeTypes.includes(fileExtension)) {
+                // For Office docs, use Microsoft's viewer
+                const blob = new Blob([content], { type: mimeType });
+                const blobUrl = URL.createObjectURL(blob);
+                const encodedUrl = encodeURIComponent(window.location.origin + blobUrl);
+                const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}`;
+                
+                const iframe = document.createElement('iframe');
+                iframe.src = officeViewerUrl;
+                iframe.className = 'w-full border-0 rounded';
+                iframe.style.height = '70vh';
+                
+                modalBody.innerHTML = '';
+                modalBody.appendChild(iframe);
+                
+                // Clean up blob URL when iframe loads or errors
+                iframe.onload = () => URL.revokeObjectURL(blobUrl);
+                iframe.onerror = () => {
+                    URL.revokeObjectURL(blobUrl);
+                    modalBody.innerHTML = `
+                        <div class="text-center text-red-500">
+                            <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+                            <p>Failed to preview document</p>
+                            <p class="text-sm text-gray-500 mt-2">
+                                <a href="#" onclick="dwn('${filePath}', '${csrf}', '${key}', '${isEnc}'); return false;" class="text-blue-500 underline hover:text-blue-600">
+                                    Download to view
+                                </a>
+                            </p>
+                        </div>
+                    `;
+                };
+            }
+        })
+        .catch(error => {
+            console.error('Error loading file:', error);
+            modalBody.innerHTML = `
+                <div class="text-center text-red-500">
+                    <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+                    <p>Failed to load file</p>
+                    <p class="text-sm text-gray-500 mt-2">${error.message || 'Unknown error'}</p>
+                </div>
+            `;
+        });
+}
+
+// Helper function to get the proper file URL
+function getFileUrl(filePath) {
+    // If the filePath is already a complete URL, use it as is
+    if (filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('/')) {
+        return filePath;
+    }
+    
+    // Otherwise, construct the URL based on your server setup
+    // Adjust this based on how your server serves static files
+    return `/${filePath}`;
+}
+
+// Helper function for PDF.js (optional, implement if you have PDF.js)
+function loadPDFWithPDFJS(filePath, container) {
+    // This is a placeholder for PDF.js implementation
+    // You would need to implement this based on your PDF.js setup
+    console.log('PDF.js loading not implemented, falling back to iframe');
+    
+    const iframe = document.createElement('iframe');
+    iframe.src = `${filePath}?t=${Date.now()}`;
+    iframe.className = 'w-full h-full border-0';
+    iframe.style.minHeight = '60vh';
+    
+    container.innerHTML = '';
+    container.appendChild(iframe);
+}
+ 
+function saveFileContent(filePath, content, csrf, key, isEnc) {
+    progr();
+    const data = {
+        csrf: csrf,
+        action: 'save_content',
+        file: filePath,
+        content: content
+    };
+
+    sendRequest(data, key, isEnc)
+        .then(() => {
+            triggerAlert('success', 'File content saved successfully!');
+        })
+        .catch(error => {
+            triggerAlert('warning', error);
+            dprogr
+        });
+        dprogr();
+}
+
+/**
+ * Context Menu for File Manager
+ * This module provides a right-click context menu for file and folder operations
+ */
+
+// Store the current context menu target for callback operations
+let contextMenuTarget = null;
+let currentContextMenuType = null; // 'file', 'folder', 'multiple', or 'background'
+
+/**
+ * Initialize the context menu functionality
+ * @param {Object} options Configuration options and callbacks
+ */
+function initContextMenu(options = {}) {
+    // Create the context menu element if it doesn't exist
+    if (!document.getElementById('context-menu')) {
+        createContextMenuElement();
+    }
+
+    const contextMenu = document.getElementById('context-menu');
+    
+    // Add the context menu event listeners
+    // Only apply context menu to the file manager area
+    document.getElementById('file').addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('click', hideContextMenu);
+    window.addEventListener('blur', hideContextMenu);
+    window.addEventListener('resize', hideContextMenu);
+    document.addEventListener('scroll', hideContextMenu, true);
+
+    // Add click handlers for all menu items
+    addMenuItemEventListeners();
+    
+ }
+
+/**
+ * Create the context menu DOM element
+ */
+function createContextMenuElement() {
+    const contextMenu = document.createElement('div');
+    contextMenu.id = 'context-menu';
+    contextMenu.className = 'hidden absolute z-50 min-w-[200px] bg-white dark:bg-gray-800 shadow-lg rounded-md py-2 border border-gray-200 dark:border-gray-700';
+    
+    // Set the HTML content for the context menu
+    contextMenu.innerHTML = `
+        <div class="context-menu-group file-operations hidden">
+            <button class="context-menu-item" data-action="rename">
+                <i class="fas fa-signature mr-2"></i>Rename
+            </button>
+            <button class="context-menu-item" data-action="download">
+                <i class="fas fa-download mr-2"></i>Download
+            </button>
+        </div>
+        <div class="context-menu-group folder-operations hidden">
+            <button class="context-menu-item" data-action="open-folder">
+                <i class="fas fa-folder-open mr-2"></i>Open
+            </button>
+            <button class="context-menu-item" data-action="open-folder-new-tab">
+                <i class="fas fa-external-link-alt mr-2"></i>Open in New Tab
+            </button>
+            <button class="context-menu-item" data-action="rename-folder">
+                <i class="fas fa-signature mr-2"></i>Rename
+            </button>
+        </div>
+        <div class="context-menu-group clipboard-operations">
+            <button class="context-menu-item" data-action="copy">
+                <i class="fas fa-copy mr-2"></i>Copy
+            </button>
+            <button class="context-menu-item" data-action="cut">
+                <i class="fas fa-cut mr-2"></i>Cut
+            </button>
+            <button class="context-menu-item paste-option hidden" data-action="paste">
+                <i class="fas fa-paste mr-2"></i>Paste
+            </button>
+        </div>
+        <div class="context-menu-divider border-t border-gray-200 dark:border-gray-700 my-1"></div>
+        <div class="context-menu-group danger-operations">
+            <button class="context-menu-item text-red-600 dark:text-red-400" data-action="delete">
+                <i class="fas fa-trash-alt mr-2"></i>Delete
+            </button>
+        </div>
+        <div class="context-menu-group bg-operations hidden">
+            <div class="context-menu-divider border-t border-gray-200 dark:border-gray-700 my-1"></div>
+            <button class="context-menu-item" data-action="new-file">
+                <i class="fas fa-file-circle-plus mr-2"></i>New File
+            </button>
+            <button class="context-menu-item" data-action="new-folder">
+                <i class="fas fa-folder-plus mr-2"></i>New Folder
+            </button>
+            <button class="context-menu-item" data-action="refresh">
+                <i class="fas fa-sync-alt mr-2"></i>Refresh
+            </button>
+        </div>
+    `;
+    
+    // Add styles for context menu items
+    const style = document.createElement('style');
+    style.textContent = `
+        .context-menu-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            text-align: left;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            color: #374151; /* gray-700 */
+            transition: background-color 0.15s ease;
+        }
+        .dark .context-menu-item {
+            color: #e5e7eb; /* gray-200 */
+        }
+        .context-menu-item:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        .dark .context-menu-item:hover {
+            background-color: rgba(96, 165, 250, 0.1);
+        }
+        .context-menu-item:focus {
+            outline: none;
+            background-color: rgba(59, 130, 246, 0.15);
+        }
+        .dark .context-menu-item:focus {
+            background-color: rgba(96, 165, 250, 0.15);
+        }
+        .context-menu-item i {
+            color: #4b5563; /* gray-600 */
+        }
+        .dark .context-menu-item i {
+            color: #d1d5db; /* gray-300 */
+        }
+        .context-menu-item.text-red-600 i {
+            color: #dc2626; /* red-600 */
+        }
+        .dark .context-menu-item.text-red-400 i {
+            color: #f87171; /* red-400 */
+        }
+        @keyframes contextMenuFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        #context-menu {
+            transform-origin: top left;
+            animation: contextMenuFadeIn 0.1s ease-out forwards;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .dark #context-menu {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.18);
+        }
+    `;
+    
+    document.head.appendChild(style);
+    document.body.appendChild(contextMenu);
+}
+
+/**
+ * Handle right-click events to show the context menu
+ * @param {Event} e - The contextmenu event
+ */
+function handleContextMenu(e) {
+    // Prevent the default context menu
+    e.preventDefault();
+    
+    const contextMenu = document.getElementById('context-menu');
+    if (!contextMenu) return;
+    
+    // Hide all context menu groups by default
+    hideAllMenuGroups();
+    
+    // Update contextMenuTarget and determine the type of element right-clicked
+    setContextMenuTarget(e);
+    
+    // Show only the relevant menu groups based on the context
+    updateMenuVisibility();
+    
+    // Check if clipboard has items for paste option
+    updatePasteOption();
+    
+    // Position the menu at the cursor
+    positionContextMenu(e.clientX, e.clientY);
+    
+    // Show the menu with a fade-in effect
+    contextMenu.classList.remove('hidden');
+}
+
+/**
+ * Set the context menu target and determine its type
+ * @param {Event} e - The contextmenu event
+ */
+function setContextMenuTarget(e) {
+    // Check if we right-clicked on a file/folder item or checkbox
+    let target = e.target;
+    
+    // Handle right-clicks on various elements within a file/folder row
+    if (target.closest('tr')) {
+        const row = target.closest('tr');
+        // Get the file/folder element in this row
+        const checkbox = row.querySelector('.file-checkbox');
+        
+        // If we have a checkbox with data-file attribute
+        if (checkbox && checkbox.dataset.file) {
+            contextMenuTarget = checkbox.dataset.file;
+            
+            // Check if this is a directory or file
+            const isDir = row.querySelector('.directory-link') !== null;
+            currentContextMenuType = isDir ? 'folder' : 'file';
+            
+            // If there are multiple files selected, change the type to 'multiple'
+            if (document.querySelectorAll('.file-checkbox:checked').length > 1 && checkbox.checked) {
+                currentContextMenuType = 'multiple';
+            }
+            
+            return;
+        }
+    }
+    
+    // Default to background click (empty space in the file area)
+    contextMenuTarget = document.getElementById('fileList');
+    currentContextMenuType = 'background';
+}
+
+/**
+ * Show only the menu groups relevant to the current context
+ */
+function updateMenuVisibility() {
+    const contextMenu = document.getElementById('context-menu');
+    if (!contextMenu) return;
+    
+    // Hide all groups first
+    hideAllMenuGroups();
+    
+    // Show relevant groups based on context
+    if (currentContextMenuType === 'file') {
+        contextMenu.querySelector('.file-operations').classList.remove('hidden');
+        contextMenu.querySelector('.clipboard-operations').classList.remove('hidden');
+    } 
+    else if (currentContextMenuType === 'folder') {
+        contextMenu.querySelector('.folder-operations').classList.remove('hidden');
+        contextMenu.querySelector('.clipboard-operations').classList.remove('hidden');
+    }
+    else if (currentContextMenuType === 'multiple') {
+        contextMenu.querySelector('.clipboard-operations').classList.remove('hidden');
+    }
+    else if (currentContextMenuType === 'background') {
+        contextMenu.querySelector('.bg-operations').classList.remove('hidden');
+        contextMenu.querySelector('.paste-option').classList.remove('hidden');
+    }
+}
+
+/**
+ * Hide all menu groups
+ */
+function hideAllMenuGroups() {
+    const contextMenu = document.getElementById('context-menu');
+    if (!contextMenu) return;
+    
+    const groups = contextMenu.querySelectorAll('.context-menu-group');
+    groups.forEach(group => group.classList.add('hidden'));
+}
+
+/**
+ * Check if clipboard has items and update paste option visibility
+ */
+function updatePasteOption() {
+    const pasteOption = document.querySelector('.paste-option');
+    if (!pasteOption) return;
+    
+    // Check if there are items in clipboard (localStorage)
+    const hasClipboardItems = localStorage.getItem('copiedFiles') !== null;
+    
+    if (hasClipboardItems) {
+        pasteOption.classList.remove('hidden');
+    } else {
+        pasteOption.classList.add('hidden');
+    }
+}
+
+/**
+ * Position the context menu at the cursor
+ * @param {number} x - The x coordinate
+ * @param {number} y - The y coordinate
+ */
+function positionContextMenu(x, y) {
+    const contextMenu = document.getElementById('context-menu');
+    if (!contextMenu) return;
+    
+    // Get viewport dimensions
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Get menu dimensions
+    contextMenu.style.visibility = 'hidden';
+    contextMenu.classList.remove('hidden');
+    const menuWidth = contextMenu.offsetWidth;
+    const menuHeight = contextMenu.offsetHeight;
+    
+    // Calculate position to ensure menu stays within viewport
+    let menuX = x;
+    let menuY = y;
+    
+    // Adjust if menu would go off right edge
+    if (x + menuWidth > viewportWidth) {
+        menuX = viewportWidth - menuWidth - 5;
+    }
+    
+    // Adjust if menu would go off bottom edge
+    if (y + menuHeight > viewportHeight) {
+        menuY = viewportHeight - menuHeight - 5;
+    }
+    
+    // Position the menu
+    contextMenu.style.left = `${menuX}px`;
+    contextMenu.style.top = `${menuY}px`;
+    contextMenu.style.visibility = 'visible';
+}
+
+/**
+ * Hide the context menu
+ */
+function hideContextMenu() {
+    const contextMenu = document.getElementById('context-menu');
+    if (contextMenu) {
+        contextMenu.classList.add('hidden');
+    }
+    contextMenuTarget = null;
+}
+
+/**
+ * Add event listeners to menu items
+ */
+function addMenuItemEventListeners() {
+    const contextMenu = document.getElementById('context-menu');
+    if (!contextMenu) return;
+    
+    const menuItems = contextMenu.querySelectorAll('.context-menu-item');
+    
+    menuItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const action = item.dataset.action;
+            handleMenuAction(action);
+            hideContextMenu();
+        });
+    });
+}
+
+/**
+ * Handle menu item actions
+ * @param {string} action - The action to perform
+ */
+function handleMenuAction(action) {
+    // Get current directory, CSRF token, and encryption key from global state
+    const currentDir = window.fileManagerState?.currentDir || phpVars?.currentDir;
+    const csrf = phpVars?.csrf;
+    const key = phpVars?.encryptionKey ? CryptoJS.enc.Utf8.parse(phpVars.encryptionKey) : null;
+    const isEnc = phpVars?.isEnc;
+    
+    // Utility function to join paths without double slashes
+    const joinPaths = (base, path) => {
+        if (base.endsWith('/')) {
+            return base + path;
+        } else {
+            return base + '/' + path;
+        }
+    };
+    
+    // Handle actions based on type
+    switch (action) {
+        case 'open-folder':
+            if (contextMenuTarget) {
+                // Navigate to the folder
+                const newDir = joinPaths(currentDir, contextMenuTarget);
+                window.currentDir = newDir;
+                // Use the global function from main.js
+                window.updateCurrentPath();
+                
+                // Get current items per page setting
+                let itemLimitElement = document.getElementById('itemLimit');
+                let itemsPerPage = itemLimitElement ? itemLimitElement.value : '50';
+                
+                loadDirectory(newDir, 1, csrf, key, isEnc, itemsPerPage);
+                // Use the global function from main.js
+                window.updateActiveTabPath(newDir);
+            }
+            break;
+            
+        case 'open-folder-new-tab':
+            if (contextMenuTarget) {
+                // Navigate to folder in new tab
+                const newDir = joinPaths(currentDir, contextMenuTarget);
+                // Call the addNewTab function from main.js and then load the directory
+                if (typeof window.addNewTab === 'function') {
+                    const newTabId = window.addNewTab(contextMenuTarget);
+                    // Load the directory in the new tab
+                    loadDirectory(newDir, 1, csrf, key, isEnc);
+                    // Set the path for the new tab
+                    window.updateActiveTabPath(newDir);
+                } else {
+                    // Fallback if addNewTab function is not available
+                    console.warn('addNewTab function not found, using current tab');
+                    window.currentDir = newDir;
+                    window.updateCurrentPath();
+                    loadDirectory(newDir, 1, csrf, key, isEnc);
+                    window.updateActiveTabPath(newDir);
+                }
+            }
+            break;
+            
+        case 'rename':
+        case 'rename-folder':
+            if (contextMenuTarget) {
+                renameFile(contextMenuTarget, csrf, currentDir, key, isEnc);
+            }
+            break;
+            
+        case 'download':
+            if (contextMenuTarget) {
+                dwn(joinPaths(currentDir, contextMenuTarget), csrf, key, isEnc);
+            }
+            break;
+            
+        case 'copy':
+            if (currentContextMenuType === 'multiple') {
+                // Get all selected files with full paths
+                const selectedFiles = Array.from(document.querySelectorAll('.file-checkbox:checked'))
+                    .map(checkbox => {
+                        const fileName = checkbox.dataset.file;
+                        return joinPaths(currentDir, fileName);
+                    });
+                saveToLocalStorage(selectedFiles);
+            } else if (contextMenuTarget) {
+                saveToLocalStorage([joinPaths(currentDir, contextMenuTarget)]);
+            }
+            triggerAlert('success', 'Item(s) copied to clipboard');
+            break;
+            
+        case 'cut':
+            // Similar to copy, but mark for moving instead of copying
+            if (currentContextMenuType === 'multiple') {
+                const selectedFiles = Array.from(document.querySelectorAll('.file-checkbox:checked'))
+                    .map(checkbox => {
+                        const fileName = checkbox.dataset.file;
+                        return joinPaths(currentDir, fileName);
+                    });
+                saveToLocalStorage(selectedFiles);
+                // Store that this is a cut operation
+                localStorage.setItem('clipboard-action', 'cut');
+            } else if (contextMenuTarget) {
+                saveToLocalStorage([joinPaths(currentDir, contextMenuTarget)]);
+                localStorage.setItem('clipboard-action', 'cut');
+            }
+            triggerAlert('info', 'Item(s) ready to move');
+            break;
+            
+        case 'paste':
+            // Get files from clipboard
+            const files = getFromLocalStorage();
+            if (files && files.length > 0) {
+                console.log('Attempting to paste files:', files);
+                console.log('Current directory:', currentDir);
+                
+                // Show a loading indicator
+                triggerAlert('info', `Pasting ${files.length} item(s)...`);
+                
+                performBulkAction('paste', files, currentDir, csrf, key, isEnc);
+                
+                // Clear clipboard after paste
+                freeclipbroad();
+                localStorage.removeItem('clipboard-action');
+            } else {
+                triggerAlert('warning', 'No items in clipboard');
+            }
+            break;
+            
+        case 'delete':
+            if (currentContextMenuType === 'multiple') {
+                // Delete all selected files
+                const selectedFiles = Array.from(document.querySelectorAll('.file-checkbox:checked'))
+                    .map(checkbox => checkbox.dataset.file);
+                    
+                showConfirmation(
+                    'Delete Files',
+                    `Are you sure you want to delete ${selectedFiles.length} file(s)?`,
+                    'Delete',
+                    () => {
+                        performBulkAction('delete', selectedFiles, currentDir, csrf, key, isEnc);
+                    }
+                );
+            } else if (contextMenuTarget) {
+                deleteFile(contextMenuTarget, csrf, currentDir, key, isEnc);
+            }
+            break;
+            
+       
+        case 'refresh':
+            loadDirectory(currentDir, 1, csrf, key, isEnc);
+            break;
+    }
+}
+
+// Export the initialization function
+window.initContextMenu = initContextMenu;
+
+/**
+ * Get the language for code editor based on file extension
+ * @param {string} fileName - The name of the file
+ * @returns {string} - The language mode for the editor
+ */
+function getLanguageFromFileName(fileName) {
+    // Handle missing or undefined fileName
+    if (!fileName) return 'plaintext';
+    
+    const extension = fileName.split('.').pop().toLowerCase();
+    
+    // Map of file extensions to CodeMirror modes
+    const modeMap = {
+        // Web languages
+        'js': 'javascript',
+        'mjs': 'javascript',
+        'cjs': 'javascript',
+        'jsx': 'javascript',
+        'ts': 'javascript',
+        'tsx': 'javascript',
+        'html': 'htmlmixed',
+        'htm': 'htmlmixed',
+        'css': 'css',
+        'scss': 'css',
+        'less': 'css',
+        'json': 'javascript',
+        'xml': 'xml',
+        'svg': 'xml',
+        
+        // Server languages
+        'php': 'php',
+        'py': 'python',
+        'rb': 'ruby',
+        'java': 'clike',
+        'c': 'clike',
+        'cpp': 'clike',
+        'cs': 'clike',
+        'h': 'clike',
+        'hpp': 'clike',
+        
+        // Shell and config
+        'sh': 'shell',
+        'bash': 'shell',
+        'zsh': 'shell',
+        'fish': 'shell',
+        'conf': 'shell',
+        'ini': 'shell',
+        'yaml': 'yaml',
+        'yml': 'yaml',
+        
+        // Data and documentation
+        'md': 'markdown',
+        'markdown': 'markdown',
+        'sql': 'sql',
+        'txt': 'plaintext',
+        'log': 'plaintext'
+    };
+    
+    // Return the mapped mode or plaintext if not found
+    return modeMap[extension] || 'plaintext';
+}
+
+/**
+ * Format file permissions with colored characters
+ * @param {string} permsString - The permissions string in rwx format
+ * @returns {string} - HTML with colored permission characters
+ */
+function formatPermissions(permsString, isWritable = null, isReadable = true) {
+    if (!permsString || typeof permsString !== 'string' || permsString.length !== 9) {
+        return '<span class="text-blue-600 dark:text-blue-400">invalid</span>';
+    }
+
+    // Determine the overall permission color based on actual file access
+    let permColor;
+    if (isWritable !== null) {
+        // If writability is explicitly provided
+        if (isWritable) {
+            // Has write permission - green
+            permColor = 'text-green-600 dark:text-green-400';
+        } else if (isReadable) {
+            // Read-only - yellow
+            permColor = 'text-yellow-600 dark:text-yellow-400';
+        } else {
+            // No access - blue
+            permColor = 'text-blue-600 dark:text-blue-400';
+        }
+    } else {
+        // Fall back to string-based detection if no explicit writability provided
+        if (permsString.includes('w')) {
+            permColor = 'text-green-600 dark:text-green-400';
+        } else if (permsString.includes('r')) {
+            permColor = 'text-yellow-600 dark:text-yellow-400';
+        } else {
+            permColor = 'text-blue-600 dark:text-blue-400';
+        }
+    }
+    
+    // Format the permission string with spaces between groups
+    let formatted = '';
+    for (let i = 0; i < permsString.length; i++) {
+        formatted += permsString[i];
+        // Add space between groups (user/group/world)
+        if (i === 2 || i === 5) {
+            formatted += ' ';
+        }
+    }
+    
+    // Return the entire string in a single color
+    return `<span class="${permColor} font-mono">${formatted}</span>`;
+}
+
+// Make renderFiles available globally
+window.renderFiles = renderFiles;
+
+// Diagnostic function to check if all required functions are available
+function diagnoseFileSorting() {
+    console.log("--- File Sorting Diagnostics ---");
+    console.log("window.fileManagerState exists:", window.fileManagerState ? "Yes" : "No");
+    if (window.fileManagerState) {
+        console.log("fileManagerState contents:", window.fileManagerState);
+    }
+    
+    console.log("sortFiles function exists:", typeof window.sortFiles === 'function' ? "Yes" : "No");
+    console.log("renderFiles function exists:", typeof window.renderFiles === 'function' ? "Yes" : "No");
+    console.log("createFileRow function exists:", typeof window.createFileRow === 'function' ? "Yes" : "No");
+    
+    // Check if the table headers have the correct data-sort attributes
+    const headers = document.querySelectorAll('th[data-sort]');
+    console.log("Table headers with data-sort attributes:", headers.length);
+    headers.forEach(header => {
+        console.log(`Header: ${header.textContent.trim()}, data-sort: ${header.dataset.sort}`);
+    });
+    
+    return {
+        fileManagerState: window.fileManagerState ? "Available" : "Missing",
+        sortFiles: typeof window.sortFiles === 'function' ? "Available" : "Missing",
+        renderFiles: typeof window.renderFiles === 'function' ? "Available" : "Missing",
+        createFileRow: typeof window.createFileRow === 'function' ? "Available" : "Missing",
+        headers: Array.from(headers).map(h => ({ text: h.textContent.trim(), sort: h.dataset.sort }))
+    };
+}
+
+/**
+ * Debounce function to limit how often a function is called
+ * @param {Function} func - The function to debounce
+ * @param {number} wait - The time to wait in milliseconds
+ * @returns {Function} - The debounced function
+ */
+function debounce(func, wait = 300) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+/**
+ * Diagnostic function for search functionality
+ * @returns {Object} - Diagnostic information about search functionality
+ */
+function diagnoseSearch() {
+    console.log("--- Search Functionality Diagnostics ---");
+    
+    // Check search bar
+    const searchBar = document.getElementById('searchBar') || document.querySelector('#searchBar');
+    console.log("Search bar found:", searchBar ? "Yes" : "No");
+    if (searchBar) {
+        console.log("Search value:", searchBar.value);
+    }
+    
+    // Check clear button
+    const clearButton = document.getElementById('clearSearch');
+    console.log("Clear button found:", clearButton ? "Yes" : "No");
+    if (clearButton) {
+        console.log("Clear button visible:", clearButton.style.display !== 'none');
+    }
+    
+    // Check fileManagerState
+    console.log("fileManagerState exists:", window.fileManagerState ? "Yes" : "No");
+    if (window.fileManagerState) {
+        console.log("Number of files in state:", window.fileManagerState.files ? window.fileManagerState.files.length : 0);
+    }
+    
+    // Check search function
+    console.log("searchFiles function exists:", typeof window.searchFiles === 'function' ? "Yes" : "No");
+    
+    // Test search if possible
+    if (typeof window.searchFiles === 'function' && window.fileManagerState && window.fileManagerState.files) {
+        const testQuery = "test";
+        const results = window.searchFiles(window.fileManagerState.files, testQuery);
+        console.log(`Test search for "${testQuery}" returned ${results.length} results`);
+    }
+    
+    return {
+        searchBarFound: searchBar ? true : false,
+        searchValue: searchBar ? searchBar.value : null,
+        clearButtonFound: clearButton ? true : false,
+        clearButtonVisible: clearButton ? clearButton.style.display !== 'none' : false,
+        fileManagerStateExists: window.fileManagerState ? true : false,
+        fileCount: window.fileManagerState && window.fileManagerState.files ? window.fileManagerState.files.length : 0,
+        searchFunctionExists: typeof window.searchFiles === 'function'
+    };
+}
+
+/**
+ * Update the file table footer with item count information
+ */
+function updateFileTableFooter() {
+    // Get the table element
+    const table = document.querySelector('.overflow-x-auto table');
+    if (!table) return;
+    
+    // Calculate values
+    const state = window.fileManagerState || {};
+    const totalItems = state.totalItems || 0;
+    const currentPage = state.currentPage || 1;
+    const itemsPerPage = state.itemsPerPage || 50;
+    const filesCount = state.files ? state.files.length : 0;
+    
+    // Calculate the start and end item numbers
+    let startItem, endItem;
+    
+    if (itemsPerPage === 'all') {
+        startItem = totalItems > 0 ? 1 : 0;
+        endItem = totalItems;
+    } else {
+        startItem = totalItems === 0 ? 0 : (currentPage - 1) * parseInt(itemsPerPage, 10) + 1;
+        endItem = Math.min(startItem + filesCount - 1, totalItems);
+    }
+    
+    // Remove existing tfoot if it exists
+    let tfoot = table.querySelector('tfoot');
+    if (tfoot) {
+        tfoot.remove();
+    }
+    
+    // Create new tfoot element
+    tfoot = document.createElement('tfoot');
+    tfoot.className = 'bg-gray-50 dark:bg-gray-700 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700';
+    
+    // Create footer content
+    tfoot.innerHTML = `
+        <tr> 
+            <td colspan="7" class="py-3 px-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="font-medium">Showing:</span> 
+                        <span class="text-blue-600 dark:text-blue-400 font-medium">${endItem}</span> 
+                        of 
+                        <span class="text-blue-600 dark:text-blue-400 font-medium">${totalItems}</span> items
+                    </div>
+                </div>
+            </td>
+        </tr>
+    `;
+    
+    // Append the footer to the table
+    table.appendChild(tfoot);
+    
+    // Remove old separate footer if it exists
+    const oldFooter = document.getElementById('fileTableFooter');
+    if (oldFooter) {
+        oldFooter.remove();
+    }
+}
+
+// Expose all necessary utility functions globally
+function exposeGlobalFunctions() {
+    // Expose functions to the global scope
+    window.initializeFileManager = initializeFileManager;
+    window.showDialog = showDialog;
+    window.showConfirmation = showConfirmation;
+    window.progr = progr;
+    window.dprogr = dprogr;
+    window.loadDirectory = loadDirectory;
+    window.handleDirectoryResponse = handleDirectoryResponse;
+    window.createFileRow = createFileRow;
+    window.triggerAlert = triggerAlert;
+    window.encrypt = encrypt;
+    window.decrypt = decrypt;
+    window.searchFiles = searchFiles;
+    window.renderFiles = renderFiles;
+    window.appendFiles = appendFiles;
+    window.viewEditFile = viewEditFile;
+    // window.dwn = dwn;
+    window.saveFileContent = saveFileContent;
+    window.updateSelectedFiles = updateSelectedFiles;
+    window.getLanguageFromFileName = getLanguageFromFileName;
+    window.formatPermissions = formatPermissions;
+}
+
+// Call this function to expose all utility functions
+exposeGlobalFunctions();
+
+// Function to automatically track and save opened files state
+function saveOpenedFilesState(filePath, action = 'add') {
+    try {
+        // Get current open files
+        let openFiles = JSON.parse(localStorage.getItem('fileManager_openFiles') || '[]');
+        
+        if (action === 'add') {
+            // Add file if not already in the list
+            if (!openFiles.includes(filePath)) {
+                openFiles.push(filePath);
+                console.log(`Added ${filePath} to tracked open files`);
+            }
+        } else if (action === 'remove') {
+            // Remove file from the list
+            openFiles = openFiles.filter(file => file !== filePath);
+            console.log(`Removed ${filePath} from tracked open files`);
+        }
+        
+        // Save updated list
+        localStorage.setItem('fileManager_openFiles', JSON.stringify(openFiles));
+        return true;
+    } catch (error) {
+        console.error('Error saving opened files state:', error);
+        return false;
+    }
+}
+
+// Expose the function globally
+window.saveOpenedFilesState = saveOpenedFilesState;
+
+// Expose preview modal globally so main.js or inline onclick can reuse it
+window.showFilePreviewModal = showFilePreviewModal;
+function dwn(filePath, csrf, key, isEnc) {
+     fetch('', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            csrf: csrf,
+            action: 'download',
+            file: filePath,
+            dir: '',
+            key: key,
+            isEnc: isEnc
+        })
+    })
+    .then(response => {
+        const filename = filePath.split('/').pop(); // e.g., "image.jpeg"
+        return response.blob().then(blob => ({ blob, filename }));
+    })
+    .then(({ blob, filename }) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        URL.revokeObjectURL(url);
+        a.remove();
+    })
+    .catch(error => {
+        triggerAlert('warning', 'Download failed');
+        console.error('Error:', error);
+    });
+}
