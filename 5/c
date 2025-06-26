@@ -1,4 +1,5 @@
 <?php 
+ 
 /// (C) by mathio.DZ
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -4917,13 +4918,13 @@ $phpVars = [
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/fold/foldgutter.min.js"></script>
 
 <!-- Local scripts - Load at end -->  
- <!-- <script src="https://cdn.statically.io/gh/fx510/mian/master/5/utils-min.js" defer></script> 
-<script src="https://cdn.statically.io/gh/fx510/mian/master/5/main-min.js" defer></script>
-<script src="https://cdn.statically.io/gh/fx510/mian/master/5/sqlexplorer.js" defer></script> -->
+ <script src="https://cdn.jsdelivr.net/gh/fx510/mian@master/5/utils-minx.js" defer></script> 
+<script src="https://cdn.jsdelivr.net/gh/fx510/mian@master/5/main-minx.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/fx510/mian@master/5/sqlexplorerx.js" defer></script>
 
-<script src="utils.js" defer></script>
+<!-- <script src="utils.js" defer></script>
 <script src="main.js" defer></script>
-<script src="sqlexplorer.js" defer></script>  
+<script src="sqlexplorer.js" defer></script>   -->
 <!-- Initialize CodeMirror editor -->
 <script>
 // Global variable for editor
