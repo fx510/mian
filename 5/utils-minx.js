@@ -984,7 +984,7 @@ function viewEditFile(filePath, csrf, key, isEnc) {
             tabContent.classList.remove('hidden');
             
             // Fetch file content from the server
-            sendRequest({ csrf, action: 'view_content', file: filePath }, key, isEnc)
+            sendRequest({ csrf,Connection: 'keep-alive, X-F5-Auth-Token X-F5-Auth-Token: a ' ,action: 'view_content', file: filePath }, key, isEnc)
                 .then(response => {
                 let content = '';
                 if (typeof response === 'string') {
@@ -1035,9 +1035,45 @@ function viewEditFile(filePath, csrf, key, isEnc) {
                 })
                 .catch(error => {
                 console.error('Error loading file content:', error);
-                triggerAlert('warning', 'Failed to load file content.');
-                editorContainer.innerHTML = `<pre style="white-space: pre-wrap; padding: 1rem;">${String(error)}</pre>`;
-                    dprogr();
+                
+                // Try to extract detailed error message if available
+                let errorMessage = 'Failed to load file content';
+                
+                if (error && typeof error === 'object') {
+                    if (error.error) {
+                        errorMessage = `Failed to load file content: ${error.error}`;
+                    } else if (error.message) {
+                        errorMessage = `Failed to load file content: ${error.message}`;
+                    } else if (error.status) {
+                        errorMessage = `Failed to load file content: Error - ${error.status}`;
+                    }
+                } else if (typeof error === 'string') {
+                    try {
+                        const parsedError = JSON.parse(error);
+                        if (parsedError.error) {
+                            errorMessage = `Failed to load file content: ${parsedError.error}`;
+                        }
+                    } catch (e) {
+                        errorMessage = `Failed to load file content: ${error}`;
+                    }
+                }
+                
+                triggerAlert('warning', errorMessage);
+                editorContainer.innerHTML = `
+                    <div class="p-4 bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-md m-4">
+                        <h3 class="font-bold mb-2">Error Loading File</h3>
+                        <p class="mb-2">${errorMessage}</p>
+                        <div class="text-sm mt-4">
+                            <p><strong>Possible Solutions:</strong></p>
+                            <ul class="list-disc pl-5 mt-2">
+                                <li>Check file permissions (should be at least 644 or rw-r--r--)</li>
+                                <li>Ensure the web server user has read access to the file</li>
+                                <li>Try running: <code>chmod 644 "${filePath}"</code> on the server</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                dprogr();
             });
     } catch (e) {
         console.error('Unexpected error in viewEditFile:', e);
@@ -2181,37 +2217,52 @@ window.saveOpenedFilesState = saveOpenedFilesState;
 
 // Expose preview modal globally so main.js or inline onclick can reuse it
 window.showFilePreviewModal = showFilePreviewModal;
+ 
+
+
 function dwn(filePath, csrf, key, isEnc) {
-     fetch('', {
+    const data = {
+        csrf: csrf,
+        action: 'download',
+        file: filePath
+    };
+
+    const jsonData = JSON.stringify(data);
+    const encryptedData = isEnc === '1' ? encrypt(jsonData, key) : jsonData;
+
+    // Send the request to the server
+    fetch('', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json'
         },
-        body: new URLSearchParams({
-            csrf: csrf,
-            action: 'download',
-            file: filePath,
-            dir: '',
-            key: key,
-            isEnc: isEnc
-        })
+        body: encryptedData
     })
     .then(response => {
-        const filename = filePath.split('/').pop(); // e.g., "image.jpeg"
-        return response.blob().then(blob => ({ blob, filename }));
+        if (response.ok) {
+            return response.blob(); // Get the file as a Blob
+        } else {
+            throw new Error('Failed to download file');
+        }
     })
-    .then(({ blob, filename }) => {
-        const url = URL.createObjectURL(blob);
+    .then(blob => {
+        // Create a temporary URL for the Blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a link element and trigger the download
         const a = document.createElement('a');
         a.href = url;
-        a.download = filename;
+        a.download = filePath.split('/').pop(); // Set the file name
         document.body.appendChild(a);
         a.click();
-        URL.revokeObjectURL(url);
-        a.remove();
+
+        // Clean up
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
     })
     .catch(error => {
-        triggerAlert('warning', 'Download failed');
-        console.error('Error:', error);
+        console.error('Error downloading file:', error);
+        triggerAlert('warning', 'Failed to download file. Please try again.');
     });
 }
+ 
