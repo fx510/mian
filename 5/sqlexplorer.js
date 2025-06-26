@@ -2576,7 +2576,7 @@ function exportTableAsSql() {
             
             if (result.success && result.sql) {
                 // Download the SQL file
-                downloadFile(result.sql, result.filename, 'text/plain');
+                // downloadFile(result.sql, result.filename, 'text/plain');
                 triggerAlert('success', `Table ${table} exported as SQL successfully!`);
             } else {
                 triggerAlert('warning', 'Failed to export table: ' + (result.error || 'Unknown error'));
@@ -2624,7 +2624,7 @@ function exportTableAsCsv() {
             
             if (result.success && result.csv) {
                 // Download the CSV file
-                downloadFile(result.csv, result.filename, 'text/csv');
+                // downloadFile(result.csv, result.filename, 'text/csv');
                 triggerAlert('success', `Table ${table} exported as CSV successfully!`);
             } else {
                 triggerAlert('warning', 'Failed to export table: ' + (result.error || 'Unknown error'));
