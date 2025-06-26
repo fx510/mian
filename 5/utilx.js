@@ -1412,7 +1412,14 @@ function initContextMenu(options = {}) {
     document.addEventListener('click', hideContextMenu);
     window.addEventListener('blur', hideContextMenu);
     window.addEventListener('resize', hideContextMenu);
+    
+    // Listen for scroll events on any scrollable container
     document.addEventListener('scroll', hideContextMenu, true);
+    // Also specifically target the file manager container
+    const fileContainer = document.getElementById('file');
+    if (fileContainer) {
+        fileContainer.addEventListener('scroll', hideContextMenu, true);
+    }
 
     // Add click handlers for all menu items
     addMenuItemEventListeners();
@@ -1425,7 +1432,7 @@ function initContextMenu(options = {}) {
 function createContextMenuElement() {
     const contextMenu = document.createElement('div');
     contextMenu.id = 'context-menu';
-    contextMenu.className = 'hidden absolute z-50 min-w-[200px] bg-white dark:bg-gray-800 shadow-lg rounded-md py-2 border border-gray-200 dark:border-gray-700';
+    contextMenu.className = 'hidden fixed z-50 min-w-[200px] bg-white dark:bg-gray-800 shadow-lg rounded-md py-2 border border-gray-200 dark:border-gray-700';
     
     // Set the HTML content for the context menu
     contextMenu.innerHTML = `
@@ -1550,6 +1557,9 @@ function handleContextMenu(e) {
     const contextMenu = document.getElementById('context-menu');
     if (!contextMenu) return;
     
+    // Reset any existing context menu state
+    contextMenu.classList.add('hidden');
+    
     // Hide all context menu groups by default
     hideAllMenuGroups();
     
@@ -1562,11 +1572,13 @@ function handleContextMenu(e) {
     // Check if clipboard has items for paste option
     updatePasteOption();
     
-    // Position the menu at the cursor
+    // Position the menu at the cursor - use clientX and clientY since we're using fixed positioning
     positionContextMenu(e.clientX, e.clientY);
     
-    // Show the menu with a fade-in effect
-    contextMenu.classList.remove('hidden');
+    // Show the menu with a fade-in effect after a small delay to ensure proper rendering
+    setTimeout(() => {
+        contextMenu.classList.remove('hidden');
+    }, 10);
 }
 
 /**
@@ -1674,6 +1686,10 @@ function positionContextMenu(x, y) {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     
+    // Get scroll position
+    const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+    
     // Get menu dimensions
     contextMenu.style.visibility = 'hidden';
     contextMenu.classList.remove('hidden');
@@ -1694,9 +1710,10 @@ function positionContextMenu(x, y) {
         menuY = viewportHeight - menuHeight - 5;
     }
     
-    // Position the menu
+    // Position the menu - account for scroll position
     contextMenu.style.left = `${menuX}px`;
     contextMenu.style.top = `${menuY}px`;
+    contextMenu.style.position = 'fixed'; // Use fixed positioning to work with scroll
     contextMenu.style.visibility = 'visible';
 }
 
